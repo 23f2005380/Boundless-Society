@@ -1,8 +1,28 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Menu, Mail, Linkedin, Instagram, Youtube } from "lucide-react"
+import Hero from "@/components/Hero1"
 
 export default function BoundlessTravelSociety() {
+  function borderBetweenPages(col: string) {
+    let elem = []
+    for (let i = 0; i < 30; i++) {
+      elem.push(
+        <div
+          key={i}
+          className="rounded-t-lg"
+          style={{
+            width: "50px",
+            height: "50px",
+            background: "#" + col,
+            borderTopRightRadius: "50px",
+          }}
+        ></div>
+      )
+    }
+    return elem
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
       {/* Header */}
@@ -12,47 +32,21 @@ export default function BoundlessTravelSociety() {
             <span className="text-amber-800 font-bold text-xs">IIT</span>
           </div>
         </div>
-        <Button
-          variant="outline"
-          className="bg-amber-800 text-white border-amber-800 hover:bg-amber-900 px-4 md:px-6 py-2 rounded-full text-sm md:text-base"
+        <button
+          className="bg-amber-800 text-white border border-amber-800 hover:bg-amber-900 px-4 md:px-6 py-2 rounded-full text-sm md:text-base flex items-center"
         >
           <Menu className="w-4 h-4 mr-1 md:mr-2" />
           MENU
-        </Button>
+        </button>
       </header>
 
       {/* Hero Section */}
-      <section className="px-4 md:px-6 mb-8 md:mb-16">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-amber-900 mb-4 md:mb-6 relative">
-            BOUNDLESS
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-2 md:h-4 bg-gradient-to-b from-amber-900 to-transparent opacity-30"></div>
-          </h1>
-
-          <div className="border-2 border-cyan-400 bg-cyan-50 p-3 md:p-4 rounded-lg max-w-xs md:max-w-2xl mx-auto mb-6 md:mb-8">
-            <h2 className="text-lg md:text-2xl lg:text-3xl font-bold text-amber-900 mb-3 md:mb-4">
-              IIT 'M BS TRAVEL SOCIETY
-            </h2>
-            <Button className="bg-amber-500 hover:bg-amber-600 text-white px-6 md:px-8 py-2 rounded-full font-semibold text-sm md:text-base">
-              Join Us
-            </Button>
-          </div>
-        </div>
-
-        {/* Decorative Circle */}
-        <div className="flex justify-center mb-8 md:mb-12">
-          <div className="relative">
-            <div className="w-48 h-48 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-black rounded-full"></div>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-200 via-transparent to-amber-200 opacity-20"></div>
-            {/* Concentric circles effect */}
-            <div className="absolute inset-4 md:inset-8 rounded-full border-2 border-amber-300 opacity-30"></div>
-            <div className="absolute inset-8 md:inset-16 rounded-full border-2 border-amber-400 opacity-20"></div>
-          </div>
-        </div>
-      </section>
+      <Hero />
 
       {/* Decorative Wave */}
-      <div className="w-full h-8 md:h-16 bg-gradient-to-r from-amber-200 to-amber-300 rounded-t-full mb-6 md:mb-8"></div>
+      <div className="w-full h-8 md:h-16 flex">
+        {borderBetweenPages("658987")}
+      </div>
 
       {/* Upcoming Trips Section */}
       <section className="px-4 md:px-6 mb-8 md:mb-12">
@@ -60,9 +54,8 @@ export default function BoundlessTravelSociety() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
             UPCOMING TRIPS
           </h2>
-
           <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
-            {/* Sidebar - Hidden on mobile, shown on larger screens */}
+            {/* Sidebar */}
             <div className="hidden lg:block lg:col-span-1 space-y-3">
               <div className="text-amber-800 font-semibold space-y-2">
                 <div className="p-3 hover:bg-amber-200 rounded cursor-pointer transition-colors">LONAVALA</div>
@@ -71,61 +64,29 @@ export default function BoundlessTravelSociety() {
                 <div className="p-3 hover:bg-amber-200 rounded cursor-pointer transition-colors">REVEALING SOON</div>
               </div>
             </div>
-
             {/* Trip Cards */}
             <div className="lg:col-span-3 space-y-3 md:space-y-4">
-              <Card className="bg-yellow-200 border-yellow-300 shadow-lg">
-                <CardContent className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-3 md:mb-4">LONAVALA MATHERAN TRIP</h3>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-white hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    View Details
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-pink-200 border-pink-300 shadow-lg">
-                <CardContent className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-3 md:mb-4">Bhopal Trip</h3>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-white hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    View Details
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-blue-200 border-blue-300 shadow-lg">
-                <CardContent className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-3 md:mb-4">Goa Trip</h3>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-white hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    View Details
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-green-200 border-green-300 shadow-lg">
-                <CardContent className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-2">Revealing Soon</h3>
-                  <p className="text-sm text-amber-800 mb-3 md:mb-4">Stay Tuned for more details</p>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-white hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    View Details
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
+              {[
+                { title: "LONAVALA MATHERAN TRIP", color: "bg-yellow-200 border-yellow-300" },
+                { title: "Bhopal Trip", color: "bg-pink-200 border-pink-300" },
+                { title: "Goa Trip", color: "bg-blue-200 border-blue-300" },
+                { title: "Revealing Soon", color: "bg-green-200 border-green-300", soon: true },
+              ].map((trip, i) => (
+                <div key={i} className={`border shadow-lg rounded-lg ${trip.color}`}>
+                  <div className="p-4 md:p-6">
+                    <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-3 md:mb-4">{trip.title}</h3>
+                    {trip.soon && (
+                      <p className="text-sm text-amber-800 mb-3 md:mb-4">Stay Tuned for more details</p>
+                    )}
+                    <button
+                      className="w-full flex justify-between items-center bg-white hover:bg-gray-50 text-sm md:text-base border border-gray-300 rounded px-4 py-2"
+                    >
+                      View Details
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -138,7 +99,6 @@ export default function BoundlessTravelSociety() {
       <section className="px-4 md:px-6 mb-8 md:mb-12 bg-gradient-to-b from-green-100 to-blue-100 py-8 md:py-12">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8">We proud to have</h2>
-
           {/* Decorative Banner with Logos */}
           <div className="mb-6 md:mb-8 flex justify-center">
             <div className="bg-gradient-to-r from-yellow-200 via-white to-yellow-200 p-3 md:p-4 rounded-full shadow-lg overflow-hidden">
@@ -154,10 +114,9 @@ export default function BoundlessTravelSociety() {
               </div>
             </div>
           </div>
-
           {/* Statistics */}
-          <Card className="bg-blue-300 border-blue-400 max-w-5xl mx-auto shadow-xl">
-            <CardContent className="p-4 md:p-8">
+          <div className="bg-blue-300 border border-blue-400 max-w-5xl mx-auto shadow-xl rounded-lg">
+            <div className="p-4 md:p-8">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 text-center">
                 <div>
                   <div className="text-2xl md:text-3xl lg:text-4xl font-black text-amber-900">
@@ -178,8 +137,8 @@ export default function BoundlessTravelSociety() {
                   <div className="text-amber-800 font-semibold text-sm md:text-base">Trips</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -192,7 +151,6 @@ export default function BoundlessTravelSociety() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6 md:mb-8 text-center">
             OUR GALLERY
           </h2>
-
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {[
               { title: "GOA VIBES", color: "from-yellow-400 to-orange-400" },
@@ -204,17 +162,17 @@ export default function BoundlessTravelSociety() {
               { title: "ADVENTURE", color: "from-indigo-400 to-purple-400" },
               { title: "MEMORIES", color: "from-pink-400 to-rose-400" },
             ].map((item, i) => (
-              <Card
+              <div
                 key={i}
-                className={`bg-gradient-to-br ${item.color} aspect-square hover:scale-105 transition-transform cursor-pointer`}
+                className={`bg-gradient-to-br ${item.color} aspect-square hover:scale-105 transition-transform cursor-pointer rounded-lg`}
               >
-                <CardContent className="p-3 md:p-4 h-full flex items-center justify-center">
+                <div className="p-3 md:p-4 h-full flex items-center justify-center">
                   <div className="text-white font-bold text-center">
                     <div className="text-xl md:text-2xl mb-2">📸</div>
                     <div className="text-xs md:text-sm">{item.title}</div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -229,7 +187,6 @@ export default function BoundlessTravelSociety() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
             Previous Trips
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[
               {
@@ -263,17 +220,17 @@ export default function BoundlessTravelSociety() {
                 color: "from-orange-400 to-red-400",
               },
             ].map((trip, i) => (
-              <Card
+              <div
                 key={i}
-                className={`bg-gradient-to-br ${trip.color} hover:scale-105 transition-transform cursor-pointer`}
+                className={`bg-gradient-to-br ${trip.color} hover:scale-105 transition-transform cursor-pointer rounded-lg`}
               >
-                <CardContent className="p-4 md:p-6">
+                <div className="p-4 md:p-6">
                   <div className="text-white">
                     <h3 className="font-bold text-lg md:text-xl mb-2">{trip.title}</h3>
                     <p className="text-sm md:text-base opacity-90">{trip.subtitle}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -285,9 +242,8 @@ export default function BoundlessTravelSociety() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
             City Meetups
           </h2>
-
-          <Card className="bg-white shadow-xl">
-            <CardContent className="p-6 md:p-8">
+          <div className="bg-white shadow-xl rounded-lg">
+            <div className="p-6 md:p-8">
               <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
                 <div>
                   <div className="flex space-x-2 mb-4">
@@ -313,8 +269,8 @@ export default function BoundlessTravelSociety() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -324,9 +280,8 @@ export default function BoundlessTravelSociety() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
             ABOUT US
           </h2>
-
-          <Card className="bg-white shadow-xl">
-            <CardContent className="p-6 md:p-8">
+          <div className="bg-white shadow-xl rounded-lg">
+            <div className="p-6 md:p-8">
               <div className="text-amber-800 text-sm md:text-base leading-relaxed space-y-4">
                 <p>
                   We believe in learning that goes beyond textbooks – a journey shaped not just by lectures, but by
@@ -343,8 +298,8 @@ export default function BoundlessTravelSociety() {
                   bunny way!
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -357,7 +312,6 @@ export default function BoundlessTravelSociety() {
             </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900">Get to Know Us</h2>
           </div>
-
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-8">
             {[
               { name: "Ritu Sahani", role: "President 2024" },
@@ -367,8 +321,8 @@ export default function BoundlessTravelSociety() {
               { name: "Jai Vithani", role: "Treasurer" },
               { name: "Lali Maan", role: "Member" },
             ].map((member, i) => (
-              <Card key={i} className="bg-gray-900 text-white hover:scale-105 transition-transform cursor-pointer">
-                <CardContent className="p-3 md:p-4 text-center">
+              <div key={i} className="bg-gray-900 text-white hover:scale-105 transition-transform cursor-pointer rounded-lg">
+                <div className="p-3 md:p-4 text-center">
                   <div className="w-full aspect-square bg-gradient-to-br from-blue-400 to-purple-400 rounded-lg mb-2 flex items-center justify-center">
                     <span className="text-white font-bold text-xs md:text-sm">
                       {member.name
@@ -379,41 +333,37 @@ export default function BoundlessTravelSociety() {
                   </div>
                   <h3 className="font-bold text-xs md:text-sm mb-1">{member.name}</h3>
                   <p className="text-xs text-gray-300">{member.role}</p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Footer/Contact Section */}
-      <footer className="px-0 md:px-0 pb-0 md:pb-0 w-full -mt-20">
+      <footer className="px-0 md:px-0 pb-0 md:pb-0 w-full -mt-10">
         <div className="w-full flex justify-center">
-          <Card className="w-[90%] min-h-[500px] bg-[#46001D] text-[#FFF9C7] shadow-2xl rounded-3xl border-0">
-            <CardContent className="p-0 w-full h-full flex flex-col justify-between">
-              <div className="flex flex-col w-full h-full p-6 md:p-10 gap-6">
-                <div className="flex flex-row justify-between items-start w-full mb-6">
-                  {/* Email Left */}
-                  <div className="flex flex-col items-start">
-                    <p className="text-xl md:text-2xl font-bold mb-2">Email</p>
-                    <p className="text-base md:text-lg font-semibold break-all">boundless.club@study.iitm.ac.in</p>
-                  </div>
-                  {/* Socials Right */}
-                  <div className="flex flex-col items-end gap-2">
-                    <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Youtube</a>
-                    <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Instagram</a>
-                    <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Linkedin</a>
-                  </div>
-                </div>
-                <h1
-                  className="w-full font-black opacity-30 leading-none select-none tracking-normal bg-gradient-to-b from-[#FFFFFF] to-[#420303] bg-clip-text text-transparent text-center mt-16"
-                  style={{ fontSize: 'clamp(2rem, 12vw, 10rem)', transform: 'scaleY(2.4)' }}
-                >
-                  BOUNDLESS
-                </h1>
+          <div className="w-[90%] min-h-[500px] bg-[#46001D] text-[#FFF9C7] shadow-2xl rounded-3xl border-0 flex flex-col p-6 md:p-10">
+            <div className="flex flex-row justify-between items-start w-full mb-6">
+              {/* Email Left */}
+              <div className="flex flex-col items-start">
+                <p className="text-xl md:text-2xl font-bold mb-2">Email</p>
+                <p className="text-base md:text-lg font-semibold break-all">boundless.club@study.iitm.ac.in</p>
               </div>
-            </CardContent>
-          </Card>
+              {/* Socials Right */}
+              <div className="flex flex-col items-end gap-2">
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Youtube</a>
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Instagram</a>
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Linkedin</a>
+              </div>
+            </div>
+            <h1
+              className="w-full font-black opacity-30 leading-none select-none tracking-normal bg-gradient-to-b from-[#FFE1EB] via-[#FFBCCF] to-[#46001D] bg-clip-text text-transparent text-center mt-16"
+              style={{ fontSize: 'clamp(2rem, 12vw, 10rem)', transform: 'scaleY(2.4)' }}
+            >
+              BOUNDLESS
+            </h1>
+          </div>
         </div>
       </footer>
     </div>
