@@ -342,27 +342,28 @@ export default function BoundlessTravelSociety() {
       </section>
 
       {/* Footer/Contact Section */}
-      <footer className="px-4 md:px-6 pb-8 md:pb-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-purple-900 to-pink-900 text-white shadow-2xl rounded-lg">
-            <div className="p-6 md:p-8 text-center">
-              <div className="mb-6">
-                <div className="flex justify-center space-x-4 mb-4">
-                  <Mail className="w-6 h-6" />
-                  <Linkedin className="w-6 h-6" />
-                  <Instagram className="w-6 h-6" />
-                  <Youtube className="w-6 h-6" />
-                </div>
-                <p className="text-sm md:text-base mb-2">Email</p>
-                <p className="text-xs md:text-sm opacity-90">boundless.club@study.iitm.ac.in</p>
-                <div className="mt-4">
-                  <p className="text-sm md:text-base">LinkedIn</p>
-                  <p className="text-sm md:text-base">Instagram</p>
-                  <p className="text-sm md:text-base">Youtube</p>
-                </div>
+      <footer className="px-0 md:px-0 pb-0 md:pb-0 w-full -mt-10">
+        <div className="w-full flex justify-center">
+          <div className="w-[90%] min-h-[500px] bg-[#46001D] text-[#FFF9C7] shadow-2xl rounded-3xl border-0 flex flex-col p-6 md:p-10">
+            <div className="flex flex-row justify-between items-start w-full mb-6">
+              {/* Email Left */}
+              <div className="flex flex-col items-start">
+                <p className="text-xl md:text-2xl font-bold mb-2">Email</p>
+                <p className="text-base md:text-lg font-semibold break-all">boundless.club@study.iitm.ac.in</p>
               </div>
-              <h1 className="text-4xl md:text-6xl lg:text-8xl font-black opacity-20">BOUNDLESS</h1>
+              {/* Socials Right */}
+              <div className="flex flex-col items-end gap-2">
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Youtube</a>
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Instagram</a>
+                <a href="#" className="text-xl md:text-2xl font-bold hover:underline">Linkedin</a>
+              </div>
             </div>
+            <h1
+              className="w-full font-black opacity-30 leading-none select-none tracking-normal bg-gradient-to-b from-[#FFE1EB] via-[#FFBCCF] to-[#46001D] bg-clip-text text-transparent text-center mt-16"
+              style={{ fontSize: 'clamp(2rem, 12vw, 10rem)', transform: 'scaleY(2.4)' }}
+            >
+              BOUNDLESS
+            </h1>
           </div>
         </div>
       </footer>
