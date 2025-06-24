@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Menu, Mail, Linkedin, Instagram, Youtube } from "lucide-react"
 import Hero from "@/components/Hero1"
 
+
 export default function BoundlessTravelSociety() {
   function borderBetweenPages(col: string) {
     let elem = []
@@ -91,7 +92,7 @@ export default function BoundlessTravelSociety() {
           </div>
         </div>
       </section>
-
+     
       {/* Decorative Wave */}
       <div className="w-full h-8 md:h-16 bg-gradient-to-r from-green-200 to-blue-200 rounded-t-full mb-6 md:mb-8"></div>
 
