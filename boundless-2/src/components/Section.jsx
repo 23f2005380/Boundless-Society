@@ -23,9 +23,9 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
         </svg>
       </div>
 
-      <div style={{ background: svgFill }} className={`pt-10 -mt-1 pb-20`}>
+      <div style={{ background: svgFill }} className={`pt-15 -mt-1 pb-20`}>
         <h1
-          className={`mb-1 text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald ${headingStyle}`}
+          className={` text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald ${headingStyle}`}
         >
           {sectionHeading}
         </h1>

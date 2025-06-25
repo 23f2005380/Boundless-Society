@@ -14,7 +14,7 @@ function Gallery() {
           svgFill="black"
           sectionHeading="OUR GALLERY"
         >
-          <div className="overflow-hidden py-20 pt-35 max-sm:py-8 max-md:py-10">
+          <div className="overflow-hidden py-20 pt-35 max-sm:py-8 max-md:py-10 -ml-20">
             <div
               className="w-[120vw] text-white"
               style={{

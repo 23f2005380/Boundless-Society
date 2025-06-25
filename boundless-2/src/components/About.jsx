@@ -9,7 +9,7 @@ function About() {
         sectionHeading="ABOUT US"
         headingStyle="text-black"
       ></Section>{" "}
-      <div className="bg-amber-50 px-8 py-16 text-center">
+      <div className="bg-amber-50 px-8 pb-16 text-center">
         <div className="max-w-4xl mx-auto">
           <p className="text-lg md:text-xl text-gray-800 leading-relaxed mb-8 max-w-3xl mx-auto">
             We believe in learning that goes beyond textbooks – a journey shaped
