@@ -6,12 +6,12 @@ const AnimatedByChar = ({ text }) => {
   const characters = text.split("");
 
   const container = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 1 },
     visible: (i = 1) => ({
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.15 * i,
+        staggerChildren: 0.03,
+        delayChildren: 0.04 * i,
       },
     }),
   };
@@ -19,20 +19,15 @@ const AnimatedByChar = ({ text }) => {
   const child = {
     hidden: {
       opacity: 0,
-      scale: 0.1,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 400,
-      },
+      scale: 0.3,
     },
     visible: {
       opacity: 1,
       scale: 1,
       transition: {
         type: "spring",
-        damping: 12,
-        stiffness: 400,
+        damping: 8,
+        stiffness: 260,
       },
     },
   };
@@ -47,8 +42,12 @@ const AnimatedByChar = ({ text }) => {
       custom={1}
     >
       {characters.map((char, index) => (
-        <motion.span key={index} variants={child} className="inline-block">
-          {char === " " ? "\u00A0" : char}
+        <motion.span
+          key={index}
+          variants={child}
+          className="inline-block whitespace-pre"
+        >
+          {char}
         </motion.span>
       ))}
     </motion.div>
