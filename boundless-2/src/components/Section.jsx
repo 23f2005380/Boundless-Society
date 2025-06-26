@@ -1,3 +1,5 @@
+import AnimatedByWord from "./AnimatedByWord";
+
 const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
   const scallopCount = 15;
   const radius = 40;
@@ -12,7 +14,7 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
   const pathData = `M0,0 ${scallops} L${svgWidth},${svgHeight} L0,${svgHeight} Z`;
 
   return (
-    <div className={`relative text-black -mt-14`}>
+    <div className={`relative text-black -mt-12 max-sm:-mt-6`}>
       <div className="w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -23,11 +25,14 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
         </svg>
       </div>
 
-      <div style={{ background: svgFill }} className={`pt-15 -mt-1 pb-20`}>
+      <div style={{ background: svgFill }} className={`pt-15 -mt-1 pb-10`}>
         <h1
           className={` text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald ${headingStyle}`}
         >
-          {sectionHeading}
+          {" "}
+          <AnimatedByWord text={sectionHeading}>
+            {sectionHeading}
+          </AnimatedByWord>
         </h1>
         {children}
       </div>
