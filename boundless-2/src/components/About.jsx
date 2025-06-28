@@ -8,9 +8,9 @@ function About() {
       <Section
         svgFill="#fffbeb"
         sectionHeading="ABOUT US"
-        headingStyle="text-black"
+        headingStyle="text-brown"
       />
-      <div className="bg-amber-50 px-8 pb-16 text-center">
+      <div className="bg-bgWhite px-8 pb-16 text-center">
         <AnimatedByChar>
           <p>
             We believe in learning that goes beyond textbooks – a journey shaped

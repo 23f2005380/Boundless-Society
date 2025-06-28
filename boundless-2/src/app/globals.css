@@ -9,6 +9,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brown: #3b001b;
+  --color-cream: #faebd4;
+  --color-bgWhite: #fefae7;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-oswald: 'Oswald', sans-serif;
