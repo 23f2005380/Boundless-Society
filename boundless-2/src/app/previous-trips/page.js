@@ -15,8 +15,7 @@ function PrevTrips() {
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             backgroundImage: `
-      repeating-radial-gradient(circle at center 60%, #fae2e3 0, #fcefe6 40px, 24px)
-    `,
+      repeating-radial-gradient(circle at center 60%, #fae2e3 0px, #fcefe6 35px, #fae2e3 38px)`,
             maskImage: `
       linear-gradient(to top, black 40%, transparent 98%)
     `,
