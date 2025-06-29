@@ -1,0 +1,17 @@
+.cardImage {
+    opacity: 0.5;
+    transition: opacity 1s;
+}
+
+.card:hover .cardImage {
+    opacity: 1;
+}
+
+.caption {
+    display: none;
+}
+
+.card:hover .caption {
+    transition: display 1s;
+    display: block;
+}
