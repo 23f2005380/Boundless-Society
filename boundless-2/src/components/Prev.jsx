@@ -11,7 +11,7 @@ function Prev() {
         sectionHeading="Previous Trips"
         headingStyle="text-brown"
       >
-        <div className="w-fit mx-auto grid grid-cols-3 gap-8 pb-15 pt-4">
+        <div className="w-fit mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-4 pb-15 place-items-center">
           {previousTrips.slice(0, 6).map((trip, idx) => (
             <TripCard key={idx} trip={trip} />
           ))}
