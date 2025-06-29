@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Menu, Mail, Linkedin, Instagram, Youtube, X as XIcon } from "lucide-react"
 import Hero from "@/components/Hero1"
+import { withHover, withRotate, withRandomColor } from "@/components/framer-overrides"
+
+// Learn more: https://www.framer.com/developers/overrides/
 
 export default function BoundlessTravelSociety() {
   function borderBetweenPages(col: string) {
@@ -275,30 +278,55 @@ export default function BoundlessTravelSociety() {
       </section>
 
       {/* About Us Section */}
-      <section className="px-4 md:px-6 mb-8 md:mb-12 bg-gradient-to-b from-pink-100 to-yellow-100 py-8 md:py-12">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
-            ABOUT US
-          </h2>
-          <div className="bg-white shadow-xl rounded-lg">
-            <div className="p-6 md:p-8">
-              <div className="text-amber-800 text-sm md:text-base leading-relaxed space-y-4">
-                <p>
-                  We believe in learning that goes beyond textbooks – a journey shaped not just by lectures, but by
-                  laughter, shared dreams, and unshakable friendship. Even though our classes are online, what we've
-                  built together is real – connections that cross screens and dive deep into our hearts.
-                </p>
-                <p>
-                  Because like our adventurous bunny, we don't just stay in our comfort zones – we hop across them. With
-                  every meetup, every trip, and every moment of wonder, we hop beyond the ordinary, explore fearlessly,
-                  and chase every dream that calls our name. 🐰✨
-                </p>
-                <p>
-                  Why not for adventure, when you can hop into leadership with them, cheer, and a little chaos – the
-                  bunny way!
-                </p>
-              </div>
-            </div>
+      <section className="px-4 md:px-6 mb-8 md:mb-12 bg-yellow-50 py-8 md:py-12 relative">
+        {/* Scalloped edge decoration */}
+        <div className="absolute -top-8 left-0 w-full flex z-20">
+          {Array.from({ length: 32 }).map((_, i) => (
+            <div key={i} className="w-12 h-8 rounded-t-full bg-yellow-50 border-t-2 border-dotted border-yellow-200" />
+          ))}
+        </div>
+        
+        <div className="max-w-4xl mx-auto p-8 md:p-12">
+          {/* Section Title */}
+          <div className="text-center mb-8">
+            {/* Top decorative line */}
+            <div className="w-24 h-0.5 bg-blue-500 mx-auto mb-4"></div>
+            
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#4B003D] mb-4 tracking-widest" style={{ fontFamily: 'Bebas Neue, Impact, Arial Black, sans-serif', fontWeight: '900', letterSpacing: '0.2em', fontStretch: 'condensed', transform: 'scaleY(1.5)' }}>
+              ABOUT US
+            </h2>
+            
+            {/* Bottom decorative line */}
+            <div className="w-24 h-0.5 bg-blue-500 mx-auto"></div>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-6 text-center">
+            {/* Paragraph 1: Core Belief */}
+            <p className="text-lg md:text-xl font-bold text-black leading-relaxed" style={{ fontFamily: 'Georgia, Merriweather, serif' }}>
+              We believe in learning that goes beyond textbooks – a journey shaped not just by lectures, but by laughter, shared dreams, and unshakable friendship.
+            </p>
+
+            {/* Paragraph 2: Online Connection */}
+            <p className="text-base md:text-lg text-[#333] leading-relaxed" style={{ fontFamily: 'Georgia, Merriweather, serif' }}>
+              Even though our classes are online, what we've built together is real – connections that cross screens and sink deep into our hearts.
+            </p>
+
+            {/* Paragraph 3: Bunny Metaphor */}
+            <p className="text-lg md:text-xl font-bold text-black leading-relaxed" style={{ fontFamily: 'Georgia, Merriweather, serif' }}>
+              Because like our adventurous bunny, we don't just stay in our comfort zones – we hop across them.
+            </p>
+
+            {/* Paragraph 4: Description of Bunny Traits */}
+            <p className="text-base md:text-lg text-[#333] leading-relaxed" style={{ fontFamily: 'Georgia, Merriweather, serif' }}>
+              With ears tuned to curiosity and hearts full of wonder, we leap beyond the ordinary, explore fearlessly, and chase every horizon that calls our name.
+            </p>
+
+            {/* Final Line: Closing with Charm */}
+            <p className="text-base md:text-lg italic text-[#333] leading-relaxed" style={{ fontFamily: 'Georgia, Merriweather, serif' }}>
+              Why roar for attention...<br />
+              when you can hop into leadership with charm, cheer, and a little chaos – the bunny way! 🐰✨
+            </p>
           </div>
         </div>
       </section>
