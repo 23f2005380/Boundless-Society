@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 const trips = [
   {
     title: "Mewar Trip",
-    color: "bg-yellow-200 border-yellow-300",
+    color: "bg-[#FAE8A2] ",
     img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
     details: (
       <>
@@ -25,7 +25,7 @@ const trips = [
   },
   {
     title: "Uttarakhand Trip",
-    color: "bg-pink-100 border-pink-300",
+    color: "bg-[#FFDBFF]",
     img: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80",
     details: (
       <>
@@ -45,7 +45,7 @@ const trips = [
   },
   {
     title: "Revealing Soon",
-    color: "bg-green-100 border-green-300",
+    color: "bg-[#E6FFE6] ",
     soon: true,
     details: (
       <p className="text-sm text-amber-800 mb-3 md:mb-4">Stay Tuned for more details</p>
@@ -59,9 +59,7 @@ export default function TripsPlanned() {
   return (
     <section className="px-4 md:px-6 mb-8 md:mb-12">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
-          UPCOMING TRIPS
-        </h2>
+        
         <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
           {/* Sidebar */}
           <div className="hidden lg:block lg:col-span-1 space-y-3">

@@ -7,6 +7,7 @@ import PreviousTrip from "@/components/PreviousTrips"
 import Team from "@/components/Team"
 import TripsPlanned from "@/components/tripsPlanned"
 import CityMeetup from "@/components/cityMeetup"
+import Section from "@/components/Section"
 
 export default function BoundlessTravelSociety() {
   function borderBetweenPages(col: string) {
@@ -49,12 +50,19 @@ export default function BoundlessTravelSociety() {
       <Hero />
 
       {/* Decorative Wave */}
-      <div className="w-full h-8 md:h-16 flex">
-        {borderBetweenPages("658987")}
+      <div className="w-full  ">
+        <Section
+          svgFill="#FEFAE7"
+          sectionHeading="Upcoming Trips"
+          headingStyle={{ color: "#3B001B"}}
+        >
+          {/* You can put any children content here, or leave it empty if not needed */}
+<TripsPlanned />
+        </Section>
       </div>
 
       {/* Upcoming Trips Section */}
-      <TripsPlanned />
+      
      
       {/* Decorative Wave */}
       <div className="w-full h-8 md:h-16 bg-gradient-to-r from-green-200 to-blue-200 rounded-t-full mb-6 md:mb-8"></div>

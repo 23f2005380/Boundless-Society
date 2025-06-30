@@ -12,9 +12,13 @@ export default function Hero() {
             <h2 className="text-lg md:text-2xl lg:text-3xl font-bold text-[#3B001B] mb-3 md:mb-4">
               IIT 'M BS TRAVEL SOCIETY
             </h2>
-            <button className="bg-amber-500 hover:bg-amber-600 text-[#3B001B] px-6 md:px-8 py-2 rounded-full font-semibold text-sm md:text-base">
+            <div>
+             
+            <button className="bg-[#FFE878] hover:bg-amber-600 text-[#3B001B] px-6 md:px-8 py-2 rounded-full font-semibold text-sm md:text-base" style={{boxShadow : "0px 5px 1px #9c1352"}}>
               Join Us
             </button>
+            
+            </div>
           </div>
         </div>
         {/* Decorative Circle */}

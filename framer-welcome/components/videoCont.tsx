@@ -18,14 +18,15 @@ export default function VideoContainer() {
                     transform: "translate(-50%, -50%)",
                     borderRadius: "50%",
                     background: "#fffae9",
-                    boxShadow: "0 4px 24px rgba(52, 152, 219, 0.3)",
+                    boxShadow: "0 4px 24px rgba(84,63,63,1)",
                 }}
             />
         );
     }
 
     return (
-        <div className="relative" style={{ width: "100vw" , height : "100vw", overflow : "hidden"}}>
+        <div className="relative" style={{ width: "120vw" , height : "100vw", overflowY : "clip"}}>
+            <div className="h-8 w-full absolute top-[0]"></div>
             {circles}
         </div>
     );

@@ -1,3 +1,4 @@
+import AnimatedByChar from "./AnimatedByWord";
 import AnimatedByWord from "./AnimatedByWord";
 
 const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
@@ -27,12 +28,13 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
 
       <div style={{ background: svgFill }} className={`pt-15 -mt-1 pb-10`}>
         <h1
-          className={` text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald ${headingStyle}`}
+          className="text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald"
+          style={headingStyle}
         >
           {" "}
-          <AnimatedByWord text={sectionHeading}>
+          <AnimatedByChar text={sectionHeading}>
             {sectionHeading}
-          </AnimatedByWord>
+          </AnimatedByChar>
         </h1>
         {children}
       </div>
