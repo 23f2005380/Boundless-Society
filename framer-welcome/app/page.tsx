@@ -17,6 +17,9 @@ import TripsPlanned from "@/components/tripsPlanned";
 import CityMeetup from "@/components/cityMeetup";
 import Section from "@/components/Section";
 import Header from "@/components/Header";
+import Gallery from "@/components/Gallery";
+import About from "@/components/About";
+import Prev from "@/components/Prev";
 
 export default function BoundlessTravelSociety() {
   function borderBetweenPages(col: string) {
@@ -358,6 +361,10 @@ export default function BoundlessTravelSociety() {
           </div>
         </div>
       </footer>
+
+      <Gallery />
+      <Prev />
+      <About />
     </div>
   );
 }
