@@ -59,7 +59,6 @@ export default function TripsPlanned() {
   return (
     <section className="px-4 md:px-6 mb-8 md:mb-12">
       <div className="max-w-7xl mx-auto">
-        
         <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
           {/* Sidebar */}
           <div className="hidden lg:block lg:col-span-1 space-y-3">
@@ -74,48 +73,61 @@ export default function TripsPlanned() {
           {/* Trip Cards */}
           <div className="lg:col-span-3 space-y-3 md:space-y-4">
             {trips.map((trip, i) => (
-              <motion.div
-                key={i}
-                layout
-                className={`border shadow-lg rounded-lg overflow-hidden ${trip.color} transition-all`}
-                transition={{ layout: { duration: 0.4, type: "spring" } }}
-              >
-                <div className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-3 md:mb-4">{trip.title}</h3>
-                  <AnimatePresence initial={false}>
-                    {openIdx === i ? (
-                      <motion.div
-                        key="details"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="mb-4"
-                      >
-                        <button
-                          className="flex items-center gap-2 bg-amber-950 text-amber-100 px-4 py-2 rounded-lg mb-4 font-semibold"
-                          onClick={() => setOpenIdx(null)}
-                        >
-                          Hide Details <X className="w-5 h-5" />
-                        </button>
-                        {trip.details}
-                      </motion.div>
-                    ) : trip.soon ? (
-                      <p className="text-sm text-amber-800 mb-3 md:mb-4">Stay Tuned for more details</p>
-                    ) : null}
-                  </AnimatePresence>
-                  {openIdx !== i && (
-                    <button
-                      className="w-full flex justify-between items-center bg-white hover:bg-gray-50 text-sm md:text-base border border-gray-300 rounded px-4 py-2 transition"
-                      onClick={() => setOpenIdx(i)}
-                    >
-                      View Details
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+  <motion.div
+    key={i}
+    layout
+    className={`border shadow-lg overflow-hidden ${trip.color} transition-all`}
+    style={{ borderRadius: "34px" }}
+    transition={{ layout: { duration: 0.5, type: "spring" } }}
+  >
+    <div className="p-4 md:p-6">
+      <div className="flex items-center justify-between mb-3 md:mb-4">
+        <h3 className="text-lg md:text-xl font-bold text-amber-900">{trip.title}</h3>
+        {!trip.soon && (
+          <motion.button
+            layout
+            className={`ml-2 flex items-center justify-center ${
+              openIdx === i
+                ? "bg-amber-950 text-amber-100"
+                : "bg-white hover:bg-gray-50 text-sm md:text-base border border-gray-300"
+            } px-3 py-1 transition font-semibold text-xs md:text-sm`}
+            onClick={() => setOpenIdx(openIdx === i ? null : i)}
+            style={{ borderRadius: "20px" }}
+            aria-expanded={openIdx === i}
+          >
+            {openIdx === i ? (
+              <>
+                Hide <X className="w-4 h-4 ml-1" />
+              </>
+            ) : (
+              <>
+                Details <Plus className="w-3 h-3 ml-1" />
+              </>
+            )}
+          </motion.button>
+        )}
+      </div>
+      <AnimatePresence initial={false}>
+        {openIdx === i && !trip.soon && (
+          <motion.div
+            key="details"
+            initial={{ opacity: 0, scale: 0.98, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 20, pointerEvents: "none" }}
+            transition={{ duration: 0.35, type: "spring" }}
+            className="mb-4"
+          >
+            {trip.details}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {trip.soon && (
+        <p className="text-sm text-amber-800 mb-3 md:mb-4">Stay Tuned for more details</p>
+      )}
+    </div>
+  </motion.div>
+))}
+
           </div>
         </div>
       </div>
