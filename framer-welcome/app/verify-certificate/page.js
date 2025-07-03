@@ -1,6 +1,21 @@
-import React from "react";
+"use client"
+
+import React, { useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
 
 export default function VerifyCertificate() {
+  const [input, setInput] = useState("");
+  const [status, setStatus] = useState(null); // null | "verified" | "not-verified" | "checking"
+
+  async function handleVerify() {
+    if (!input) return;
+    setStatus("checking");
+    const ref = doc(db, "certificates", input.trim());
+    const snap = await getDoc(ref);
+    setStatus(snap.exists() ? "verified" : "not-verified");
+  }
+
   return (
     <div className="bg-amber-50">
       <div className="w-full h-[100vh] flex justify-center items-center relative overflow-hidden">
@@ -32,12 +47,31 @@ export default function VerifyCertificate() {
           <input
             type="text"
             placeholder="Enter Certificate Number"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setStatus(null);
+            }}
             className="rounded-full px-4 py-3 text-center w-full max-w-xs mb-4 outline-none border border-black bg-amber-50"
           />
           <br />
-          <button className="bg-[#4b0a1b] text-[#FFE252] mt-4 px-10 py-3 rounded-full text-lg font-medium hover:scale-105 transition">
-            Click Here
+          <button
+            className="bg-[#4b0a1b] text-[#FFE252] mt-4 px-10 py-3 rounded-full text-lg font-medium hover:scale-105 transition"
+            onClick={handleVerify}
+            disabled={status === "checking"}
+          >
+            {status === "checking" ? "Checking..." : "Click Here"}
           </button>
+          {status === "verified" && (
+            <div className="mt-6 text-green-700 text-xl font-bold">
+              ✅ Certificate Verified!
+            </div>
+          )}
+          {status === "not-verified" && (
+            <div className="mt-6 text-red-700 text-xl font-bold">
+              ❌ Not Verified
+            </div>
+          )}
         </div>
       </div>
     </div>
