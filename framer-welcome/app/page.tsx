@@ -171,6 +171,11 @@ export default function BoundlessTravelSociety() {
       <PreviousTrip />
 
       {/* City Meetups Section */}
+            <Section
+          svgFill="#FAE0BE"
+          sectionHeading="City Meetups"
+          headingStyle={{ color: "#3B001B" }}
+        >
       <CityMeetup />
       {/* About Us Section */}
       <section className="px-4 md:px-6 mb-8 md:mb-12 bg-yellow-50 py-8 md:py-12 relative">

@@ -75,7 +75,7 @@ export default function CityMeetup() {
   const [active, setActive] = useState(0)
 
   return (
-    <section className="px-2 md:px-6 mb-8 md:mb-12 bg-gradient-to-b from-purple-100 to-pink-100 py-8 md:py-12">
+    <section className="px-2 md:px-6 mb-8 md:mb-12   py-8 md:py-12">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
           City Meetups

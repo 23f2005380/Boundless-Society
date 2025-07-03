@@ -1,7 +1,10 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
+"use client"
+
+import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
+
+export default function Header(){
+    const [menuOpen, setMenuOpen] = useState(false)
 
   const menuItems = [
     { label: "About Us", href: "#about" },

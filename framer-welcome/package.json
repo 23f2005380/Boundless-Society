@@ -43,8 +43,9 @@
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
-    "grapheme-splitter": "^1.0.4",
+    "firebase": "^11.10.0",
     "framer-motion": "^12.19.2",
+    "grapheme-splitter": "^1.0.4",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "motion": "^12.19.2",
@@ -73,4 +74,3 @@
     "typescript": "^5"
   }
 }
-
