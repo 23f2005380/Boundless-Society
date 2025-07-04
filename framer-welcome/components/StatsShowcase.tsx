@@ -67,15 +67,15 @@ const StatBox = withHover(withRandomColor(motion.div))
 
 export default function StatsShowcase() {
     return (
-        <div style={styles.wrapper}>
+        <div >
             {/* Top scallop */}
-            <div style={styles.scallopTop} />
+            <div/>
 
             {/* Main content */}
-            <div style={styles.container}>
-                <h1 style={styles.heading}>We proud to have</h1>
+            <div >
+                {/* <h1 style={styles.heading}>We proud to have</h1> */}
 
-                <div style={styles.ribbon}>
+                {/* <div style={styles.ribbon}>
                     {images.map((src, i) => (
                         <Img
                             key={i}
@@ -93,7 +93,7 @@ export default function StatsShowcase() {
                             }}
                         />
                     ))}
-                </div>
+                </div> */}
 
                 <div style={styles.statsRow}>
                     {stats.map((stat, i) => (
@@ -106,7 +106,7 @@ export default function StatsShowcase() {
             </div>
 
             {/* Bottom scallop */}
-            <div style={styles.scallopBottom} />
+            {/* <div style={styles.scallopBottom} /> */}
         </div>
     )
 }

@@ -19,16 +19,16 @@ export default function Header(){
   ];
   return (
     <header className="flex bg-transparent justify-between items-center p-4 md:p-6 relative z-10">
-      <div className="w-12 h-12 bg-amber-800 rounded-full flex items-center justify-center">
+      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
         <img
-          src="/logo.png"
+          src="/Logo Bound.png"
           alt="Logo"
-          className="w-10 h-10 object-contain rounded-full"
+          className="w-14 h-14 object-contain rounded-full"
         />
       </div>
       <div className="relative">
         <button
-          className="bg-[#6B4B44] text-white border-none hover:bg-[#3B001B] px-6 py-2 rounded-2xl text-lg font-bold flex items-center transition"
+          className="bg-[#3B001B] text-white border-none hover:bg-[#3B001B] px-6 py-2 rounded-2xl text-lg font-bold flex items-center transition"
           onClick={() => setMenuOpen((v) => !v)}
         >
           MENU

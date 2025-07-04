@@ -1,28 +1,23 @@
+"use client"
+
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 import Link from "next/link";
+import Section from "@/components/Section"
+import StatsShowcase from "./StatsShowcase";
 
 export default function AmazingTeam() {
   return (
-    <section className="relative px-6 md:px-6 mb-8 md:mb-12 bg-[#FFE066] py-8 md:py-12 overflow-visible">
+<Section
+        svgFill="#C0ECBF"
+        sectionHeading="Our Team"
+        headingStyle={{ color: "#3B001B" }}
+      >
+    <section className="relative px-6 md:px-6 mb-8 md:mb-12 mb-5 py-8 md:py-12 overflow-visible">
         {/* Scalloped border at the very top */}
-        <div className="absolute -top-8 left-0 w-full flex z-20">
-          {Array.from({ length: 32 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-12 h-8 rounded-t-full bg-[#FFE066] border-t-2 border-dotted border-[#B8860B]"
-            />
-          ))}
-        </div>
+        
         <div className="max-w-7xl mx-auto">
           <Link href="/team-members" className="block group" style={{ textDecoration: 'none' }}>
-            <div className="text-center mb-6 md:mb-8 cursor-pointer group-hover:opacity-80 transition">
-              <div className="inline-block bg-[#3B001B] text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 tracking-wide shadow">
-                OUR AMAZING TEAM
-              </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#6B1B1B]">
-                Get to Know <span className="italic text-[#3B001B]">Us</span>
-              </h2>
-            </div>
+           
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
               {[
                 { name: "Aditya Mohan Srivastava", role: "Founder" },
@@ -52,6 +47,8 @@ export default function AmazingTeam() {
             </div>
           </Link>
         </div>
+        <StatsShowcase />
       </section>
+      </Section>
   );
 } 
