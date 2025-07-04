@@ -1,0 +1,25 @@
+/* Animations for team-members page */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: none;
+}
+.wave-animate {
+  animation: waveMove 8s linear infinite alternate;
+}
+@keyframes waveMove {
+  0% { background-position-x: 0; }
+  100% { background-position-x: 80px; }
+}
+.icon-animate {
+  transition: transform 0.2s, color 0.2s;
+}
+.icon-animate:hover {
+  transform: scale(1.2) rotate(-8deg);
+  color: #ffe066 !important;
+} 
