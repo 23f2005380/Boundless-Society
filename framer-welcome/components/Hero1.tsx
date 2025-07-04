@@ -14,7 +14,7 @@ export default function Hero() {
             </h2>
             <div>
              
-            <button className="bg-[#FFE878] hover:translate-y-1 text-[#3B001B] transition:translate-y px-6 md:px-8 py-2 rounded-full font-semibold text-sm md:text-base" style={{boxShadow : "0px 5px 1px #9c1352"}}>
+            <button className="bg-[#FFE878] hover:translate-y-1 text-[#3B001B] transition-all px-6 md:px-8 py-2 rounded-full font-semibold text-sm md:text-base" style={{boxShadow : "0px 5px 1px #9c1352"}}>
               Join Us
             </button>
             

@@ -77,9 +77,9 @@ export default function CityMeetup() {
   return (
     <section className="px-2 md:px-6 mb-8 md:mb-12   py-8 md:py-12">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
+        {/* <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
           City Meetups
-        </h2>
+        </h2> */}
         <div className="bg-white shadow-xl rounded-2xl p-4 md:p-8">
           <div className="flex flex-col md:flex-row gap-6 items-center">
             {/* Left: Steps & Content */}
