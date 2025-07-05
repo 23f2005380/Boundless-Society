@@ -10,13 +10,7 @@ import {
   AnimatePresence,
 } from "framer-motion";
 
-const curvedMarque = [
-  { title: "Goa", img: "/images/Agartala.png" },
-  { title: "Goa", img: "/images/Agartala.png" },
-  { title: "Goa", img: "/images/Agartala.png" },
-  { title: "Goa", img: "/images/Agartala.png" },
-  { title: "Goa", img: "/images/Agartala.png" },
-];
+import { curvedMarque } from "@/data/curvedMarquee";
 
 const generatePath = (width) => {
   const w = width;
