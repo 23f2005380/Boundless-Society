@@ -1,16 +1,17 @@
 import { useState } from "react"
 import { Plus, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import Section from "./Section"
 
 const trips = [
   {
-    title: "Mewar Trip",
+    title: "Shimoga Trip",
     color: "bg-[#FAE8A2] ",
-    img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
+    img: "/Jog-Falls-10.jpg",
     details: (
       <>
         <img
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+          src="/Jog-Falls-10.jpg"
           alt="Mewar"
           className="rounded-xl w-full h-48 object-cover mb-4"
         />
@@ -23,26 +24,7 @@ const trips = [
       </>
     ),
   },
-  {
-    title: "Uttarakhand Trip",
-    color: "bg-[#FFDBFF]",
-    img: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80",
-    details: (
-      <>
-        <img
-          src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80"
-          alt="Uttarakhand"
-          className="rounded-xl w-full h-48 object-cover mb-4"
-        />
-        <h4 className="font-bold text-lg mb-2 text-amber-900">What's Included:</h4>
-        <ul className="list-disc pl-5 text-amber-800 mb-2">
-          <li>Stay</li>
-          <li>Food</li>
-          <li>Adventure Activities</li>
-        </ul>
-      </>
-    ),
-  },
+  
   {
     title: "Revealing Soon",
     color: "bg-[#E6FFE6] ",
@@ -57,7 +39,12 @@ export default function TripsPlanned() {
   const [openIdx, setOpenIdx] = useState<number | null>(null)
 
   return (
-    <section className="px-4 md:px-6 mb-8 md:mb-12">
+     <Section
+              headingStyle="text-brown"
+              svgFill="#FEFAE7"
+              sectionHeading="Upcoming Trips"
+            >
+    <section className="px-4 sm:mt-20 sm:mb-25 md:px-6 mb-8 md:mb-12">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
           {/* Sidebar */}
@@ -132,5 +119,6 @@ export default function TripsPlanned() {
         </div>
       </div>
     </section>
+    </Section>
   )
 }

@@ -57,13 +57,9 @@ export default function BoundlessTravelSociety() {
 
       {/* Decorative Wave */}
       <div className="w-full">
-        <Section
-          svgFill="#FEFAE7"
-          sectionHeading="Upcoming Trips"
-          headingStyle={{ color: "#3B001B" }}
-        >
+        
           <TripsPlanned />
-        </Section>
+       
       </div>
 
 
@@ -81,7 +77,7 @@ export default function BoundlessTravelSociety() {
       <Section
         svgFill="#FAE0BE"
         sectionHeading="City Meetups"
-        headingStyle={{ color: "#3B001B" }}
+        headingStyle="text-brown"
       >
         <CityMeetup />
       </Section>

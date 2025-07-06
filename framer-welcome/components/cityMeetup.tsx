@@ -2,68 +2,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-const meetups = [
-  {
-    city: "DELHI",
-    img: "https://i.imgur.com/6n6bQGk.jpg", // Replace with your actual image
-    title: "DELHI",
-    description: (
-      <>
-        <span className="font-bold">BS students rocked CP Central Park, Delhi, with an unforgettable meetup!</span> Huge thanks to IIT Madras for sponsoring through the BS Student Activity Fee. The day unfolded with warm intros, a hilarious photo shoot, and an electrifying jam session that brought everyone together!
-      </>
-    ),
-    badge: "MEET 09",
-    logo: "https://i.imgur.com/0y8Ftya.png", // Replace with your logo if needed
-  },
-  {
-    city: "MUMBAI",
-    img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
-    title: "MUMBAI",
-    description: (
-      <>
-        <span className="font-bold">Mumbai meetup was a blast!</span> Students enjoyed games, networking, and a memorable sunset at Marine Drive.
-      </>
-    ),
-    badge: "MEET 08",
-    logo: "",
-  },
-  {
-    city: "CHENNAI",
-    img: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80",
-    title: "CHENNAI",
-    description: (
-      <>
-        <span className="font-bold">Chennai students gathered at Marina Beach</span> for fun, food, and friendship. Thanks to all who joined!
-      </>
-    ),
-    badge: "MEET 07",
-    logo: "",
-  },
-  {
-    city: "BANGALORE",
-    img: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80",
-    title: "BANGALORE",
-    description: (
-      <>
-        <span className="font-bold">Bangalore meetup brought together techies</span> for a day of learning and laughter at Cubbon Park.
-      </>
-    ),
-    badge: "MEET 06",
-    logo: "",
-  },
-  {
-    city: "KOLKATA",
-    img: "https://images.unsplash.com/photo-1465101178521-c1a9136a3b99?auto=format&fit=crop&w=600&q=80",
-    title: "KOLKATA",
-    description: (
-      <>
-        <span className="font-bold">Kolkata’s meetup was full of culture and cuisine</span> at Victoria Memorial. See you next time!
-      </>
-    ),
-    badge: "MEET 05",
-    logo: "",
-  },
-]
+import meetups from "@/data/city"
 
 const variants = {
   initial: { opacity: 0, x: 40 },
@@ -144,7 +83,7 @@ export default function CityMeetup() {
                     alt={meetups[active].city}
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-2 right-2 bg-white/80 text-xs font-bold px-2 py-1 rounded">{meetups[active].badge}</span>
+                  {/* <span className="absolute top-2 right-2 bg-white/80 text-xs font-bold px-2 py-1 rounded">{meetups[active].badge}</span> */}
                   <span className="absolute bottom-2 left-2 text-white font-bold text-lg drop-shadow">{meetups[active].city} Meetup</span>
                 </motion.div>
               </AnimatePresence>

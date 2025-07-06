@@ -1,12 +1,12 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function Header(){
     const [menuOpen, setMenuOpen] = useState(false)
-
-  const menuItems = [
+ 
+  const [menuItems, setMenuItems] = useState([
     { label: "About Us", href: "#about" },
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
@@ -16,7 +16,7 @@ export default function Header(){
     { label : "Our Team", href: "#team"},
     { label : "Whatsapp groups", href : "/whatsapp-groups"},
     { label : "Verify Certificates", href : "verify-certificates"}
-  ];
+  ]);
   return (
     <header className="flex bg-transparent justify-between items-center p-4 md:p-6 relative z-10">
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">

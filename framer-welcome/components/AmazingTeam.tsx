@@ -5,12 +5,13 @@ import Link from "next/link";
 import Section from "@/components/Section"
 import StatsShowcase from "./StatsShowcase";
 
+
 export default function AmazingTeam() {
   return (
 <Section
         svgFill="#C0ECBF"
         sectionHeading="Our Team"
-        headingStyle={{ color: "#3B001B" }}
+        headingStyle="text-brown"
       >
     <section className="relative px-6 md:px-6 mb-8 md:mb-12 mb-5 py-8 md:py-12 overflow-visible">
         {/* Scalloped border at the very top */}

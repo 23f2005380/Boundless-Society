@@ -70,14 +70,16 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                   />
 
                 </div>
-                <div className="flex flex-col items-center p-4">
-                  <div className="font-bold text-lg text-[#3B001B]">{card.city}</div>
-                  <a
+                <div className="flex flex-row items-center p-4">
+                  <div className="font-bold text-lg text-[#3B001B]" style={{width : "50%"}}>{card.city}</div>
+                  <div className="justify-content-end" style={{width : "50%"}}>
+                  {/* <a
                     href={card.galleryLink}
-                    className="mt-2 bg-white border border-black rounded-full px-5 py-1 font-semibold text-sm hover:bg-amber-100 transition"
+                    className="rounded-full px-5 py-1 font-semibold text-sm hover:bg-amber-100 transition"
                   >
-                    Meetup Gallery
-                  </a>
+                   <img src="/arrow.png" width={"50px"} height={"50px"} alt="link" style={{transform : "rotate(140deg)"}}/>
+                  </a> */}
+                  </div>
                 </div>
               </motion.div>
             ))}
