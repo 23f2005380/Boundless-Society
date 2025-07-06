@@ -16,12 +16,13 @@ import Team from "@/components/Team";
 import TripsPlanned from "@/components/tripsPlanned";
 import CityMeetup from "@/components/cityMeetup";
 import Section from "@/components/Section";
+import Proud from "@/components/Proud";
 
 import Gallery from "@/components/Gallery";
 import About from "@/components/About";
 import Prev from "@/components/Prev";
 import AnimatedByChar from "@/components/AnimatedByWord";
-import About2 from "@/components/About2"
+import About2 from "@/components/About2";
 import GetToKnowUs from "@/components/GetToKnowUs";
 import AmazingTeam from "@/components/AmazingTeam";
 import Footer from "@/components/Footer";
@@ -51,7 +52,6 @@ export default function BoundlessTravelSociety() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
       {/* Header */}
 
-
       {/* Hero Section */}
       <Hero />
 
@@ -62,13 +62,8 @@ export default function BoundlessTravelSociety() {
        
       </div>
 
-
-
-
       {/* Gallery Section */}
       <Gallery />
-
-
 
       {/* Previous Trips Section */}
       <Prev />
@@ -91,7 +86,7 @@ export default function BoundlessTravelSociety() {
       {/* Footer/Contact Section */}
       <Footer />
 
-
+      <Proud />
     </div>
   );
 }
