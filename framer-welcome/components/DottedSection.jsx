@@ -33,7 +33,7 @@ const DottedSection = ({
       </div>
 
       <div style={{ background: svgFill }} className={`pt-15 -mt-1`}>
-        <div className="relative w-full h-screen overflow-hidden -pb-10">
+        <div className="relative w-full overflow-hidden -pb-10">
           <div
             className="absolute inset-0 z-0"
             style={{
@@ -50,7 +50,7 @@ const DottedSection = ({
             }}
           />
 
-          <div className="relative z-10 w-full">
+          <div className="relative z-10 w-full pb-20">
             <h1
               className={`text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald text-nowrap ${headingStyle}`}
             >
