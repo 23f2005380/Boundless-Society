@@ -69,6 +69,7 @@ export default function BoundlessTravelSociety() {
       <Prev />
 
       {/* City Meetups Section */}
+       <Proud />
       <Section
         svgFill="#FAE0BE"
         sectionHeading="City Meetups"
@@ -86,7 +87,7 @@ export default function BoundlessTravelSociety() {
       {/* Footer/Contact Section */}
       <Footer />
 
-      <Proud />
+     
     </div>
   );
 }
