@@ -1,28 +1,32 @@
 import React, { useEffect, useRef } from "react";
 
 export default function VideoContainer() {
-    const embedRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
-        if ((window as any).instgrm) {
-            (window as any).instgrm.Embeds.process();
-        } else {
-            const script = document.createElement("script");
-            script.src = "https://www.instagram.com/embed.js";
-            script.async = true;
-            script.onload = () => (window as any).instgrm.Embeds.process();
-            document.body.appendChild(script);
-        }
+        const timer = setTimeout(() => {
+            if (videoRef.current) {
+                // Post message to the YouTube iframe to play the video
+                videoRef.current.contentWindow?.postMessage(
+                    JSON.stringify({
+                        event: "command",
+                        func: "playVideo",
+                        args: [],
+                    }),
+                    "*"
+                );
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
     }, []);
 
     const circles = [];
     for (let i = 15; i > 5; i--) {
-        const size = i * 10; // Use 6vw per step for better scaling
+        const size = i * 10;
         if (i === 6) {
             circles.push(
                 <div
                     key={i}
-                    ref={embedRef}
                     style={{
                         position: "absolute",
                         top: "50%",
@@ -39,17 +43,23 @@ export default function VideoContainer() {
                         overflow: "hidden",
                     }}
                 >
-                    <blockquote
-                        className="instagram-media"
-                        data-instgrm-permalink="https://www.instagram.com/reel/DEaHtzKTBcY/"
-                        data-instgrm-version="14"
+                    <iframe
+                        ref={videoRef}
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/vDMsNI6lbfs?autoplay=1&controls=0&loop=1&playlist=vDMsNI6lbfs&mute=1&modestbranding=1&showinfo=0&rel=0"
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                        
                         style={{
-                            width: "100%",
-                            minWidth: "200px",
                             borderRadius: "50%",
-                            overflow: "hidden",
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
                         }}
-                    ></blockquote>
+                    ></iframe>
                 </div>
             );
         } else {

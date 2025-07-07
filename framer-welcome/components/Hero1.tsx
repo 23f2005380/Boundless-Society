@@ -3,7 +3,7 @@ import VideoContainer from "@/components/videoCont";
 
 export default function Hero() {
   return (
-    <section className="px-4 md:px-6 sm:h-[150vh] overflow-hidden">
+    <section className="px-4 md:px-6  overflow-hidden">
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-[#3B001B] mb-4 md:mb-6 relative nosifer-regular">
           BOUNDLESS
@@ -35,7 +35,7 @@ export default function Hero() {
       linear-gradient(to top, black 50%, transparent 98%)
     `,
         }}
-        className="flex justify-center mb-8 md:mb-12"
+        className="flex justify-center "
       >
         <VideoContainer />
       </div>

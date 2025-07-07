@@ -80,7 +80,7 @@ const AnimatedByChar = ({ children }) => {
       variants={container}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.4 }}
+      viewport={{ once: false, amount: 0.4 }}
       custom={1}
       className="text-lg md:text-xl text-gray-800 leading-relaxed max-w-3xl mx-auto"
     >
