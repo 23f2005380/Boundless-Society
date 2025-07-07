@@ -55,13 +55,6 @@ export default function BoundlessTravelSociety() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Decorative Wave */}
-      <div className="w-full">
-        
-      </div>
-
-      {/* About Us Section */}
-      
       <div id="upcoming-trips">
         <TripsPlanned />
       </div>
