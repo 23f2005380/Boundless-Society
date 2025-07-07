@@ -28,9 +28,16 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
 
       <div style={{ background: svgFill }} className={`pt-15 -mt-1 pb-10`}>
         <h1
-          className={`text-[9rem] max-md:text-8xl max-sm:text-6xl w-full font-[350] text-center font-oswald ${headingStyle}`}
+          className={`
+            w-full font-[350] text-center font-oswald ${headingStyle}
+            text-[9rem] max-xl:text-8xl max-lg:text-7xl max-md:text-6xl max-sm:text-4xl max-[400px]:text-2xl
+            leading-tight
+          `}
+          style={{
+            wordBreak: "break-word",
+            lineHeight: 1.1,
+          }}
         >
-          {" "}
           <AnimatedByChar text={sectionHeading}>
             {sectionHeading}
           </AnimatedByChar>

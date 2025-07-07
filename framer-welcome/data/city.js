@@ -26,7 +26,7 @@ const meetups = [
   {
     city: "Pandal Hopping",
     img: "/city-meet/Pandaal.jpg", // Replace with your actual image
-    title: "Pandaal",
+    title: "Pandal Hopping",
     description: (
       <>
         Durga Pandal Hopping across 10+ Cities!
@@ -41,7 +41,7 @@ Massive love to everyone who showed up and to our incredible city teams who made
   {
     city: "Republic Day",
     img: "/city-meet/Republic.jpg",
-    title: "Republic Day",
+    title: "Republic Day Meetups",
     description: (
       <>
        Tri-Color Meetups across 12 Cities!
@@ -54,7 +54,7 @@ Boundless Society x Kanha House is all set to celebrate Republic Day with vibran
   {
     city: "Summer Meetups",
     img: "/city-meet/Summer.jpg",
-    title: "Summer Meetup",
+    title: "Summer Meetups",
     description: (
       <>
        Summer Meetups Across 10 Cities – Wrapped!

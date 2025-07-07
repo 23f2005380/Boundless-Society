@@ -4,13 +4,13 @@ import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/Section"
 import StatsShowcase from "./StatsShowcase";
-
+import Footer from "./Footer";
 
 export default function AmazingTeam() {
   return (
 <Section
-        svgFill="#C0ECBF"
-        sectionHeading="Our Team"
+        svgFill="#FFE878"
+        sectionHeading="Founding Members"
         headingStyle="text-brown"
       >
     <section className="relative px-6 md:px-6 mb-8 md:mb-12 mb-5 py-8 md:py-12 overflow-visible">
@@ -19,15 +19,15 @@ export default function AmazingTeam() {
         <div className="max-w-7xl mx-auto">
           <Link href="/team-members" className="block group" style={{ textDecoration: 'none' }}>
            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-4 gap-3 mb-8">
               {[
-                { name: "Aditya Mohan Srivastava", role: "Founder" },
-                { name: "Abhishek Tripathi", role: "Founder" },
-                { name: "Sachin Kumar", role: "Founder/Secretary" },
+                { name: "Aditya Mohan Srivastava", role: "Founder" , src :"/founders/image3.png"},
+                { name: "Abhishek Tripathi", role: "Founder" , src:"/founders/image1.png"},
+                { name: "Sachin Kumar", role: "Founder/Secretary" , src: "/founders/image2.jpg"},
               ].map((member, i) => (
                 <div
                   key={i}
-                  className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"
+                  className="bg-black text-white hover:scale-105 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"
                 >
                   <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
                     <h3 className="font-bold text-base mb-1">{member.name}</h3>
@@ -39,16 +39,17 @@ export default function AmazingTeam() {
                     </div>
                   </div>
                   <img
-                    src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
+                    src={member.src}
                     alt={member.name}
-                    className="w-30 h-30 object-cover rounded-lg ml-4 shadow"
+                   
+                    className="object-cover rounded-lg ml-4 shadow mt-4 sm:mt-0 sm:ml-4 w-24 h-24 sm:w-28 sm:h-28"
                   />
                 </div>
               ))}
             </div>
           </Link>
         </div>
-        <StatsShowcase />
+       <Footer />
       </section>
       </Section>
   );

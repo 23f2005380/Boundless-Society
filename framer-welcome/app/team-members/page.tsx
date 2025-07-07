@@ -16,7 +16,7 @@ export default function TeamMembersPage() {
         </div>
         <CouncilSection />
         <div>
-          <AmazingTeam/>
+          {/* <AmazingTeam/> */}
         </div>
       </main>
       

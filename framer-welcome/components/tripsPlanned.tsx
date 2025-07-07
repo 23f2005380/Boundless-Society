@@ -17,18 +17,12 @@ interface Trip {
 
 const trips: Trip[] = [
   {
-    id: 'mewar',
-    title: 'Mewar Trip',
-    status: 'Coming Soon',
-    description: 'Explore the royal heritage of Mewar',
-    image: '/lovable-uploads/4b408953-21ba-4657-94ac-dabfacb3760c.png',
-    details: [
-      'Visit historic palaces and forts',
-      'Traditional Rajasthani cuisine',
-      'Guided heritage walks',
-      'Cultural performances',
-      '5 days, 4 nights accommodation'
-    ],
+    id: 'Shimoga',
+    title: 'Shimoga Trip',
+    status: 'Coming soon',
+    description: 'Gateway of Malnad',
+    image: '/Jog-Falls-10.jpg',
+  
     backgroundColor: 'bg-yellow-200',
     textColor: 'text-gray-800'
   },
