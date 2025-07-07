@@ -11,11 +11,13 @@ export default function AmazingTeam() {
 <Section
         svgFill="#FFE878"
         sectionHeading="Founding Members"
-        headingStyle="text-brown"
+        headingStyle="text-brown text-3xl"
       >
     <section className="relative px-6 md:px-6 mb-8 md:mb-12 mb-5 py-8 md:py-12 overflow-visible">
         {/* Scalloped border at the very top */}
-        
+        {/* <h2 className="text-center text-4xl md:text-4xl font-black mb-2 tracking-wide">
+            Get to Know <span className="italic font-serif text-[#6d1a2c]">Us</span>
+          </h2> */}
         <div className="max-w-7xl mx-auto">
           <Link href="/team-members" className="block group" style={{ textDecoration: 'none' }}>
            

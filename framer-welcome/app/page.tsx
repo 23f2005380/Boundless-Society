@@ -58,36 +58,34 @@ export default function BoundlessTravelSociety() {
       {/* Decorative Wave */}
       <div className="w-full">
         
-          <TripsPlanned />
-       
       </div>
 
-      {/* Gallery Section */}
-      <Gallery />
-
-      {/* Previous Trips Section */}
-      <Prev />
-
-      {/* City Meetups Section */}
-       <Proud />
-      <Section
-        svgFill="#FAE0BE"
-        sectionHeading="City Meetups"
-        headingStyle="text-brown"
-      >
-        <CityMeetup />
-      </Section>
-
       {/* About Us Section */}
-      <About />
-
-      {/* Get to Know Us Section */}
-      <AmazingTeam />
-
-      {/* Footer/Contact Section */}
       
-
-     
+      <div id="upcoming-trips">
+        <TripsPlanned />
+      </div>
+      <div id="gallery">
+        <Gallery />
+      </div>
+      <div id="previous-trips">
+        <Prev />
+      </div>
+      <div id="city-meetups">
+        <Section
+          svgFill="#FAE0BE"
+          sectionHeading="City Meetups"
+          headingStyle="text-brown"
+        >
+          <CityMeetup />
+        </Section>
+      </div>
+      <div id="about">
+        <About />
+      </div>
+      <div id="team">
+        <AmazingTeam />
+      </div>
     </div>
   );
 }
