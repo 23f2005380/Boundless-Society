@@ -111,3 +111,20 @@ body {
   font-weight: 600;
   font-style: normal;
 }
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-container] {
+  will-change: transform;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
