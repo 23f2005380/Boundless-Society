@@ -3,9 +3,9 @@ import './globals.css'
 import Header from "@/components/Header.jsx";
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Boundless Travel Society',
+  description: 'IITM based society to make traveling jhakas',
+  generator: '',
 }
 
 export default function RootLayout({
