@@ -1,4 +1,6 @@
 export const previousTrips = [
+  
+ 
   {
     heading: "Goa Trip",
     subHeading: "9th to 11th June 2025",
@@ -35,34 +37,47 @@ export const previousTrips = [
     img: "Prev Trips/Maharashtra.png",
     link: "https://www.instagram.com/p/DCRouhczECr/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
+  
   {
     heading: "Rameshwaram trip",
-    subHeading: "3th to 5th June 2024",
+    subHeading: "3rd to 5th June 2024",
     img: "Prev Trips/Rameshwaram.png",
     link: "https://www.instagram.com/p/C8gmhOZyD0f/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
+   {
+    heading: "Jodhpur Trip",
+    subHeading: "19th to 21th Feb 2024",
+    img: "Prev Trips/Jodhpur.png",
+    link: "",
+  },
   {
     heading: "Indore Trip",
-    subHeading: "21st November 2023",
+    subHeading: "21st to 23rd November 2023",
     img: "Prev Trips/Indore.png",
     link: "https://www.instagram.com/p/C0JlCJGSF9A/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     heading: "Kolkata Trip",
-    subHeading: "2nd November 2023",
+    subHeading: "2nd to 4th November 2023",
     img: "Prev Trips/Kolkata.png",
     link: "https://www.instagram.com/p/CztrE3lyVqU/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     heading: "Udaipur Trip",
-    subHeading: "1st October 2023",
+    subHeading: "1st to 3rd October 2023",
     img: "Prev Trips/Udaipur.png",
     link: "https://www.instagram.com/p/CyOP9z2ynox/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     heading: "Haridwar Trip",
-    subHeading: "17th September 2023",
+    subHeading: "17th to 19th September 2023",
     img: "Prev Trips/Haridwar.png",
     link: "https://www.instagram.com/p/CxXzQYSSFzD/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+  },
+  {
+    heading: "Ujjain Trip",
+    subHeading: "9th to 11th Sept 2023",
+    img: "Prev Trips/Ujjain.png",
+    link: "https://www.instagram.com/p/CxI8hmsyVVj/?img_index=4&igsh=c3d2MjZibnRjbzYy",
   },
 ];

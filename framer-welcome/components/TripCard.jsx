@@ -31,7 +31,7 @@ export default function TripCard({ trip }) {
         />
 
         <motion.div
-          className="absolute bottom-0 left-0 right-0 mx-2 mb-2 rounded-2xl overflow-hidden z-30"
+          className="absolute bottom-0 left-0 right-0 mx-2 mb-2 lg:blur-0 rounded-2xl overflow-hidden z-30"
           variants={{
             initial: {
               height: "auto",
