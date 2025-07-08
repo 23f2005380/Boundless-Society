@@ -10,10 +10,10 @@ const departmentHeads = [
   { name: "Prateek Singh", role: "Technical", image: "/founders/Prateek.jpg" },
   { name: "Ishan raj", role: "Trip Coordination", image: "/founders/ishan.jpg" },
   { name: "Sakshi Verma", role: "Females Corner", image: "/founders/sakshi.jpg" },
-  { name: "Rishitesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
-  { name: "Greesmma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
+  { name: "Rishikesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
+  { name: "Greeshma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
   { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
-  { name: "Vivel Subramani", role: "Media", image: "/founders/vivek.jpg" },
+  { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
   { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
   { name: "Sahil Kamble", role: "City Operation", image: "/founders/kanika.jpg" },
 ];
