@@ -7,6 +7,7 @@ import {
   useScroll,
   useMotionValueEvent,
 } from "framer-motion";
+import Link from "next/link"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,80 +31,105 @@ export default function Header() {
     }
   });
 
-  const [menuItems, setMenuItems] = useState([
-    
+  let [menuItems, setMenuItems] = useState([
+
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
     { label: "Previous Trips", href: "#previous-trips" },
     { label: "City Meetups", href: "#city-meetups" },
-    { label: "Stats", href : "#stats" },
+    { label: "Stats", href: "#stats" },
     { label: "About Us", href: "#about" },
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificate" },
   ]);
-  function itemClicked(href){
+  function itemClicked(href) {
+    setMenuOpen(false); 
     console.log(href)
     let clicked = href.startsWith("/");
-    if(clicked && href != "/"){
-setMenuItems([
-      { label: "Home", href: "/" },
-      { label: "Our Team", href: "/team-members" },
-    { label: "Whatsapp groups", href: "/whatsapp-groups" },
-    { label: "Verify Certificates", href: "/verify-certificate" },
+    if (clicked && href != "/") {
+      setMenuItems([
+        { label: "Home", href: "/" },
+        { label: "Our Team", href: "/team-members" },
+        { label: "Whatsapp groups", href: "/whatsapp-groups" },
+        { label: "Verify Certificates", href: "/verify-certificate" },
+
+      ])
    
-    ])
-     console.log("/", menuItems)
-  createMenu();}
-    else if(href == "/"){
+
+      
+    }
+    else if (href == "/") {
       setMenuItems([
         { label: "Upcoming Trips", href: "#upcoming-trips" },
-    { label: "Our Gallery", href: "#gallery" },
-    { label: "Previous Trips", href: "#previous-trips" },
-    { label: "City Meetups", href: "#city-meetups" },
-    { label: "Stats", href : "#stats" },
-    { label: "About Us", href: "#about" },
-    { label: "Our Team", href: "/team-members" },
-    { label: "Whatsapp groups", href: "/whatsapp-groups" },
-    { label: "Verify Certificates", href: "/verify-certificate" },
+        { label: "Our Gallery", href: "#gallery" },
+        { label: "Previous Trips", href: "#previous-trips" },
+        { label: "City Meetups", href: "#city-meetups" },
+        { label: "Stats", href: "#stats" },
+        { label: "About Us", href: "#about" },
+        { label: "Our Team", href: "/team-members" },
+        { label: "Whatsapp groups", href: "/whatsapp-groups" },
+        { label: "Verify Certificates", href: "/verify-certificate" },
       ])
-      console.log("/p", menuItems)
-    createMenu();}
+      window.alert("/p", menuItems)
+      
     }
-    function createMenu(){
-      return (
-        <div>
-              {menuItems.map((item, i) => (
-                <div key={i}>
-                  <a
-                    href={item.href}
-                    className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
-                    style={{
-                      fontFamily:
-                        "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
-                      letterSpacing: "0.02em",
-                    }}
-                    onClick={() => {setMenuOpen(false); itemClicked(item.href)}}
-                  >
-                    {item.label}
-                  </a>
-                  <div className="relative h-[2px] bg-[#3B001B]" />
-                </div>
-              ))}
-           </div>
-          
-      )
-    }
-    
   
+  }
+  useEffect(() => {
+  console.log("menu" , menuItems)
+  setItems(
+        <div>
+        {menuItems.map((item, i) => (
+          <div key={i}>
+            <Link
+              href={item.href}
+              className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
+              style={{
+                fontFamily:
+                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                letterSpacing: "0.02em",
+              }}
+              onClick={() => { setMenuOpen(false); itemClicked(item.href) }}
+            >
+              {item.label}
+            </Link>
+            <div className="relative h-[2px] bg-[#3B001B]" />
+          </div>
+        ))}
+      </div>
+  )
+}, [menuItems]);
+
+  let [item, setItems] = useState(
+      <div>
+        {menuItems.map((item, i) => (
+          <div key={i}>
+            <a
+              href={item.href}
+              className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
+              style={{
+                fontFamily:
+                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                letterSpacing: "0.02em",
+              }}
+              onClick={() => itemClicked(item.href)}
+            >
+              {item.label}
+            </a>
+            <div className="relative h-[2px] bg-[#3B001B]" />
+          </div>
+        ))}
+      </div>)
+
+
   return (
     <motion.header
       initial={{ y: 0 }}
       animate={menuOpen || !hidden ? { y: 0 } : { y: "-120%" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] transition-colors duration-300 ${
-        isTop ? "bg-transparent" : "bg-amber-50"
-      }`}
+      className={`flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] transition-colors duration-300 ${isTop ? "bg-transparent" : "bg-amber-50"
+        }`}
     >
       {/* Logo */}
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
@@ -145,12 +171,12 @@ setMenuItems([
               transition={{ duration: 0.25, type: "spring" }}
               className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 flex flex-col gap-2 min-w-[300px] z-[1001]"
             >
-        {createMenu()}
-        </motion.div>
-      )}
+              {item}
+            </motion.div>
+          )}
         </AnimatePresence>
         {/* Dropdown */}
-        
+
       </div>
     </motion.header>
   );
