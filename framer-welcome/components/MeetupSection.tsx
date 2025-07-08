@@ -33,10 +33,7 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
         {rows.map((row, rowIdx) => (
           <motion.div
             key={rowIdx}
-            className={`
-              flex justify-center gap-6
-              ${rowIdx % 2 === 1 ? "relative" : ""}
-            `}
+            className="flex justify-center gap-6"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -47,18 +44,9 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                 key={cardIdx}
                 className={`
                   flex flex-col w-full max-w-[340px] min-w-[180px]
-                  rounded-[32px] border-2 ${card.color} shadow-xl
+                  rounded-[32px] border-2 shadow-xl
                   transition-transform duration-300
-                  ${rowIdx % 2 === 1
-                    ? cardIdx === 0
-                      ? "rotate-[-5deg]"
-                      : cardIdx === 1
-                        ? "rotate-[3deg]"
-                        : cardIdx === 2
-                          ? "rotate-[-2deg]"
-                          : ""
-                    : ""
-                  }
+                  ${card.color}
                 `}
                 whileHover={{ scale: 1.04, boxShadow: "0 8px 32px #00000022" }}
               >
@@ -68,11 +56,10 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                     alt={card.city}
                     className="rounded-t-[32px] w-full h-44 object-cover"
                   />
-
                 </div>
                 <div className="flex flex-row items-center p-4">
-                  <div className="font-bold text-lg text-[#3B001B]" style={{width : "50%"}}>{card.city}</div>
-                  <div className="justify-content-end" style={{width : "50%"}}>
+                  <div className="font-bold text-lg text-[#3B001B]" style={{ width: "50%" }}>{card.city}</div>
+                  <div className="justify-content-end" style={{ width: "50%" }}>
                   {/* <a
                     href={card.galleryLink}
                     className="rounded-full px-5 py-1 font-semibold text-sm hover:bg-amber-100 transition"

@@ -11,7 +11,7 @@ const departmentHeads = [
   { name: "Ishan raj", role: "Trip Coordination", image: "/founders/ishan.jpg" },
   { name: "Sakshi Verma", role: "Finance Chair", image: "/founders/sakshi.jpg" },
   { name: "Rishitesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
-  { name: "Greesmma Suresh", role: "Research", image: "/founders/Greeshma.jpg" },
+  { name: "Greesmma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
   { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
   { name: "Vivel Subramani", role: "Media", image: "/founders/vivek.jpg" },
   { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
@@ -153,7 +153,7 @@ export default function CouncilSection() {
             </div>
           ))}
         </div>
-                <h2
+                {/* <h2
           ref={el => { deptGroupRefs.current[0] = el; }}
           className="text-center mt-16 mb-12 fade-in"
           style={{
@@ -196,7 +196,7 @@ export default function CouncilSection() {
               />
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     </section>
   );

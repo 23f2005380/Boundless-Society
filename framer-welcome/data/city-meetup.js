@@ -11,14 +11,14 @@ let meetupsData = [
       },
       {
         "city": "Udaipur",
-        "img": "/city/summer/Udaipur.jpg",
+        "img": "/city/summer/udaipur.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Bhopal",
-        "img": "/city/summer/Bhopal.jpg",
+        "img": "/city/summer/bhopal.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ KOLKATA",
         "color": "bg-pink-100 border-pink-300",
         "galleryLink": "/gallery/kolkata"
@@ -32,14 +32,14 @@ let meetupsData = [
       },
       {
         "city": "Gwalior",
-        "img": "/city/summer/Gwalior.jpg",
+        "img": "/city/summer/gwalior.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ KOLKATA",
         "color": "bg-pink-100 border-pink-300",
         "galleryLink": "/gallery/kolkata"
       },
       {
         "city": "Jaipur",
-        "img": "/city/summer/Jaipur.jpg",
+        "img": "/city/summer/jaipur.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -53,14 +53,14 @@ let meetupsData = [
       },
       {
         "city": "Patna",
-        "img": "/city/summer/Patna.jpg",
+        "img": "/city/summer/patna.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Tezpur",
-        "img": "/city/summer/Tezpur.jpg",
+        "img": "/city/summer/tezpur.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -80,21 +80,21 @@ let meetupsData = [
       },
       {
         "city": "Nagpur",
-        "img": "/city/pandaal/Nagpur pd.jpg",
+        "img": "/city/pandaal/nagpur pd.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Lucknow",
-        "img": "/city/pandaal/Lucknow.jpg",
+        "img": "/city/pandaal/lucknow.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ KOLKATA",
         "color": "bg-pink-100 border-pink-300",
         "galleryLink": "/gallery/kolkata"
       },
       {
         "city": "Gorakhpur",
-        "img": "/city/pandaal/Gorakhpur pd.jpg",
+        "img": "/city/pandaal/gorakhpur pd.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -108,21 +108,21 @@ let meetupsData = [
       },
       {
         "city": "Jodhpur",
-        "img": "/city/pandaal/Jodhpur pd.jpg",
+        "img": "/city/pandaal/jodhpur pd.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Bhopal",
-        "img": "/city/pandaal/Bhopal pd.jpg",
+        "img": "/city/pandaal/bhopal pd.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
-        "city": "Patna",
-        "img": "/city/pandaal/Patna pd.jpg",
+        "city": "Dehli",
+        "img": "/city/pandaal/delhi pd.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -138,7 +138,7 @@ let meetupsData = [
     ]
   },
   {
-    "sectionTitle": "Winter Meetups",
+    "sectionTitle": "Republic Meetups",
     "cards": [
       {
         "city": "Patna",
@@ -149,21 +149,21 @@ let meetupsData = [
       },
       {
         "city": "Nagpur",
-        "img": "/city/Republic/Nagpur 26.jpg",
+        "img": "/city/Republic/nagpur 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Lucknow",
-        "img": "/city/Republic/Lucknow 26.jpg",
+        "img": "/city/Republic/lucknow 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ KOLKATA",
         "color": "bg-pink-100 border-pink-300",
         "galleryLink": "/gallery/kolkata"
       },
       {
         "city": "Gorakhpur",
-        "img": "/city/Republic/Gorakhpur 26.jpg",
+        "img": "/city/Republic/gorakhpur 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -177,21 +177,21 @@ let meetupsData = [
       },
       {
         "city": "Salem",
-        "img": "/city/Republic/Salem 26.jpg",
+        "img": "/city/Republic/salem 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
         "city": "Indore",
-        "img": "/city/Republic/Indore 26.jpg",
+        "img": "/city/Republic/indore 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
       },
       {
-        "city": "Patna",
-        "img": "/city/Republic/Patna 26.jpg",
+        "city": "Dehli",
+        "img": "/city/Republic/delhi 26.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"

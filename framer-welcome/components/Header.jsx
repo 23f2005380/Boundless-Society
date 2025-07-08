@@ -30,18 +30,72 @@ export default function Header() {
     }
   });
 
-  const menuItems = [
-    { label: "About Us", href: "#about" },
+  const [menuItems, setMenuItems] = useState([
+    
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
     { label: "Previous Trips", href: "#previous-trips" },
     { label: "City Meetups", href: "#city-meetups" },
-    { label: "Testimonials", href: "#testimonials" },
-    { label: "Our Team", href: "#team" },
+    { label: "Stats", href : "#stats" },
+    { label: "About Us", href: "#about" },
+    { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
-    { label: "Verify Certificates", href: "verify-certificate" },
-  ];
-
+    { label: "Verify Certificates", href: "/verify-certificate" },
+  ]);
+  function itemClicked(href){
+    console.log(href)
+    let clicked = href.startsWith("/");
+    if(clicked && href != "/"){
+setMenuItems([
+      { label: "Home", href: "/" },
+      { label: "Our Team", href: "/team-members" },
+    { label: "Whatsapp groups", href: "/whatsapp-groups" },
+    { label: "Verify Certificates", href: "/verify-certificate" },
+   
+    ])
+     console.log("/", menuItems)
+  createMenu();}
+    else if(href == "/"){
+      setMenuItems([
+        { label: "Upcoming Trips", href: "#upcoming-trips" },
+    { label: "Our Gallery", href: "#gallery" },
+    { label: "Previous Trips", href: "#previous-trips" },
+    { label: "City Meetups", href: "#city-meetups" },
+    { label: "Stats", href : "#stats" },
+    { label: "About Us", href: "#about" },
+    { label: "Our Team", href: "/team-members" },
+    { label: "Whatsapp groups", href: "/whatsapp-groups" },
+    { label: "Verify Certificates", href: "/verify-certificate" },
+      ])
+      console.log("/p", menuItems)
+    createMenu();}
+    }
+    function createMenu(){
+      return (
+        <div>
+              {menuItems.map((item, i) => (
+                <div key={i}>
+                  <a
+                    href={item.href}
+                    className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
+                    style={{
+                      fontFamily:
+                        "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                      letterSpacing: "0.02em",
+                    }}
+                    onClick={() => {setMenuOpen(false); itemClicked(item.href)}}
+                  >
+                    {item.label}
+                  </a>
+                  <div className="relative h-[2px] bg-[#3B001B]" />
+                </div>
+              ))}
+           </div>
+          
+      )
+    }
+    
+  
   return (
     <motion.header
       initial={{ y: 0 }}
@@ -82,8 +136,6 @@ export default function Header() {
             />
           )}
         </AnimatePresence>
-
-        {/* Dropdown */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
@@ -93,26 +145,12 @@ export default function Header() {
               transition={{ duration: 0.25, type: "spring" }}
               className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 flex flex-col gap-2 min-w-[300px] z-[1001]"
             >
-              {menuItems.map((item, i) => (
-                <div key={i}>
-                  <a
-                    href={item.href}
-                    className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
-                    style={{
-                      fontFamily:
-                        "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
-                      letterSpacing: "0.02em",
-                    }}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                  <div className="relative h-[2px] bg-[#3B001B]" />
-                </div>
-              ))}
-            </motion.div>
-          )}
+        {createMenu()}
+        </motion.div>
+      )}
         </AnimatePresence>
+        {/* Dropdown */}
+        
       </div>
     </motion.header>
   );
