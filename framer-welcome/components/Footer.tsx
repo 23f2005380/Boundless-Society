@@ -15,19 +15,19 @@ export default function Footer(){
               {/* Socials Right */}
               <div className="flex flex-col items-end gap-2">
                 <a
-                  href="#"
+                  href="https://youtube.com/@boundlesstravelclub?si=CpWZufQvCLX-UKKI"
                   className="text-xl md:text-2xl font-bold hover:underline"
                 >
                   Youtube
                 </a>
                 <a
-                  href="#"
+                  href="https://www.instagram.com/boundless_iitmbs?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
                   className="text-xl md:text-2xl font-bold hover:underline"
                 >
                   Instagram
                 </a>
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/company/boundless-iitm-bs-travel-club/"
                   className="text-xl md:text-2xl font-bold hover:underline"
                 >
                   Linkedin

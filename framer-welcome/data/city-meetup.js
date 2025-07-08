@@ -25,7 +25,7 @@ let meetupsData = [
       },
       {
         "city": "Gaya",
-        "img": "/city/summer/Gaya.jpg",
+        "img": "/city/summer/gaya.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
         "galleryLink": "/gallery/udaipur"
@@ -138,7 +138,7 @@ let meetupsData = [
     ]
   },
   {
-    "sectionTitle": "Republic Meetups",
+    "sectionTitle": "Republic Day Meetups",
     "cards": [
       {
         "city": "Patna",

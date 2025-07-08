@@ -18,7 +18,9 @@ export default function RootLayout({
       
       <body style={{background : "#fffbea"}}>
         <Header />
+        <div className='pt-20'>
         {children}
+        </div>
         </body>
     </html>
   )

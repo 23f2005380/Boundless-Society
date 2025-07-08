@@ -9,7 +9,7 @@ const councilMembers = [
 const departmentHeads = [
   { name: "Prateek Singh", role: "Technical", image: "/founders/Prateek.jpg" },
   { name: "Ishan raj", role: "Trip Coordination", image: "/founders/ishan.jpg" },
-  { name: "Sakshi Verma", role: "Finance Chair", image: "/founders/sakshi.jpg" },
+  { name: "Sakshi Verma", role: "Females Corner", image: "/founders/sakshi.jpg" },
   { name: "Rishitesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
   { name: "Greesmma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
   { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
@@ -133,7 +133,7 @@ export default function CouncilSection() {
               <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
                 <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
                 <p className="text-lg text-gray-300 mb-2">{member.role}</p>
-                <div className="flex space-x-3 mt-2">
+                {/* <div className="flex space-x-3 mt-2">
                   <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
                     <XIcon className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
                   </div>
@@ -143,7 +143,7 @@ export default function CouncilSection() {
                   <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
                     <Linkedin className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
                   </div>
-                </div>
+                </div> */}
               </div>
               <img
                 src={member.image}

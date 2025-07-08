@@ -34,11 +34,11 @@ export default function AmazingTeam() {
                   <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
                     <h3 className="font-bold text-base mb-1">{member.name}</h3>
                     <p className="text-xs text-gray-300 mb-2">{member.role}</p>
-                    <div className="flex space-x-3 mt-2">
+                    {/* <div className="flex space-x-3 mt-2">
                       <XIcon className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                       <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                       <Linkedin className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-                    </div>
+                    </div> */}
                   </div>
                   <img
                     src={member.src}

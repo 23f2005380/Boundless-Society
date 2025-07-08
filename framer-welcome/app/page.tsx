@@ -73,7 +73,9 @@ export default function BoundlessTravelSociety() {
           <CityMeetup />
         </Section>
       </div>
+      <div id="stats">
       <Proud />
+      </div>
       <div id="about">
         <About />
       </div>

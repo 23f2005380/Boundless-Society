@@ -46,12 +46,21 @@ export default function Header() {
   function itemClicked(href) {
     setMenuOpen(false); 
     console.log(href)
+    if (href.startsWith("#")) {
+      const el = document.querySelector(href);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 40; // adjust offset if you have a fixed header
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    } 
     let clicked = href.startsWith("/");
     if (clicked && href != "/") {
       setMenuItems([
         { label: "Home", href: "/" },
         { label: "Our Team", href: "/team-members" },
         { label: "Whatsapp groups", href: "/whatsapp-groups" },
+        { label: "City Meetups", href: "/city-meetups" },
+        { label: "Previous Trips", href: "/previous-trips" },
         { label: "Verify Certificates", href: "/verify-certificate" },
 
       ])
@@ -64,14 +73,15 @@ export default function Header() {
         { label: "Upcoming Trips", href: "#upcoming-trips" },
         { label: "Our Gallery", href: "#gallery" },
         { label: "Previous Trips", href: "#previous-trips" },
-        { label: "City Meetups", href: "#city-meetups" },
+       
         { label: "Stats", href: "#stats" },
         { label: "About Us", href: "#about" },
+         { label: "City Meetups", href: "/city-meetups" },
         { label: "Our Team", href: "/team-members" },
         { label: "Whatsapp groups", href: "/whatsapp-groups" },
         { label: "Verify Certificates", href: "/verify-certificate" },
       ])
-      window.alert("/p", menuItems)
+   
       
     }
   
