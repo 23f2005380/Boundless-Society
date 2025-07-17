@@ -42,7 +42,7 @@ export default function VerifyCertificate() {
 
         <div className="z-10 bg-[#FFE252] rounded-[50px] px-8 py-20 border border-black text-center max-w-3xl w-full">
           <h2 className="text-3xl md:text-6xl font-bold mb-10 font-pacifico">
-            Verify Your Certificates
+            Verify Your Certificates (Under Construction)
           </h2>
           <input
             type="text"
