@@ -10,30 +10,58 @@ interface Trip {
   status: string;
   description?: string;
   image?: string;
-  details?: string[];
+  details?: string;
   backgroundColor: string;
   textColor: string;
+  from : string;
+  to : string;
+  formLink : string;
+  included : string[];
+  plan?: { title: string; description: string }[];
+  
+
 }
 
+const steps = [
+  { title: 'Step One', description: 'This is the first step.' },
+  { title: 'Step Two', description: 'This is the second step.' },
+  { title: 'Step Three', description: 'This is the third step.' },
+  { title: 'Step Four', description: 'This is the fourth step.' },
+  { title: 'Step Five', description: 'This is the fifth step.' },
+];
 const trips: Trip[] = [
   {
     id: 'Shimoga',
     title: 'Shimoga Trip',
-    status: 'Coming soon',
+    status: 'Registration started',
     description: 'Gateway of Malnad',
     image: '/Jog-Falls-10.jpg',
-  
+    from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
+    to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
     backgroundColor: 'bg-yellow-200',
-    textColor: 'text-gray-800'
+    textColor: 'text-gray-800',
+    formLink : 'https://forms.gle/fiJenz9fndXX7MG89',
+    details : 'https://drive.google.com/file/d/1pAVk3veX5US4uSZ8jC9S5GLC9Fr0Ahh6/view',
+    included : [],
+    plan: [
+      { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
+      { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
+      { title: 'Day 3', description: 'Relax and return to Udupi.' }
+    ]
   },
   {
     id: 'coming-soon',
     title: 'Coming Soon',
     status: 'Stay Tuned for more details',
     backgroundColor: 'bg-purple-200',
-    textColor: 'text-gray-800'
+    textColor: 'text-gray-800',
+    from : "",
+    to : "",
+    formLink : "",
+   included : []
   }
 ];
+let currentStep = 0; // This should be managed by your component state
 
 const tripsPlanned = () => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -71,6 +99,7 @@ const tripsPlanned = () => {
                   >
                     {trip.title}
                   </motion.h2>
+                  
                   <motion.p 
                     layout="position"
                     className={`${trip.textColor} opacity-80`}
@@ -124,43 +153,111 @@ const tripsPlanned = () => {
                         />
                       </motion.div>
                     )}
-                    
-                    {trip.description && (
-                      <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.2 }}
-                        className={`${trip.textColor} text-lg mb-4`}
+          
+
+    {/* <div className="flex flex-col relative ml-4">
+      {trip.plan.map((step, index) => {
+        const isCompleted = index < currentStep;
+        const isActive = index === currentStep;
+        const isUpcoming = index > currentStep;
+
+        return (
+          <div key={index} className="flex items-start relative">
+         
+            {index < steps.length - 1 && (
+              <span className={`absolute left-[0.55rem] top-6 h-full w-0.5 bg-indigo-500`} />
+            )}
+
+          
+            <div className="relative z-10 flex items-center justify-center w-5 h-5 mt-1.5 rounded-full border-2"
+                 style={{
+                   borderColor: isCompleted || isActive ? '#6366f1' : '#d1d5db',
+                   backgroundColor: '#6366f1'
+                 }}>
+              {isCompleted && <div className="w-2 h-2 bg-indigo-500 rounded-full" />}
+              {isActive && <div className="w-3 h-3 bg-indigo-500 rounded-full" />}
+            </div>
+
+            <div className={`ml-4 pb-6 p-2 rounded-md`}>
+              <h4 className={`text-sm font-semibold 'text-indigo-700' `}>
+                {step.title}
+              </h4>
+              <p className={`text-sm text-indigo-600`}>
+                {step.description}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+</div> */}
+
+                    {/* <div className="mt-4">
+                      <h3 className={`${trip.textColor} font-bold text-xl mb-2`}>
+                        Arrival
+                      </h3>
+                      <p className={`${trip.textColor} text-lg mb-4 text-[#0f5027]`}>
+                        {trip.from}
+                      </p>
+                      <h3 className={`${trip.textColor} font-bold text-xl mb-2`}>
+                        Depat
+                      </h3>
+                      <p className={`${trip.textColor} text-lg mb-4 text-[#0f5027]`}>
+                        {trip.to}
+                      </p>
+                    </div> */}
+                    {/* <div className="mt-4">
+                      <h3 className={`${trip.textColor} font-bold text-xl mb-2`}>
+                        Included
+                      </h3>
+                      <ul className={`${trip.textColor} text-lg list-disc pl-6`}>
+                        {trip.included.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div> */}
+                    <h2 className='text-2xl font-bold text-[#3B001B] mb-2'>
+                      Shimoga Trip
+                    </h2>
+                    <h4>
+                      Sept 5 - Sept 7
+                    </h4>
+                    <div className='flex grid-cols-2 gap-4'>
+                    <div className="mt-4">
+
+                      <a
+                        href={trip.formLink}
+                        className={`text-lg font-semibold ${trip.textColor} hover:underline`}
                       >
-                        {trip.description}
-                      </motion.p>
-                    )}
-                    
-                    {trip.details && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.3 }}
+                        <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  
+                  className={`flex items-center gap-2 px-6 py-3 bg-[#ff5722] rounded-full text-white shadow-md hover:shadow-lg transition-shadow ${trip.textColor}`}
+                >
+                        Register Now
+                        </motion.button>
+                      </a>
+                    </div>
+                   
+                    <div className="mt-4">
+                      <a
+                        href={trip.details}
+                        className={`text-lg font-semibold ${trip.textColor} hover:underline`}
                       >
-                        <h3 className={`${trip.textColor} font-bold text-xl mb-4`}>
-                          What's Included:
-                        </h3>
-                        <ul className="space-y-2">
-                          {trip.details.map((detail, index) => (
-                            <motion.li
-                              key={index}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
-                              className={`${trip.textColor} flex items-center gap-2`}
-                            >
-                              <div className="w-2 h-2 bg-current rounded-full opacity-60" />
-                              {detail}
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
+                         <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  
+                  className={`flex items-center gap-2 px-6 py-3 bg-[#ff5722] rounded-full text-white shadow-md hover:shadow-lg transition-shadow ${trip.textColor}`}
+                >
+                        More details
+                                              </motion.button>
+                      </a>
+
+
+                    </div>
+
+                    </div>
                   </div>
                 </motion.div>
               )}

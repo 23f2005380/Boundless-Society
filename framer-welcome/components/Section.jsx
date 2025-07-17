@@ -30,7 +30,7 @@ const Section = ({ children, svgFill, sectionHeading, headingStyle }) => {
         <h1
           className={`
             w-full font-[350] text-center font-oswald ${headingStyle}
-            text-[9rem] max-xl:text-8xl max-lg:text-7xl max-md:text-6xl max-sm:text-4xl max-[400px]:text-2xl
+            text-[9rem] max-xl:text-8xl max-lg:text-7xl max-md:text-6xl max-sm:[300px] max-[400px]:text-2xl
             leading-tight
           `}
           style={{

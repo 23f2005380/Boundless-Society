@@ -32,13 +32,15 @@ export default function Footer(){
                 >
                   Instagram
                 </a>
+                
+                
                
               </div>
             </div>
             <h1
               className="w-full font-black opacity-30 leading-none select-none tracking-normal bg-gradient-to-b from-[#FFFFFF] to-[#46001D] bg-clip-text text-transparent text-center mt-16"
               style={{
-                fontSize: "clamp(2rem, 12vw, 10rem)",
+                fontSize: "clamp(2rem, 10vw, 10rem)",
                 transform: "scaleY(2.4)",
               }}
             >
