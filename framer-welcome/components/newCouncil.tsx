@@ -3,19 +3,19 @@ import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 
 const councilMembers = [
-  { name: "Sachin Kumar", role: "Secretary", image: "/founders/image2.jpg" },
-  { name: "Anushka Singh", role: "Deputy Secretary", image: "/founders/anushka.jpg" },
+  { name: "Sahil Kamble", role: "Secretary", image: "/founders/sky.jpg" },
+  { name: "Vidhi Belani", role: "Deputy Secretary", image: "/founders/anushka.jpg" },
 ];
 const departmentHeads = [
-  { name: "Prateek Singh", role: "Technical", image: "/founders/Prateek.jpg" },
-  { name: "Ishan raj", role: "Trip Coordination", image: "/founders/ishan.jpg" },
-  { name: "Sakshi Verma", role: "Females Corner", image: "/founders/sakshi.jpg" },
-  { name: "Rishikesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
-  { name: "Greeshma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
-  { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
+  { name: "Aman Kumar", role: "Technical", image: "/founders/Prateek.jpg" },
+  { name: "Ankaj Kumar", role: "Trip Coordination", image: "/founders/ishan.jpg" },
+  { name: "Nityashree", role: "Females Corner", image: "/founders/sakshi.jpg" },
+  { name: "Vishnu M.", role: "Public Relations", image: "/founders/rishikesh.jpg" },
+  { name: "Saurav Pal", role: "Research", image: "/founders/greeshma.jpg" },
+  { name: "Satyam Pandey", role: "Trip Coordination", image: "/founders/harshit.jpg" },
   { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
-  { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
-  { name: "Sahil Kamble", role: "City Operation", image: "/founders/sky.jpg" },
+  { name: "Alok Chaubey", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
+  { name: "Ananay Purvey", role: "City Operation", image: "/founders/sky.jpg" },
 ];
 
 const founders = [
@@ -45,7 +45,7 @@ function useFadeInOnScroll() {
   return refs;
 }
 
-export default function CouncilSection() {
+export default function new() {
   const headingRefs = useFadeInOnScroll();
   const councilRefs = useFadeInOnScroll();
   const deptGroupRefs = useFadeInOnScroll();

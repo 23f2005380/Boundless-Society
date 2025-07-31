@@ -1,5 +1,6 @@
 import React from "react";
 import VideoContainer from "@/components/videoCont";
+import AnimatedByChar from "./AnimatedByWord";
 
 export default function Hero() {
   return (
@@ -13,7 +14,11 @@ export default function Hero() {
             className=" text-[#3B001B] mb-3 md:mb-4 oswald-subtitle"
             style={{ fontSize: "42px" }}
           >
-            IIT 'M BS TRAVEL SOCIETY
+            <AnimatedByChar
+              text="IIT 'M BS TRAVEL SOCIETY"
+              
+            />
+           
           </h2>
           <div>
             <button
