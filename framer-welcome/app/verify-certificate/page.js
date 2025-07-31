@@ -1,19 +1,31 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
+import { ref, get } from "firebase/database";
 
 export default function VerifyCertificate() {
   const [input, setInput] = useState("");
-  const [status, setStatus] = useState(null); // null | "verified" | "not-verified" | "checking"
+  const [status, setStatus] = useState(null);
+
+  function sanitizeKey(key) {
+    return key.trim().replace(/[.#$/\[\]]/g, "_");
+  }
 
   async function handleVerify() {
     if (!input) return;
     setStatus("checking");
-    const ref = doc(db, "certificates", input.trim());
-    const snap = await getDoc(ref);
-    setStatus(snap.exists() ? "verified" : "not-verified");
+
+    const sanitizedInput = sanitizeKey(input);
+    const certRef = ref(db, `${sanitizedInput}`);
+
+    try {
+      const snapshot = await get(certRef);
+      setStatus(snapshot.exists() ? "verified" : "not-verified");
+    } catch (error) {
+      console.error("Error fetching certificate:", error);
+      setStatus("not-verified");
+    }
   }
 
   return (
@@ -23,17 +35,17 @@ export default function VerifyCertificate() {
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: `
-            linear-gradient(#00000010 2px, transparent 1px),
-            linear-gradient(to right, #00000010 2px, transparent 1px),
-            linear-gradient(#00000010 3px, transparent 1px),
-            linear-gradient(to right, #00000010 3px, transparent 1px)
-          `,
+              linear-gradient(#00000010 2px, transparent 1px),
+              linear-gradient(to right, #00000010 2px, transparent 1px),
+              linear-gradient(#00000010 3px, transparent 1px),
+              linear-gradient(to right, #00000010 3px, transparent 1px)
+            `,
             backgroundSize: `
-            20px 20px,
-            20px 20px,
-            120px 120px,
-            120px 120px
-          `,
+              20px 20px,
+              20px 20px,
+              120px 120px,
+              120px 120px
+            `,
             backgroundColor: "#fffbeb",
             maskImage: `linear-gradient(to top, black 5%, transparent 100%)`,
             WebkitMaskImage: `linear-gradient(to top, black 5%, transparent 100%)`,

@@ -1,17 +1,15 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA8pPyRJz4exkoFV-eAdBaaqr9_NYpR3Jk",
-  authDomain: "coaching-3d073.firebaseapp.com",
-  projectId: "coaching-3d073",
-  storageBucket: "coaching-3d073.firebasestorage.app",
-  messagingSenderId: "758157936375",
-  appId: "1:758157936375:web:d39f6baa74585b314735f2",
-  measurementId: "G-54BXXMVGH9"
+  apiKey: "AIzaSyAcKKNkCpoD5ny4DCTTj1PtdjDuxd1-pKE",
+  authDomain: "boundless-66cbf.firebaseapp.com",
+  databaseURL: "https://boundless-66cbf-default-rtdb.firebaseio.com",
+  projectId: "boundless-66cbf",
+  storageBucket: "boundless-66cbf.firebasestorage.app",
+  messagingSenderId: "443654946102",
+  appId: "1:443654946102:web:2620230dae889032a70797",
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export { db };
+const app = initializeApp(firebaseConfig);
+export const db = getDatabase(app);
