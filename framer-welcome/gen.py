@@ -80,18 +80,18 @@ Bilal Shakeel	24f2005920@ds.study.iitm.ac.in	COA/2025/015
 Jay Pandey	24f2004591@ds.study.iitm.ac.in	COA/2025/016
 Amit Roy	24f2009311@ds.study.iitm.ac.in	COA/2025/017
 Yashvardhan Singh Tomar	23f2003408@ds.study.iitm.ac.in	COA/2025/018
-"""  # Replace this with full data (use triple quotes)
+"""  
 
-# Step 1: Extract lines with 3 columns (name, email, cert id)
+
 lines = raw_data.strip().split("\n")
 
 certificate_data = {}
 
 for line in lines:
-    # Use regex to extract three tab-separated values
+    
     parts = re.split(r"\t+", line.strip())
     if len(parts) != 3:
-        continue  # skip invalid rows or headers
+        continue  
 
     name, email, cert_id = parts
 
@@ -104,7 +104,7 @@ for line in lines:
         "email": email.strip()
     }
 
-# Step 2: Write to certificate.json
+
 with open("certificate.json", "w", encoding="utf-8") as f:
     json.dump(certificate_data, f, indent=2)
 
