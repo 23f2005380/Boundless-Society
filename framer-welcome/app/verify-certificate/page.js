@@ -6,7 +6,8 @@ import { ref, get } from "firebase/database";
 
 export default function VerifyCertificate() {
   const [input, setInput] = useState("");
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState(null); // "verified", "not-verified", "checking", null
+  const [name, setName] = useState("");
 
   function sanitizeKey(key) {
     return key.trim().replace(/[.#$/\[\]]/g, "_");
@@ -15,13 +16,20 @@ export default function VerifyCertificate() {
   async function handleVerify() {
     if (!input) return;
     setStatus("checking");
+    setName("");
 
     const sanitizedInput = sanitizeKey(input);
     const certRef = ref(db, `${sanitizedInput}`);
 
     try {
       const snapshot = await get(certRef);
-      setStatus(snapshot.exists() ? "verified" : "not-verified");
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setName(data.name || "");
+        setStatus("verified");
+      } else {
+        setStatus("not-verified");
+      }
     } catch (error) {
       console.error("Error fetching certificate:", error);
       setStatus("not-verified");
@@ -54,7 +62,7 @@ export default function VerifyCertificate() {
 
         <div className="z-10 bg-[#FFE252] rounded-[50px] px-8 py-20 border border-black text-center max-w-3xl w-full">
           <h2 className="text-3xl md:text-6xl font-bold mb-10 font-pacifico">
-            Verify Your Certificates (Under Construction)
+            Verify Your Certificates
           </h2>
           <input
             type="text"
@@ -63,6 +71,7 @@ export default function VerifyCertificate() {
             onChange={(e) => {
               setInput(e.target.value);
               setStatus(null);
+              setName("");
             }}
             className="rounded-full px-4 py-3 text-center w-full max-w-xs mb-4 outline-none border border-black bg-amber-50"
           />
@@ -74,9 +83,10 @@ export default function VerifyCertificate() {
           >
             {status === "checking" ? "Checking..." : "Click Here"}
           </button>
+
           {status === "verified" && (
             <div className="mt-6 text-green-700 text-xl font-bold">
-              ✅ Certificate Verified!
+              🎉 Congratulations {name}, your certificate is verified!
             </div>
           )}
           {status === "not-verified" && (

@@ -3,8 +3,6 @@ import re
 
 # Raw multiline data (you can paste the whole text here)
 raw_data = """
-Name	Email address 	Certificate Number
-		
 Prateek Singh	23f1003014@ds.study.iitm.ac.in	CORE/2025/001
 Ishan Raj	23f2001683@ds.study.iitm.ac.in	CORE/2025/002
 Sakshi Verma	24f1000404@ds.study.iitm.ac.in	CORE/2025/003
