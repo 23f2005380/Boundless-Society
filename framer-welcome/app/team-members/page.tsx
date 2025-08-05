@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import CouncilSection from "@/components/CouncilSection";
 import AmazingTeam from "@/components/AmazingTeam";
 import Footer from "@/components/Footer";
-
+import New from "@/components/New"
 export default function TeamMembersPage() {
   return (
     <div className="min-h-screen bg-[#FFF9ED]">
@@ -14,7 +14,10 @@ export default function TeamMembersPage() {
             Get to Know <span className="italic font-serif text-[#6d1a2c]">Us</span>
           </h2>
         </div>
-        <CouncilSection />
+        <New />
+      
+         <CouncilSection />
+        
         <div>
           {/* <AmazingTeam/> */}
         </div>

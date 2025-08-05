@@ -1,21 +1,20 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
-
 const councilMembers = [
-  { name: "Sahil Kamble", role: "Secretary", image: "/founders/sky.jpg" },
-  { name: "Vidhi Belani", role: "Deputy Secretary", image: "/founders/anushka.jpg" },
+  { name: "Sahil Kamble", role: "Secretary", image: "/founders/unknown.png" },
+  { name: "Vidhi Belani", role: "Deputy Secretary", image: "/founders/vidhi.jpg" },
 ];
 const departmentHeads = [
-  { name: "Aman Kumar", role: "Technical", image: "/founders/Prateek.jpg" },
+  { name: "Aman Kumar", role: "Technical", image: "/founders/aman.jpg" },
   { name: "Ankaj Kumar", role: "Trip Coordination", image: "/founders/ishan.jpg" },
-  { name: "Nityashree", role: "Females Corner", image: "/founders/sakshi.jpg" },
-  { name: "Vishnu M.", role: "Public Relations", image: "/founders/rishikesh.jpg" },
-  { name: "Saurav Pal", role: "Research", image: "/founders/greeshma.jpg" },
-  { name: "Satyam Pandey", role: "Trip Coordination", image: "/founders/harshit.jpg" },
+  { name: "Nityashree", role: "Females Corner", image: "/founders/unknown.png" },
+  { name: "Vishnu M.", role: "Public Relations", image: "/founders/vishnu.jpg" },
+  { name: "Saurav Pal", role: "Research", image: "/founders/saurav.jpg" },
+  { name: "Satyam Pandey", role: "Trip Coordination", image: "/founders/satyam.jpg" },
   { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
   { name: "Alok Chaubey", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
-  { name: "Ananay Purvey", role: "City Operation", image: "/founders/sky.jpg" },
+  { name: "Ananay Purvey", role: "City Operation", image: "/founders/unknown.png" },
 ];
 
 const founders = [
@@ -45,7 +44,7 @@ function useFadeInOnScroll() {
   return refs;
 }
 
-export default function new() {
+export default function New() {
   const headingRefs = useFadeInOnScroll();
   const councilRefs = useFadeInOnScroll();
   const deptGroupRefs = useFadeInOnScroll();

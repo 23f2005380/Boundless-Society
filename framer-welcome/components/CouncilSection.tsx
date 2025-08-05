@@ -15,7 +15,7 @@ const departmentHeads = [
   { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
   { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
   { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
-  { name: "Sahil Kamble", role: "City Operation", image: "/founders/sky.jpg" },
+  { name: "Sahil Kamble", role: "City Operation", image: "/founders/unknown.png" },
 ];
 
 const founders = [
