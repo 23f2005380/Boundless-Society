@@ -2,19 +2,22 @@
 import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 const councilMembers = [
-  { name: "Sahil Kamble", role: "Secretary", image: "/founders/unknown.png" },
+  { name: "Sahil Kamble", role: "Secretary", image: "/founders/sky.jpg" },
   { name: "Vidhi Belani", role: "Deputy Secretary", image: "/founders/vidhi.jpg" },
+  { name: "Ishan Raj", role: "General Secretary", image: "/founders/ishan.jpg"}
 ];
 const departmentHeads = [
-  { name: "Aman Kumar", role: "Technical", image: "/founders/aman.jpg" },
-  { name: "Ankaj Kumar", role: "Trip Coordination", image: "/founders/ishan.jpg" },
-  { name: "Nityashree", role: "Females Corner", image: "/founders/unknown.png" },
+  { name: "Aman Kumar", role: "Technical", image: "/founders/aman3.jpg" },
+
+  { name: "Nityashree", role: "Females Corner", image: "/founders/nitya.jpg" },
   { name: "Vishnu M.", role: "Public Relations", image: "/founders/vishnu.jpg" },
   { name: "Saurav Pal", role: "Research", image: "/founders/saurav.jpg" },
-  { name: "Satyam Pandey", role: "Trip Coordination", image: "/founders/satyam.jpg" },
+
   { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
   { name: "Alok Chaubey", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
-  { name: "Ananay Purvey", role: "City Operation", image: "/founders/unknown.png" },
+  { name: "Ananay Purvey", role: "City Operation", image: "/founders/ananay.jpg" },
+    { name: "Ankaj Kumar", role: "Trip Coordination", image: "/founders/ankaj.jpg" },
+      { name: "Satyam Pandey", role: "Trip Coordination", image: "/founders/satyam.jpg" },
 ];
 
 const founders = [
@@ -76,7 +79,7 @@ export default function New() {
           }}
         >
           
-          COUNCIL (2024-2025)
+          COUNCIL (2025-2026)
         </h2>
         <div className="flex flex-row flex-wrap justify-center gap-x-14 gap-y-5">
           {councilMembers.map((member, i) => (
