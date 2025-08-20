@@ -221,6 +221,7 @@ const tripsPlanned = () => {
                     <h4>
                       Sept 5 - Sept 7
                     </h4> */}
+                    {trip.formLink ? (
                     <div className='flex grid-cols-2 gap-4'>
                     <div className="mt-4">
 
@@ -258,6 +259,8 @@ const tripsPlanned = () => {
                     </div>
 
                     </div>
+                    )
+                : "" }
                   </div>
                 </motion.div>
               )}
