@@ -31,17 +31,17 @@ const steps = [
 ];
 const trips: Trip[] = [
   {
-    id: 'Mewar',
-    title: 'Mewar Trip',
+    id: 'Navrang 2.0',
+    title: 'Navrang 2.0',
     status: 'Registration started',
-    description: 'Gateway of Malnad',
-    image: 'https://www.jetangelholidays.com/images/rajasthan-mewar-tour.jpg',
+    description: 'Spirituality at its peak',
+    image: 'https://ik.imagekit.io/dlvhkpstd/Purple%20and%20Orange%20Traditional%20Navratri%20Thali%20Sale%20Instagram%20Post%20(Instagram%20Post).png?updatedAt=1758208205409',
     from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
     to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
     backgroundColor: 'bg-yellow-200',
     textColor: 'text-gray-800',
-    formLink : 'https://docs.google.com/forms/d/e/1FAIpQLSdsVnennZlDGW9IyMmSfIbsDzxEMLX8cpQ__VfhI99UW9RdoQ/viewform',
-    details : 'https://drive.google.com/file/d/1hOWBu9FImPLW00V5pGCcd_CN5d7e7Kb6/view',
+    formLink : 'https://forms.gle/mTAzR1fNqrWJDJjQ6',
+    details : 'https://docs.google.com/forms/d/e/1FAIpQLSfkJodocgSsVE9GzpyXr3i_jxFbc6KHffnR4t-5zxJel4Nokg/viewform?embedded=true',
     included : [],
     plan: [
       { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
