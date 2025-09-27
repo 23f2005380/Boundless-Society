@@ -5,6 +5,7 @@ import Link from "next/link";
 import Section from "@/components/Section"
 import StatsShowcase from "./StatsShowcase";
 import Footer from "./Footer";
+import { founderDetails } from "@/data/founders";
 
 export default function AmazingTeam() {
   return (
@@ -13,7 +14,7 @@ export default function AmazingTeam() {
         sectionHeading="Founding Members"
         headingStyle="text-brown text-3xl"
       >
-    <section className="relative px-6 md:px-6 mb-8 md:mb-12 mb-5 py-8 md:py-12 overflow-visible">
+    <section className="relative px-6 md:px-6 mb-8 md:mb-12 py-8 md:py-12 overflow-visible">
         {/* Scalloped border at the very top */}
         {/* <h2 className="text-center text-4xl md:text-4xl font-black mb-2 tracking-wide">
             Get to Know <span className="italic font-serif text-[#6d1a2c]">Us</span>
@@ -22,11 +23,7 @@ export default function AmazingTeam() {
           <Link href="/team-members" className="block group" style={{ textDecoration: 'none' }}>
            
             <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-4 gap-3 mb-8">
-              {[
-                { name: "Aditya Mohan Srivastava", role: "Founder" , src :"/founders/image3.png"},
-                { name: "Abhishek Tripathi", role: "Founder" , src:"/founders/image1.png"},
-                { name: "Sachin Kumar", role: "Founder/Secretary" , src: "/founders/image2.jpg"},
-              ].map((member, i) => (
+              {founderDetails.map((member, i) => (
                 <div
                   key={i}
                   className="bg-black text-white hover:scale-105 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"

@@ -7,6 +7,7 @@ import {
   Youtube,
   X as XIcon,
 } from "lucide-react";
+import { knowUs } from "@/data/oldCouncil";
 
 export default function GetToKnowUs(){
     return (
@@ -30,14 +31,7 @@ export default function GetToKnowUs(){
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-            {[
-              { name: "Ritu Sahani", role: "President 2024" },
-              { name: "Chetan Chavan", role: "Organizing" },
-              { name: "Jannavi Bansal", role: "Secretary" },
-              { name: "Janny Jain", role: "Secretary" },
-              { name: "Jai Vithani", role: "Treasurer" },
-              { name: "Lali Maan", role: "Member" },
-            ].map((member, i) => (
+            {knowUs.map((member, i) => (
               <div
                 key={i}
                 className="bg-black text-white hover:scale-105 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"

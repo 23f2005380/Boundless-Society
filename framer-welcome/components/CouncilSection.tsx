@@ -1,28 +1,8 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
-
-const councilMembers = [
-  { name: "Sachin Kumar", role: "Secretary", image: "/founders/image2.jpg" },
-  { name: "Anushka Singh", role: "Deputy Secretary", image: "/founders/anushka.jpg" },
-];
-const departmentHeads = [
-  { name: "Prateek Singh", role: "Technical", image: "/founders/Prateek.jpg" },
-  { name: "Ishan raj", role: "Trip Coordination", image: "/founders/ishan.jpg" },
-  { name: "Sakshi Verma", role: "Females Corner", image: "/founders/sakshi.jpg" },
-  { name: "Rishikesh Gupta", role: "Public Relations", image: "/founders/rishikesh.jpg" },
-  { name: "Greeshma Suresh", role: "Research", image: "/founders/greeshma.jpg" },
-  { name: "Harshit Mishra", role: "Research", image: "/founders/harshit.jpg" },
-  { name: "Vivek Subramani", role: "Media", image: "/founders/vivek.jpg" },
-  { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "/founders/kanika.jpg" },
-  { name: "Sahil Kamble", role: "City Operation", image: "/founders/sky.jpg" },
-];
-
-const founders = [
-  { name: "Abhishek Tripathi ", role: "Founder", image: "/founders/image1.png" },
-  { name: "Aditya Shrivastav", role: "Founder", image: "/founders/image3.png" },
-  { name: "Sachin Kumar", role: "Founder / Secretary", image: "/founders/image2.jpg" },
-]
+import { oldCouncilMembers, oldDepartmentHeads } from "@/data/oldCouncil";
+import { founderDetails } from "@/data/founders";
 
 function useFadeInOnScroll() {
   const refs = useRef<(HTMLElement | null)[]>([]);
@@ -80,7 +60,7 @@ export default function CouncilSection() {
           COUNCIL (2024-2025)
         </h2>
         <div className="flex flex-row flex-wrap justify-center gap-x-14 gap-y-5">
-          {councilMembers.map((member, i) => (
+          {oldCouncilMembers.map((member, i) => (
             <div
               key={i}
               ref={el => { councilRefs.current[i] = el; }}
@@ -124,7 +104,7 @@ export default function CouncilSection() {
           DEPARTMENT HEADS
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-0 gap-y-12 justify-items-center">
-          {departmentHeads.map((member, i) => (
+          {oldDepartmentHeads.map((member, i) => (
             <div
               key={i}
               ref={el => { deptGroupRefs.current[i + 1] = el; }}

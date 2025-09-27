@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { forwardRef, useState } from "react"
+import { stats, statsImages } from "@/data/stats"
 
 // --- OVERRIDES ---
 function randomColor() {
@@ -47,20 +48,6 @@ function withRandomColor(Component: React.ComponentType<any>): React.ComponentTy
     })
 }
 
-// --- IMAGES & STATS ---
-const images = [
-    "/img1.jpg", "/img2.jpg", "/img3.jpg", "/img4.jpg", "/img5.jpg",
-    "/img6.jpg", "/img7.jpg", "/img8.jpg", "/img9.jpg", "/img10.jpg"
-]
-
-const stats = [
-    { number: "3,700+", label: "Members" },
-    { number: "900+", label: "Female Members" },
-    { number: "100+", label: "Core Members" },
-    { number: "40+", label: "Meetups" },
-    { number: "13+", label: "Trips" },
-]
-
 // --- COMPONENT ---
 const Img = withRotate(withHover(motion.img))
 const StatBox = withHover(withRandomColor(motion.div))
@@ -76,7 +63,7 @@ export default function StatsShowcase() {
                 {/* <h1 style={styles.heading}>We proud to have</h1> */}
 
                 {/* <div style={styles.ribbon}>
-                    {images.map((src, i) => (
+                    {statsImages.map((src, i) => (
                         <Img
                             key={i}
                             src={src}
