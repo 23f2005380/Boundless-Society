@@ -5,6 +5,7 @@ import Link from "next/link";
 import Section from "@/components/Section"
 import StatsShowcase from "./StatsShowcase";
 import Footer from "./Footer";
+import Image from "next/image";
 
 export default function AmazingTeam() {
   return (
@@ -40,12 +41,13 @@ export default function AmazingTeam() {
                       <Linkedin className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                     </div> */}
                   </div>
-                  <img
+                  <Image
                     src={member.src}
                     alt={member.name}
-                   
-                    className="object-cover rounded-lg ml-4 shadow mt-4 sm:mt-0 sm:ml-4 w-24 h-24 sm:w-28 sm:h-28"
-                  />
+                    width={112} // 28 * 4 (Tailwind w-28) 
+                    height={112} // 28 * 4 (Tailwind h-28)
+                    className="object-cover rounded-lg ml-4 shadow mt-4 sm:mt-0 sm:ml-4"
+                   />
                 </div>
               ))}
             </div>

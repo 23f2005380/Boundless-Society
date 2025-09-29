@@ -1,4 +1,5 @@
 import { X, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 const team = [
   {
@@ -116,11 +117,13 @@ export default function Team() {
                 </div>
               </div>
               <div className="flex-shrink-0">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-28 h-28 object-cover rounded-2xl bg-gray-700"
-                />
+                <Image
+                src={member.image}
+                alt={member.name}
+                width={112}   // 28 * 4 (Tailwind’s w-28 = 7rem = 112px)
+                height={112}  // same for h-28
+                className="object-cover rounded-2xl bg-gray-700"
+              />
               </div>
             </div>
           ))}

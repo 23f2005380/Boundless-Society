@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 import Section from "@/components/Section";
+import Image from "next/image";
 
 interface Trip {
   id: string;
@@ -146,11 +147,13 @@ const tripsPlanned = () => {
                         transition={{ duration: 0.4, delay: 0.1 }}
                         className="mb-6"
                       >
-                        <img
-                          src={trip.image}
-                          alt={trip.title}
-                          className="w-full h-64 md:h-80 object-cover rounded-2xl shadow-lg"
-                        />
+                        <Image
+                        src={trip.image}
+                        alt={trip.title}
+                        width={800}   // pick an approximate width
+                        height={320}  // matches h-80 (20rem ≈ 320px)
+                        className="w-full h-64 md:h-80 object-cover rounded-2xl shadow-lg"
+                      />
                       </motion.div>
                     )}
           

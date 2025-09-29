@@ -7,6 +7,7 @@ import {
   Youtube,
   X as XIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function GetToKnowUs(){
     return (
@@ -51,10 +52,12 @@ export default function GetToKnowUs(){
                     <Linkedin className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                   </div>
                 </div>
-                <img
+                <Image
                   src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
                   alt={member.name}
-                  className="w-30 h-30 object-cover rounded-lg ml-4 shadow"
+                  width={120}   // w-30 ≈ 120px
+                  height={120}  // h-30 ≈ 120px
+                  className="object-cover rounded-lg ml-4 shadow"
                 />
               </div>
             ))}

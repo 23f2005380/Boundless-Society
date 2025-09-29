@@ -8,6 +8,7 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import Link from "next/link"
+import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -144,10 +145,12 @@ export default function Header() {
     >
       {/* Logo */}
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <img
+        <Image
           src="/Logo Bound.png"
           alt="Logo"
-          className="w-14 h-14 object-contain rounded-full"
+          width={56}   // Tailwind w-14 = 3.5rem = 56px
+          height={56}  // Tailwind h-14 = 56px
+          className="object-contain rounded-full"
         />
       </div>
 

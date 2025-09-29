@@ -2,6 +2,7 @@
 
 import { parse } from "path";
 import "./previous.css"
+import Image from "next/image";
 
 export default function PreviousTrip() {
   const trips = [
@@ -41,9 +42,11 @@ export default function PreviousTrip() {
               id={String(i)}
               className="card relative rounded-[2rem] overflow-hidden group shadow-lg"
               style={{ minHeight: 420 }}>
-              <img
-                src={"/2ebc04de16bdc5368e930b89cf6186d1ba21de6c_2_1035x492.jpeg"}
+              <Image
+                src="/2ebc04de16bdc5368e930b89cf6186d1ba21de6c_2_1035x492.jpeg"
                 alt={trip.title}
+                width={1035}
+                height={492}
                 className="cardImage w-full h-full object-cover"
                 style={{ minHeight: 420 }}
               />

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 const councilMembers = [
   { name: "Sachin Kumar", role: "Secretary", image: "/founders/image2.jpg" },
@@ -101,10 +102,12 @@ export default function CouncilSection() {
                   </div>
                 </div> */}
               </div>
-              <img
+              <Image
                 src={member.image}
                 alt={member.name}
-                className="w-32 h-32 object-cover rounded-2xl ml-4 shadow"
+                width={128}   // Tailwind w-32 → 128px
+                height={128}  // Tailwind h-32 → 128px
+                className="object-cover rounded-2xl ml-4 shadow"
               />
             </div>
           ))}
@@ -145,10 +148,12 @@ export default function CouncilSection() {
                   </div>
                 </div> */}
               </div>
-              <img
+              <Image
                 src={member.image}
                 alt={member.name}
-                className="w-32 h-32 object-cover rounded-2xl ml-4 shadow"
+                width={128}   // Tailwind w-32 → 128px
+                height={128}  // Tailwind h-32 → 128px
+                className="object-cover rounded-2xl ml-4 shadow"
               />
             </div>
           ))}
