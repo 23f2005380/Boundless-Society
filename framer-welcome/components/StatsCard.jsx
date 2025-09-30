@@ -62,7 +62,7 @@ export default function StatsCard() {
       {stats.map((stat) => (
         <StatItem
           key={stat.label}
-          end={stat.value}
+          end={stat.number}
           label={stat.label}
           isVisible={visible}
         />

@@ -1,9 +1,9 @@
 export const stats = [
-  { number: "3700+", label: "Members" },
-  { number: "900+", label: "Female Members" },
-  { number: "100+", label: "Core Members" },
-  { number: "40+", label: "Meetups" },
-  { number: "13+", label: "Trips" },
+  { number:3700, label: "Members" },
+  { number:900, label: "Female Members" },
+  { number:100, label: "Core Members" },
+  { number:40, label: "Meetups" },
+  { number:13, label: "Trips" },
 ];
 
 // --- IMAGES & STATS ---
