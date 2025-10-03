@@ -1,5 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
+import Image from "next/image";
 
 export default function MeetupSection({ title, cards }: { title: string, cards: any[] }) {
   // Split cards into rows of 3 (desktop/tablet) or 2 (mobile)
@@ -51,10 +52,12 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                 whileHover={{ scale: 1.04, boxShadow: "0 8px 32px #00000022" }}
               >
                 <div className="relative">
-                  <img
+                  <Image
                     src={card.img}
                     alt={card.city}
-                    className="rounded-t-[32px] w-full h-44 object-cover"
+                    width={400}     // or whatever matches your layout
+                    height={176}    // Tailwind h-44 → 176px
+                    className="rounded-t-[32px] w-full object-cover"
                   />
                 </div>
                 <div className="flex flex-row items-center p-4">

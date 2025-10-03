@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-
+import Image from "next/image";
 import meetups from "@/data/city"
 
 const variants = {
@@ -72,16 +72,19 @@ export default function CityMeetup() {
                 >
                   {/* Optional logo and badge */}
                   {meetups[active].logo && (
-                    <img
-                      src={meetups[active].logo}
-                      alt="Logo"
-                      className="absolute top-2 left-2 w-10 h-10 object-contain z-10"
-                    />
+                    <Image
+                    src={meetups[active].logo}
+                    alt="Logo"
+                    width={40}   // Tailwind w-10 → 40px
+                    height={40}  // Tailwind h-10 → 40px
+                    className="absolute top-2 left-2 object-contain z-10"
+                  />
                   )}
-                  <img
+                  <Image
                     src={meetups[active].img}
                     alt={meetups[active].city}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                   {/* <span className="absolute top-2 right-2 bg-white/80 text-xs font-bold px-2 py-1 rounded">{meetups[active].badge}</span> */}
                   <span className="absolute bottom-2 left-2 text-white font-bold text-lg drop-shadow">{meetups[active].city} Meetup</span>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 import { councilMembers, departmentHeads } from "@/data/newCouncil";
 import { founderDetails } from "@/data/founders";
 
@@ -46,7 +47,9 @@ export default function New() {
       {/* Foreground content */}
       <div className="relative z-10">
         <h2
-          ref={el => { headingRefs.current[0] = el; }}
+          ref={(el) => {
+            headingRefs.current[0] = el;
+          }}
           className="text-center mb-12 fade-in text-5xl"
           style={{
             fontFamily: "'Oswald', Arial, sans-serif",
@@ -56,14 +59,15 @@ export default function New() {
             color: "#6d1a2c",
           }}
         >
-          
           COUNCIL (2025-2026)
         </h2>
         <div className="flex flex-row flex-wrap justify-center gap-x-14 gap-y-5">
           {councilMembers.map((member, i) => (
             <div
               key={i}
-              ref={el => { councilRefs.current[i] = el; }}
+              ref={(el) => {
+                councilRefs.current[i] = el;
+              }}
               className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
             >
               <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
@@ -81,16 +85,20 @@ export default function New() {
                   </div>
                 </div> */}
               </div>
-              <img
+              <Image
                 src={member.image}
                 alt={member.name}
-                className="w-32 h-32 object-cover rounded-2xl ml-4 shadow"
+                width={128} // Tailwind w-32 = 128px
+                height={128} // Tailwind h-32 = 128px
+                className="object-cover rounded-2xl ml-4 shadow"
               />
             </div>
           ))}
         </div>
         <h2
-          ref={el => { deptGroupRefs.current[0] = el; }}
+          ref={(el) => {
+            deptGroupRefs.current[0] = el;
+          }}
           className="text-center mt-16 mb-12 fade-in"
           style={{
             fontFamily: "'Oswald', Arial, sans-serif",
@@ -107,7 +115,9 @@ export default function New() {
           {departmentHeads.map((member, i) => (
             <div
               key={i}
-              ref={el => { deptGroupRefs.current[i + 1] = el; }}
+              ref={(el) => {
+                deptGroupRefs.current[i + 1] = el;
+              }}
               className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
             >
               <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
@@ -125,15 +135,17 @@ export default function New() {
                   </div>
                 </div> */}
               </div>
-              <img
+              <Image
                 src={member.image}
                 alt={member.name}
-                className="w-32 h-32 object-cover rounded-2xl ml-4 shadow"
+                width={128} // Tailwind w-32 → 128px
+                height={128} // Tailwind h-32 → 128px
+                className="object-cover rounded-2xl ml-4 shadow"
               />
             </div>
           ))}
         </div>
-                {/* <h2
+        {/* <h2
           ref={el => { deptGroupRefs.current[0] = el; }}
           className="text-center mt-16 mb-12 fade-in"
           style={{
@@ -180,4 +192,4 @@ export default function New() {
       </div>
     </section>
   );
-} 
+}

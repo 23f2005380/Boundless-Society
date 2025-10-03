@@ -1,27 +1,31 @@
-"use client"
+"use client";
 
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 import Link from "next/link";
-import Section from "@/components/Section"
+import Section from "@/components/Section";
 import StatsShowcase from "./StatsShowcase";
 import Footer from "./Footer";
 import { founderDetails } from "@/data/founders";
+import Image from "next/image";
 
 export default function AmazingTeam() {
   return (
-<Section
-        svgFill="#FFE878"
-        sectionHeading="Founding Members"
-        headingStyle="text-brown text-3xl"
-      >
-    <section className="relative px-6 md:px-6 mb-8 md:mb-12 py-8 md:py-12 overflow-visible">
+    <Section
+      svgFill="#FFE878"
+      sectionHeading="Founding Members"
+      headingStyle="text-brown text-3xl"
+    >
+      <section className="relative px-6 md:px-6 mb-8 md:mb-12 py-8 md:py-12 overflow-visible">
         {/* Scalloped border at the very top */}
         {/* <h2 className="text-center text-4xl md:text-4xl font-black mb-2 tracking-wide">
             Get to Know <span className="italic font-serif text-[#6d1a2c]">Us</span>
           </h2> */}
         <div className="max-w-7xl mx-auto">
-          <Link href="/team-members" className="block group" style={{ textDecoration: 'none' }}>
-           
+          <Link
+            href="/team-members"
+            className="block group"
+            style={{ textDecoration: "none" }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-4 gap-3 mb-8">
               {founderDetails.map((member, i) => (
                 <div
@@ -37,19 +41,20 @@ export default function AmazingTeam() {
                       <Linkedin className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                     </div> */}
                   </div>
-                  <img
+                  <Image
                     src={member.src}
                     alt={member.name}
-                   
-                    className="object-cover rounded-lg ml-4 shadow mt-4 sm:mt-0 sm:ml-4 w-24 h-24 sm:w-28 sm:h-28"
+                    width={112} // 28 * 4 (Tailwind w-28)
+                    height={112} // 28 * 4 (Tailwind h-28)
+                    className="object-cover rounded-lg ml-4 shadow mt-4 sm:mt-0 sm:ml-4"
                   />
                 </div>
               ))}
             </div>
           </Link>
         </div>
-       <Footer />
+        <Footer />
       </section>
-      </Section>
+    </Section>
   );
-} 
+}

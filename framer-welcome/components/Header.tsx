@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useState } from "react"
+import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -36,11 +37,13 @@ export default function Header() {
   return (
     <header className="flex bg-transparent justify-between items-center p-4 md:p-6 relative z-10">
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <img
-          src="/Logo Bound.png"
-          alt="Logo"
-          className="w-14 h-14 object-contain rounded-full"
-        />
+        <Image
+        src="/Logo Bound.png"
+        alt="Logo"
+        width={56}   // Tailwind w-14 → 56px
+        height={56}  // Tailwind h-14 → 56px
+        className="object-contain rounded-full"
+      />
       </div>
       <div className="relative">
         <button

@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 
 import { curvedMarque } from "@/data/curvedMarquee";
+import Image from "next/image";
 
 const generatePath = (width) => {
   const w = width;
@@ -65,8 +66,9 @@ const MarqueeItem = ({ src, index, baseProgress, totalItems, path, title }) => {
             animate="rest"
             className="relative h-full w-full"
           >
-            <img
+            <Image
               src={src}
+              fill
               alt="img"
               className="w-full h-full"
               draggable={false}

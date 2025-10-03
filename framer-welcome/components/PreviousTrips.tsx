@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
 import { parse } from "path";
-import "./previous.css"
-import {trips} from "@/data/recentTrips"
+import "./previous.css";
+import { trips } from "@/data/recentTrips";
+import Image from "next/image";
 
 export default function PreviousTrip() {
-  function showEffect(id){
-    let ele = document.getElementById(id)
+  function showEffect(id) {
+    let ele = document.getElementById(id);
     ele.children[0].style.opacity = 1;
-    ele.children[1].children[1].computedStyleMap.display = "block"
+    ele.children[1].children[1].computedStyleMap.display = "block";
   }
 
   return (
@@ -23,10 +24,13 @@ export default function PreviousTrip() {
               key={i}
               id={String(i)}
               className="card relative rounded-[2rem] overflow-hidden group shadow-lg"
-              style={{ minHeight: 420 }}>
-              <img
-                src={"/2ebc04de16bdc5368e930b89cf6186d1ba21de6c_2_1035x492.jpeg"}
+              style={{ minHeight: 420 }}
+            >
+              <Image
+                src="/2ebc04de16bdc5368e930b89cf6186d1ba21de6c_2_1035x492.jpeg"
                 alt={trip.title}
+                width={1035}
+                height={492}
                 className="cardImage w-full h-full object-cover"
                 style={{ minHeight: 420 }}
               />
@@ -36,7 +40,9 @@ export default function PreviousTrip() {
                   {trip.title}
                 </h3>
                 {trip.subtitle && (
-                  <p className="hidden caption text-base md:text-lg text-gray-700 font-serif">{trip.subtitle}</p>
+                  <p className="hidden caption text-base md:text-lg text-gray-700 font-serif">
+                    {trip.subtitle}
+                  </p>
                 )}
               </div>
             </div>
