@@ -28,7 +28,38 @@ const steps = [
   { title: "Step Four", description: "This is the fourth step." },
   { title: "Step Five", description: "This is the fifth step." },
 ];
-const trips: Trip[] = plannedTrips;
+const trips: Trip[] = [
+  {
+    id: 'Meghalaya trip',
+    title: 'Meghalaya trip',
+    status: '',
+    description: 'Spirituality at its peak',
+    image: 'https://res.cloudinary.com/dblj5j3af/image/upload/v1759323929/IMG-20251001-WA0025_yorcfz.jpg',
+    from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
+    to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
+    backgroundColor: 'bg-yellow-200',
+    textColor: 'text-gray-800',
+    formLink : 'https://forms.gle/mza8oJubEVMECidK7',
+    details : 'https://drive.google.com/file/d/1V2rnE0pEXYyrjVF2QMziD7_y5NiH9IRL/view',
+    included : [],
+    plan: [
+      { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
+      { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
+      { title: 'Day 3', description: 'Relax and return to Udupi.' }
+    ]
+  },
+  {
+    id: 'coming-soon',
+    title: 'Coming Soon',
+    status: 'Stay Tuned for more details',
+    backgroundColor: 'bg-purple-200',
+    textColor: 'text-gray-800',
+    from : "",
+    to : "",
+    formLink : "",
+   included : []
+  }
+];
 let currentStep = 0; // This should be managed by your component state
 
 const tripsPlanned = () => {
@@ -94,32 +125,31 @@ const tripsPlanned = () => {
                 </div>
               </motion.div>
 
-              <AnimatePresence>
-                {expandedCard === trip.id && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-6 pb-6">
-                      {trip.image && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.4, delay: 0.1 }}
-                          className="mb-6"
-                        >
-                          <Image
-                            src={trip.image}
-                            alt={trip.title}
-                            width={800} // pick an approximate width
-                            height={320} // matches h-80 (20rem ≈ 320px)
-                            className="w-full h-64 md:h-80 object-cover rounded-2xl shadow-lg"
-                          />
-                        </motion.div>
-                      )}
+            <AnimatePresence>
+              {expandedCard === trip.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 pb-6">
+                    {trip.image && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="mb-6 overflow-hidden rounded-2xl"
+                      >
+                        <img
+                          src={trip.image}
+                          alt={trip.title}
+                          className="w-full h-64 md:h-80 object-cover object-top shadow-lg"
+                        />
+                      </motion.div>
+                    )}
+          
 
                       {/* <div className="flex flex-col relative ml-4">
       {trip.plan.map((step, index) => {
