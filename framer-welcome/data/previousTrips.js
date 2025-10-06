@@ -1,6 +1,20 @@
 export const previousTrips = [
   
  
+  
+  {
+    heading: "Mewar Trip",
+    subHeading: "12th to 15th Sept 2025",
+    img: "Prev Trips/Mewar.png",
+    link: "https://www.instagram.com/reel/DNVzUOyo2KS/?igsh=dzVmZTNyeWkwMjVp",
+  },
+  
+  {
+    heading: "Shimoga Trip",
+    subHeading: "5th to 7th Sept 2025",
+    img: "Prev Trips/Shimoga.png",
+    link: "https://www.instagram.com/reel/DMXsYMNzVEt/?igsh=MTV1NjJncnJ0eWxiYw==",
+  },
   {
     heading: "Goa Trip",
     subHeading: "9th to 11th June 2025",
@@ -80,4 +94,8 @@ export const previousTrips = [
     img: "Prev Trips/Ujjain.png",
     link: "https://www.instagram.com/p/CxI8hmsyVVj/?img_index=4&igsh=c3d2MjZibnRjbzYy",
   },
+  
+
+
+  
 ];
