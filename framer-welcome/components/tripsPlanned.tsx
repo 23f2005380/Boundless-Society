@@ -229,7 +229,7 @@ const tripsPlanned = () => {
                                 whileTap={{ scale: 0.95 }}
                                 className={`flex items-center gap-2 px-6 py-3 bg-[#ff5722] rounded-full text-white shadow-md hover:shadow-lg transition-shadow ${trip.textColor}`}
                               >
-                                Register Now
+                                Registration Closed
                               </motion.button>
                             </a>
                           </div>

@@ -114,8 +114,8 @@ export const whatsappGroups = [
     color: "#f5a9dc",
   },
   {
-    city: "Goa",
-    img: "/images/city/goa dp.jpg",
+    city: "Siliguri",
+    img: "/images/city/Siliguri.png",
     link: "https://chat.whatsapp.com/CEqktj9BSbzCYRNz0iwhQ2?mode=ac_t",
     color: "#b6dbff",
   },
@@ -126,7 +126,7 @@ export const whatsappGroups = [
     color: "#f5a9dc",
   },
   {
-    city: "Guwahati",
+    city: "North East",
     img: "/images/city/Guwahati.jpg",
     link: "https://chat.whatsapp.com/Ijk4bsz2qVW8QgdAQUzpcp?mode=ac_t",
     color: "#c6f8c4",
@@ -210,7 +210,7 @@ export const whatsappGroups = [
     color: "#b6dbff",
   },
   {
-    city: "Agartala",
+    city: "Nashik",
     img: "/images/city/Agartala.jpg",
     link: "https://chat.whatsapp.com/GC7XimJ4ftBJUSdInr3ZCy?mode=ac_t",
     color: "#ffb78c",
@@ -220,5 +220,11 @@ export const whatsappGroups = [
     img: "/images/city/gaya dp.jpg",
     link: "https://chat.whatsapp.com/DkYwaXsxp75L5biO1DK4K5?mode=ac_t",
     color: "#c6f8c4",
+  },
+  {
+    city: "Coimbatore",
+    img: "/images/city/Coimbatore.png",
+    link: "https://chat.whatsapp.com/Ig88s9yHzZc0bbtm8I11Tf?mode=wwc",
+    color: "#ffe68c",
   },
 ];
