@@ -1,7 +1,7 @@
 const meetups = [
     {
     city: "Chennai Meetup",
-    img: "/city-meet/Chennai.jpg",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071422/Chennai_p9cmqu.jpg",
     title: "Chennai Meetup",
     description: (
       <>
@@ -13,7 +13,7 @@ const meetups = [
   },
   {
     city: "Madurai Meetup",
-    img: "/city-meet/Madhurai.jpg",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071423/Madhurai_dms3hd.jpg",
     title: "Madurai Meetup",
     description: (
       <>
@@ -25,7 +25,7 @@ const meetups = [
   },
   {
     city: "Pandal Hopping",
-    img: "/city-meet/Pandaal.jpg", // Replace with your actual image
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071424/Pandaal_jaex4i.jpg", // Replace with your actual image
     title: "Pandal Hopping",
     description: (
       <>
@@ -40,7 +40,7 @@ Massive love to everyone who showed up and to our incredible city teams who made
  
   {
     city: "Republic Day",
-    img: "/city-meet/Republic.jpg",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071425/Republic_ue8kvu.jpg",
     title: "Republic Day Meetups",
     description: (
       <>
@@ -53,7 +53,7 @@ Boundless Society x Kanha House is all set to celebrate Republic Day with vibran
   },
   {
     city: "Summer Meetups",
-    img: "/city-meet/Summer.jpg",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071426/Summer_wvuhlg.jpg",
     title: "Summer Meetups",
     description: (
       <>
