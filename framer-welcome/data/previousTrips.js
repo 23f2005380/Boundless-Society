@@ -1,14 +1,11 @@
 export const previousTrips = [
-  
- 
-  
   {
     heading: "Mewar Trip",
     subHeading: "12th to 15th Sept 2025",
     img: "Prev Trips/Mewar.png",
     link: "https://www.instagram.com/reel/DNVzUOyo2KS/?igsh=dzVmZTNyeWkwMjVp",
   },
-  
+
   {
     heading: "Shimoga Trip",
     subHeading: "5th to 7th Sept 2025",
@@ -51,14 +48,14 @@ export const previousTrips = [
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071517/Maharashtra_eseh4e.png",
     link: "https://www.instagram.com/p/DCRouhczECr/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
-  
+
   {
     heading: "Rameshwaram trip",
     subHeading: "3rd to 5th June 2024",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071530/Rameshwaram_yeroeh.png",
     link: "https://www.instagram.com/p/C8gmhOZyD0f/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
-   {
+  {
     heading: "Jodhpur Trip",
     subHeading: "19th to 21th Feb 2024",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071519/Jodhpur_zk6xx8.png",
@@ -94,8 +91,4 @@ export const previousTrips = [
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071523/Ujjain_r9cipd.png",
     link: "https://www.instagram.com/p/CxI8hmsyVVj/?img_index=4&igsh=c3d2MjZibnRjbzYy",
   },
-  
-
-
-  
 ];
