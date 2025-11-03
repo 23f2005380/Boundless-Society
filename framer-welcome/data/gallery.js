@@ -1,9 +1,37 @@
 export const gallery = [
-  { name: "Goa Vibes", img: "/images/Gallery/Gal1.png", link: "#" },
-  { name: "Darjeeling Trip", img: "/images/Gallery/Gal2.png", link: "#" },
-  { name: "Ooty Trip", img: "/images/Gallery/Gal3.png", link: "#" },
-  { name: "Shimoga Trip", img: "/images/Gallery/Gal7.jpg", link: "#" },
-  { name: "Chopta Trip", img: "/images/Gallery/Gal4.png", link: "#" },
-  { name: "Lonavala Trip", img: "/images/Gallery/Gal5.png", link: "#" },
-  { name: "Mewar Trip", img: "/images/Gallery/Gal6.jpg", link: "#" },
+  {
+    name: "Goa Vibes",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071489/Gal1_hnzpjv.png",
+    link: "#",
+  },
+  {
+    name: "Darjeeling Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071483/Gal2_eqq2ho.png",
+    link: "#",
+  },
+  {
+    name: "Ooty Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071487/Gal3_qab0n1.png",
+    link: "#",
+  },
+  {
+    name: "Shimoga Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071491/Gal7_o3i5dw.jpg",
+    link: "#",
+  },
+  {
+    name: "Chopta Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071486/Gal4_qqzav1.png",
+    link: "#",
+  },
+  {
+    name: "Lonavala Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071486/Gal5_mtp67i.png",
+    link: "#",
+  },
+  {
+    name: "Mewar Trip",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071535/Gal6_uzqtrm.jpg",
+    link: "#",
+  },
 ];
