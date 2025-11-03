@@ -1,5 +1,5 @@
 export const founderDetails = [
-  { name: "Aditya Mohan Srivastava", role: "Founder", src: "/founders/image3.png" },
-  { name: "Abhishek Tripathi", role: "Founder", src: "/founders/image1.png" },
-  { name: "Sachin Kumar", role: "Founder/Secretary", src: "/founders/image2.jpg" },
+  { name: "Aditya Mohan Srivastava", role: "Founder", src: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071435/image3_cknh9s.png" },
+  { name: "Abhishek Tripathi", role: "Founder", src: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071433/image1_xavu26.png" },
+  { name: "Sachin Kumar", role: "Founder/Secretary", src: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071436/image2_seoc5s.jpg" },
 ]
