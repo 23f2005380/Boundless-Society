@@ -150,12 +150,6 @@ export const whatsappGroups = [
     color: "#f5a9dc",
   },
   {
-    city: "Kanpur",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071468/kanpur_gs369t.jpg",
-    link: "https://chat.whatsapp.com/CIPX9S48BYyI3trkwmLlrx?mode=ac_t",
-    color: "#f5a9dc",
-  },
-  {
     city: "Prayagraj",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071472/prayagraj_rbttyf.jpg",
     link: "https://chat.whatsapp.com/DCDPl5BH0C84QrhWhniBZc?mode=ac_t",
@@ -168,9 +162,9 @@ export const whatsappGroups = [
     color: "#ffb78c",
   },
   {
-    city: "Jodhpur",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071466/jodhpur_nbcf3j.jpg",
-    link: "https://chat.whatsapp.com/DmIM1diakuAHrpn0DDmUAk?mode=ac_t",
+    city: "Kanpur",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071468/kanpur_gs369t.jpg",
+    link: "https://chat.whatsapp.com/CIPX9S48BYyI3trkwmLlrx?mode=ac_t",
     color: "#f5a9dc",
   },
   {
@@ -184,6 +178,12 @@ export const whatsappGroups = [
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071479/vadodra_dqaqr1.jpg",
     link: "https://chat.whatsapp.com/BnOYnClFWyWAuaarcmZVRe?mode=ac_t",
     color: "#c6f8c4",
+  },
+  {
+    city: "Jodhpur",
+    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071466/jodhpur_nbcf3j.jpg",
+    link: "https://chat.whatsapp.com/DmIM1diakuAHrpn0DDmUAk?mode=ac_t",
+    color: "#f5a9dc",
   },
   {
     city: "Jharkhand",
@@ -226,5 +226,11 @@ export const whatsappGroups = [
     img: "/images/city/Coimbatore.png",
     link: "https://chat.whatsapp.com/Ig88s9yHzZc0bbtm8I11Tf?mode=wwc",
     color: "#ffe68c",
+  },
+  {
+    city: "Muzaffarpur",
+    img: "/images/city/Muzaffarpur.png",
+    link: "https://chat.whatsapp.com/DzWrwRCFoF77BzGVmXHiXG?mode=wwt",
+    color: "#f3e6fb",
   },
 ];
