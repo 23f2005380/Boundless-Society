@@ -16,7 +16,7 @@ export const gallery = [
   },
   {
     name: "Shimoga Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071491/Gal7_o3i5dw.jpg",
+    img: "/images/Gallery/Gal7.jpg",
     link: "#",
   },
   {
