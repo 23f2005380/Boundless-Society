@@ -31,7 +31,7 @@ export const gallery = [
   },
   {
     name: "Mewar Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071535/Gal6_uzqtrm.jpg",
+    img: "/images/Gallery/Gal8.jpg",
     link: "#",
   },
 ];

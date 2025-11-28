@@ -30,18 +30,18 @@ const steps = [
 ];
 const trips: Trip[] = [
   {
-    id: 'Meghalaya trip',
-    title: 'Meghalaya trip',
+    id: 'Kerela trip',
+    title: 'Kerela trip',
     status: '',
     description: 'Spirituality at its peak',
-    image: 'https://res.cloudinary.com/dblj5j3af/image/upload/v1759323929/IMG-20251001-WA0025_yorcfz.jpg',
-    from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
-    to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
+    image: '/KERELA.jpg',
+    from: "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
+    to: "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
     backgroundColor: 'bg-yellow-200',
     textColor: 'text-gray-800',
-    formLink : 'https://forms.gle/mza8oJubEVMECidK7',
-    details : 'https://drive.google.com/file/d/1V2rnE0pEXYyrjVF2QMziD7_y5NiH9IRL/view',
-    included : [],
+    formLink: 'https://forms.gle/kn8N7e6ufwwTLq3b6',
+    details: 'https://drive.google.com/file/d/10vfAGX_TbaHeyQU2tp236axnT5cdiViS/view',
+    included: [],
     plan: [
       { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
       { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
@@ -54,10 +54,10 @@ const trips: Trip[] = [
     status: 'Stay Tuned for more details',
     backgroundColor: 'bg-purple-200',
     textColor: 'text-gray-800',
-    from : "",
-    to : "",
-    formLink : "",
-   included : []
+    from: "",
+    to: "",
+    formLink: "",
+    included: []
   }
 ];
 let currentStep = 0; // This should be managed by your component state
@@ -125,67 +125,30 @@ const tripsPlanned = () => {
                 </div>
               </motion.div>
 
-            <AnimatePresence>
-              {expandedCard === trip.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 pb-6">
-                    {trip.image && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
-                        className="mb-6 overflow-hidden rounded-2xl"
-                      >
-                        <img
-                          src={trip.image}
-                          alt={trip.title}
-                          className="w-full h-64 md:h-80 object-cover object-top shadow-lg"
-                        />
-                      </motion.div>
-                    )}
-          
-
-                      {/* <div className="flex flex-col relative ml-4">
-      {trip.plan.map((step, index) => {
-        const isCompleted = index < currentStep;
-        const isActive = index === currentStep;
-        const isUpcoming = index > currentStep;
-
-        return (
-          <div key={index} className="flex items-start relative">
-         
-            {index < steps.length - 1 && (
-              <span className={`absolute left-[0.55rem] top-6 h-full w-0.5 bg-indigo-500`} />
-            )}
-
-          
-            <div className="relative z-10 flex items-center justify-center w-5 h-5 mt-1.5 rounded-full border-2"
-                 style={{
-                   borderColor: isCompleted || isActive ? '#6366f1' : '#d1d5db',
-                   backgroundColor: '#6366f1'
-                 }}>
-              {isCompleted && <div className="w-2 h-2 bg-indigo-500 rounded-full" />}
-              {isActive && <div className="w-3 h-3 bg-indigo-500 rounded-full" />}
-            </div>
-
-            <div className={`ml-4 pb-6 p-2 rounded-md`}>
-              <h4 className={`text-sm font-semibold 'text-indigo-700' `}>
-                {step.title}
-              </h4>
-              <p className={`text-sm text-indigo-600`}>
-                {step.description}
-              </p>
-            </div>
-          </div>
-        );
-      })}
-</div> */}
+              <AnimatePresence>
+                {expandedCard === trip.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6">
+                      {trip.image && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.4, delay: 0.1 }}
+                          className="mb-6 overflow-hidden rounded-2xl"
+                        >
+                          <img
+                            src={trip.image}
+                            alt={trip.title}
+                            className="w-full h-auto shadow-lg"
+                          />
+                        </motion.div>
+                      )}
 
                       {/* <div className="mt-4">
                       <h3 className={`${trip.textColor} font-bold text-xl mb-2`}>
@@ -229,7 +192,7 @@ const tripsPlanned = () => {
                                 whileTap={{ scale: 0.95 }}
                                 className={`flex items-center gap-2 px-6 py-3 bg-[#ff5722] rounded-full text-white shadow-md hover:shadow-lg transition-shadow ${trip.textColor}`}
                               >
-                                Registration Closed
+                                Register
                               </motion.button>
                             </a>
                           </div>
@@ -259,8 +222,8 @@ const tripsPlanned = () => {
             </motion.div>
           ))}
         </div>
-      </div>
-    </Section>
+      </div >
+    </Section >
   );
 };
 

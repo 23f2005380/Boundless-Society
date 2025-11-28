@@ -3,14 +3,14 @@ export const previousTrips = [
     heading: "Mewar Trip",
     subHeading: "12th to 15th Sept 2025",
     img: "Prev Trips/Mewar.png",
-    link: "https://www.instagram.com/reel/DNVzUOyo2KS/?igsh=dzVmZTNyeWkwMjVp",
+    link: "https://www.instagram.com/p/DRPdq5ziJRP/?igsh=MXVveW1mMzZueGs5MQ==",
   },
 
   {
     heading: "Shimoga Trip",
     subHeading: "5th to 7th Sept 2025",
     img: "Prev Trips/Shimoga.png",
-    link: "https://www.instagram.com/reel/DMXsYMNzVEt/?igsh=MTV1NjJncnJ0eWxiYw==",
+    link: "https://www.instagram.com/p/DPqza3hCL68/?igsh=MTZ0NDl1OHdoc3Y4dg==",
   },
   {
     heading: "Goa Trip",

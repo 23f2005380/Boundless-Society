@@ -47,10 +47,11 @@ export default function VideoContainer() {
             ref={videoRef}
             width="100%"
             height="100%"
-            src="https://www.youtube.com/embed/et-Th2dwGVA?autoplay=1&controls=0&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0"
+            src="https://www.youtube.com/embed/W-nuPI80zk8?si=fWm6jkVT7Gun8kMX"
             title="YouTube video player"
             frameBorder="0"
-            allow="autoplay; encrypted-media"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
             style={{
               borderRadius: "50%",

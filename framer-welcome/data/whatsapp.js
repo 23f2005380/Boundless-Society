@@ -170,13 +170,13 @@ export const whatsappGroups = [
   {
     city: "Udaipur",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071478/udaipur_dp_lswp3w.webp",
-    link: "https://chat.whatsapp.com/JUVdv4OJSeuLyBREyjab5T?mode=ac_t",
+    link: "https://chat.whatsapp.com/IU3xmF9woKQ5UauBhXBybU?mode=hqrc",
     color: "#c6f8c4",
   },
   {
     city: "Vadodara",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071479/vadodra_dqaqr1.jpg",
-    link: "https://chat.whatsapp.com/BnOYnClFWyWAuaarcmZVRe?mode=ac_t",
+    link: "https://chat.whatsapp.com/JNl5ZGHXAdr4aQbXyXqBe3?mode=hqrc",
     color: "#c6f8c4",
   },
   {
