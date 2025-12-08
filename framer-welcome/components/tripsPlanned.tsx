@@ -30,17 +30,17 @@ const steps = [
 ];
 const trips: Trip[] = [
   {
-    id: 'Meghalaya trip',
-    title: 'Meghalaya trip',
+    id: 'Himachal Trip',
+    title: 'Himachal Trip',
     status: '',
     description: 'Spirituality at its peak',
-    image: 'https://res.cloudinary.com/dblj5j3af/image/upload/v1759323929/IMG-20251001-WA0025_yorcfz.jpg',
+    image: 'Solang-Valley-1024x576.jpg',
     from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
     to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
     backgroundColor: 'bg-yellow-200',
     textColor: 'text-gray-800',
-    formLink : 'https://forms.gle/mza8oJubEVMECidK7',
-    details : 'https://drive.google.com/file/d/1V2rnE0pEXYyrjVF2QMziD7_y5NiH9IRL/view',
+    formLink : 'https://forms.gle/faqHdaezZVicaxde6',
+    details : 'https://drive.google.com/file/d/1suz8_BjCJf09Nk03VNf-L9uK74T4qyVb/view?usp=drivesdk',
     included : [],
     plan: [
       { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
@@ -229,7 +229,7 @@ const tripsPlanned = () => {
                                 whileTap={{ scale: 0.95 }}
                                 className={`flex items-center gap-2 px-6 py-3 bg-[#ff5722] rounded-full text-white shadow-md hover:shadow-lg transition-shadow ${trip.textColor}`}
                               >
-                                Registration Closed
+                                Registration
                               </motion.button>
                             </a>
                           </div>
