@@ -1,7 +1,6 @@
 export const councilMembers = [
     { name: "Sahil Kamble", role: "Secretary", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071442/sky_vlkqtz.jpg" },
     { name: "Vidhi Belani", role: "Deputy Secretary", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071444/vidhi_qsfeiq.jpg" },
-    { name: "Ishan Raj", role: "General Secretary", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071436/ishan_u9cxlb.jpg" }
 ];
 export const departmentHeads = [
     { name: "Aman Kumar", role: "Technical", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071427/aman_efh83y.jpg" },
