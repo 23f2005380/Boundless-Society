@@ -115,7 +115,7 @@ export const whatsappGroups = [
   },
   {
     city: "Siliguri",
-    img: "/images/city/Siliguri.png", // TODO: Upload to Cloudinary and replace with Public ID
+    img: "Siliguri_rshw3a", // TODO: Upload to Cloudinary and replace with Public ID
     link: "https://chat.whatsapp.com/CEqktj9BSbzCYRNz0iwhQ2?mode=ac_t",
     color: "#b6dbff",
   },
@@ -223,13 +223,13 @@ export const whatsappGroups = [
   },
   {
     city: "Coimbatore",
-    img: "/images/city/Coimbatore.png", // TODO: Upload to Cloudinary and replace with Public ID
+    img: "Coimbatore_nhiuhs", // TODO: Upload to Cloudinary and replace with Public ID
     link: "https://chat.whatsapp.com/Ig88s9yHzZc0bbtm8I11Tf?mode=wwc",
     color: "#ffe68c",
   },
   {
     city: "Muzaffarpur",
-    img: "/images/city/Muzaffarpur.png", // TODO: Upload to Cloudinary and replace with Public ID
+    img: "Muzaffarpur_ngptl8", // TODO: Upload to Cloudinary and replace with Public ID
     link: "https://chat.whatsapp.com/DzWrwRCFoF77BzGVmXHiXG?mode=wwt",
     color: "#f3e6fb",
   },
