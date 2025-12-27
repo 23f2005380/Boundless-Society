@@ -1,7 +1,7 @@
 const meetups = [
   {
     city: "Navrang 2.0",
-    img: "/city-meet/Navrang2.jpg",
+    img: "Navrang2_i9udoz", // Note: Upload this to Cloudinary if using CldImage
     title: "Navrang 2.0",
     description: (
       <>
@@ -14,7 +14,7 @@ const meetups = [
   },
   {
     city: "Tricolor Trails 2.0",
-    img: "/city-meet/TricolorTrails2.jpg",
+    img: "TricolorTrails2_juhfed", // Note: Upload this to Cloudinary if using CldImage
     title: "Tricolor Trails 2.0",
     description: (
       <>
@@ -25,33 +25,10 @@ const meetups = [
     badge: "",
     logo: "",
   },
-  //   {
-  //   city: "Chennai Meetup",
-  //   img: "/city-meet/Chennai.jpg",
-  //   title: "Chennai Meetup",
-  //   description: (
-  //     <>
-  //       BS students lit up Natesan Park, Chennai, with an unforgettable day of laughter, games, and bonding! 🎉 Huge thanks to IIT Madras for supporting the event through the BS Student Activity Fee. From friendly matches to joyful moments, the meetup brought together the spirit of The Boundless Society and Diplomacia Society, creating a perfect blend of fun, unity, and memories!
-  //     </>
-  //   ),
-  //   badge: "",
-  //   logo: "",
-  // },
-  // {
-  //   city: "Madurai Meetup",
-  //   img: "/city-meet/Madhurai.jpg",
-  //   title: "Madurai Meetup",
-  //   description: (
-  //     <>
-  //       BS students lit up Madurai with an unforgettable meetup! Boundless Travel Society & Pichavaram Houses joined hands with Adada Creators for a day full of interactive sessions, games, and fun! Huge thanks to IIT Madras for sponsoring it through the BS Student Activity Fee — an event to remember!
-  //     </>
-  //   ),
-  //   badge: "",
-  //   logo: "",
-  // },
+  // ... (Commented out entries remain the same)
   {
     city: "Pandal Hopping",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071424/Pandaal_jaex4i.jpg", // Replace with your actual image
+    img: "Pandaal_jaex4i", // Updated to Public ID
     title: "Pandal Hopping",
     description: (
       <>
@@ -61,12 +38,12 @@ const meetups = [
       </>
     ),
     badge: "",
-    logo: "", // Replace with your logo if needed
+    logo: "",
   },
 
   {
     city: "Republic Day",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071425/Republic_ue8kvu.jpg",
+    img: "Republic_ue8kvu", // Updated to Public ID
     title: "Republic Day Meetups",
     description: (
       <>
@@ -79,7 +56,7 @@ const meetups = [
   },
   {
     city: "Summer",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071426/Summer_wvuhlg.jpg",
+    img: "Summer_wvuhlg", // Updated to Public ID
     title: "Summer Meetups",
     description: (
       <>

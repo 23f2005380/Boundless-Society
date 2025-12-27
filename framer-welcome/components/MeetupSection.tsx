@@ -1,6 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
-import Image from "next/image";
+import { CldImage } from 'next-cloudinary'; // Updated import
 
 export default function MeetupSection({ title, cards }: { title: string, cards: any[] }) {
   // Split cards into rows of 3 (desktop/tablet) or 2 (mobile)
@@ -52,12 +52,14 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                 whileHover={{ scale: 1.04, boxShadow: "0 8px 32px #00000022" }}
               >
                 <div className="relative">
-                  <Image
+                  <CldImage
                     src={card.img}
                     alt={card.city}
-                    width={400}     // or whatever matches your layout
-                    height={176}    // Tailwind h-44 → 176px
+                    width="400"     
+                    height="176"    
                     className="rounded-t-[32px] w-full object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    crop="fill"
                   />
                 </div>
                 <div className="flex flex-row items-center p-4">

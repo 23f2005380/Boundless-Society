@@ -1,5 +1,5 @@
 import { X, Instagram, Linkedin } from "lucide-react";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import { team } from "@/data/teamMembers";
 
 export default function Team() {
@@ -55,7 +55,7 @@ export default function Team() {
                 </div>
               </div>
               <div className="flex-shrink-0">
-                <Image
+                <CldImage
                   src={member.image}
                   alt={member.name}
                   width={112} // 28 * 4 (Tailwind’s w-28 = 7rem = 112px)

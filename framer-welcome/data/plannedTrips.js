@@ -4,7 +4,7 @@ export const plannedTrips = [
         title: 'Mewar Trip',
         status: 'Registration started',
         description: 'Gateway of Malnad',
-        image: 'https://www.jetangelholidays.com/images/rajasthan-mewar-tour.jpg',
+        image: 'Mewar_lcsrwa', // Updated to Public ID found in your curvedMarquee data
         from: "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
         to: "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
         backgroundColor: 'bg-yellow-200',

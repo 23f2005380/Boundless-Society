@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   motion,
   AnimatePresence,
@@ -8,7 +8,7 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import Link from "next/link"
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,25 +33,23 @@ export default function Header() {
   });
 
   let [menuItems, setMenuItems] = useState([
-
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
     { label: "Previous Trips", href: "#previous-trips" },
-  
     { label: "Stats", href: "#stats" },
     { label: "About Us", href: "#about" },
-      { label: "City Meetups", href: "/city-meetups" },
+    { label: "City Meetups", href: "/city-meetups" },
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificate" },
   ]);
+
   function itemClicked(href) {
     setMenuOpen(false); 
-    console.log(href)
     if (href.startsWith("#")) {
       const el = document.querySelector(href);
       if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 40; // adjust offset if you have a fixed header
+        const y = el.getBoundingClientRect().top + window.scrollY - 40; 
         window.scrollTo({ top: y, behavior: "smooth" });
       }
     } 
@@ -64,33 +62,25 @@ export default function Header() {
         { label: "City Meetups", href: "/city-meetups" },
         { label: "Previous Trips", href: "/previous-trips" },
         { label: "Verify Certificates", href: "/verify-certificate" },
-
       ])
-   
-
-      
     }
     else if (href == "/") {
       setMenuItems([
         { label: "Upcoming Trips", href: "#upcoming-trips" },
         { label: "Our Gallery", href: "#gallery" },
         { label: "Previous Trips", href: "#previous-trips" },
-       
         { label: "Stats", href: "#stats" },
         { label: "About Us", href: "#about" },
-         { label: "City Meetups", href: "/city-meetups" },
+        { label: "City Meetups", href: "/city-meetups" },
         { label: "Our Team", href: "/team-members" },
         { label: "Whatsapp groups", href: "/whatsapp-groups" },
         { label: "Verify Certificates", href: "/verify-certificate" },
       ])
-   
-      
     }
-  
   }
+
   useEffect(() => {
-  console.log("menu" , menuItems)
-  setItems(
+    setItems(
         <div>
         {menuItems.map((item, i) => (
           <div key={i}>
@@ -98,8 +88,7 @@ export default function Header() {
               href={item.href}
               className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
               style={{
-                fontFamily:
-                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                fontFamily: "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
                 letterSpacing: "0.02em",
               }}
               onClick={() => { setMenuOpen(false); itemClicked(item.href) }}
@@ -110,8 +99,8 @@ export default function Header() {
           </div>
         ))}
       </div>
-  )
-}, [menuItems]);
+    )
+  }, [menuItems]);
 
   let [item, setItems] = useState(
       <div>
@@ -121,8 +110,7 @@ export default function Header() {
               href={item.href}
               className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
               style={{
-                fontFamily:
-                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                fontFamily: "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
                 letterSpacing: "0.02em",
               }}
               onClick={() => itemClicked(item.href)}
@@ -144,13 +132,13 @@ export default function Header() {
         }`}
     >
       {/* Logo */}
-      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <Image
-          src="/Logo Bound.png"
+      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center overflow-hidden">
+        <CldImage
+          src="Logo_Bound_x8iran" 
           alt="Logo"
-          width={56}   // Tailwind w-14 = 3.5rem = 56px
-          height={56}  // Tailwind h-14 = 56px
-          className="object-contain rounded-full"
+          width="56"
+          height="56"
+          className="object-contain"
         />
       </div>
 
@@ -189,8 +177,6 @@ export default function Header() {
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Dropdown */}
-
       </div>
     </motion.header>
   );

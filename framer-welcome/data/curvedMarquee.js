@@ -1,34 +1,34 @@
 export const curvedMarque = [
   {
     title: "Vrindavan",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071551/Agra_iltlab.jpg",
+    img: "Agra_iltlab",
   },
   {
     title: "Mewar",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071525/Mewar_lcsrwa.webp",
+    img: "Mewar_lcsrwa",
   },
   {
     title: "Shimoga",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071533/Simguna_jiieni.jpg",
+    img: "Simguna_jiieni",
   },
   {
     title: "Goa",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071526/Goa_wh7i6b.jpg",
+    img: "Goa_wh7i6b",
   },
   {
     title: "Darjeeling",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071535/Darjeeling_n05c0r.jpg",
+    img: "Darjeeling_n05c0r",
   },
   {
     title: "Ooty",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071540/Ooty_wllumg.jpg",
+    img: "Ooty_wllumg",
   },
   {
     title: "Maharashtra",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071547/Maharashtra_ntlstu.jpg",
+    img: "Maharashtra_ntlstu",
   },
   {
     title: "Tungnath",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071545/Tungnath_h9tw1h.jpg",
+    img: "Tungnath_h9tw1h",
   },
 ];

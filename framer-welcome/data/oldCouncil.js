@@ -1,18 +1,18 @@
 export const oldCouncilMembers = [
-  { name: "Sachin Kumar", role: "Secretary", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071436/image2_seoc5s.jpg" },
-  { name: "Anushka Singh", role: "Deputy Secretary", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071431/anushka_uxffjj.jpg" },
+  { name: "Sachin Kumar", role: "Secretary", image: "image2_seoc5s" },
+  { name: "Anushka Singh", role: "Deputy Secretary", image: "anushka_uxffjj" },
 ];
 
 export const oldDepartmentHeads = [
-  { name: "Prateek Singh", role: "Technical", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071438/Prateek_rrecdm.jpg" },
-  { name: "Ishan raj", role: "Trip Coordination", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071436/ishan_u9cxlb.jpg" },
-  { name: "Sakshi Verma", role: "Females Corner", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071439/sakshi_rd3lfw.jpg" },
-  { name: "Rishikesh Gupta", role: "Public Relations", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071440/rishikesh_fxpib1.jpg" },
-  { name: "Greeshma Suresh", role: "Research", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071434/greeshma_d8wao1.jpg" },
-  { name: "Harshit Mishra", role: "Research", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071433/harshit_hihnn5.jpg" },
-  { name: "Vivek Subramani", role: "Media", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071444/vivek_i2bzfx.jpg" },
-  { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071436/kanika_lhzaeh.jpg" },
-  { name: "Sahil Kamble", role: "City Operation", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071442/sky_vlkqtz.jpg" },
+  { name: "Prateek Singh", role: "Technical", image: "Prateek_rrecdm" },
+  { name: "Ishan raj", role: "Trip Coordination", image: "ishan_u9cxlb" },
+  { name: "Sakshi Verma", role: "Females Corner", image: "sakshi_rd3lfw" },
+  { name: "Rishikesh Gupta", role: "Public Relations", image: "rishikesh_fxpib1" },
+  { name: "Greeshma Suresh", role: "Research", image: "greeshma_d8wao1" },
+  { name: "Harshit Mishra", role: "Research", image: "harshit_hihnn5" },
+  { name: "Vivek Subramani", role: "Media", image: "vivek_i2bzfx" },
+  { name: "Kanika Chauhan", role: "Documentation and Graphic Designing", image: "kanika_lhzaeh" },
+  { name: "Sahil Kamble", role: "City Operation", image: "sky_vlkqtz" },
 ];
 
 export const knowUs = [
@@ -22,4 +22,4 @@ export const knowUs = [
   { name: "Janny Jain", role: "Secretary" },
   { name: "Jai Vithani", role: "Treasurer" },
   { name: "Lali Maan", role: "Member" },
-]
+];

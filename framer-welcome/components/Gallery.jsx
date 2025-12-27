@@ -2,7 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Section from "@/components/Section";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import { gallery } from "@/data/gallery";
 
 function Gallery() {
@@ -41,11 +41,12 @@ function Gallery() {
                     key={idx}
                     className="aspect-[3/4.5] bg-amber-200 w-[430px] flex-none inline-block relative overflow-hidden group cursor-pointer"
                   >
-                    <Image
+                    <CldImage
                       src={data.img}
                       alt={data.name}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-50 transition-opacity duration-300 z-10 flex items-center justify-center text-white font-semibold text-2xl">
                       {data.name}

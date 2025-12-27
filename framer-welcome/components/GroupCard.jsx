@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { CldImage } from "next-cloudinary";
 
 function GroupCard({ data }) {
   const route = useRouter();
@@ -23,12 +23,13 @@ function GroupCard({ data }) {
       style={{ backgroundColor: data.color }}
     >
       {/* Image Container */}
-      <div className="relative mb-4 w-full aspect-[6/4] rounded-xl flex items-center justify-center border border-black">
-        <Image
+      <div className="relative mb-4 w-full aspect-[6/4] rounded-xl flex items-center justify-center border border-black overflow-hidden">
+        <CldImage
           src={data.img}
           alt={data.city}
           fill
           className="object-cover rounded-xl"
+          sizes="(max-width: 768px) 100vw, 300px"
         />
       </div>
 

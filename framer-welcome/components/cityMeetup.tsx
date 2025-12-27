@@ -1,7 +1,8 @@
 "use client"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image";
+import Image from "next/image"; // Keep for Logo if it's local
+import { CldImage } from 'next-cloudinary'; // Import for main images
 import meetups from "@/data/city"
 
 const variants = {
@@ -14,7 +15,7 @@ export default function CityMeetup() {
   const [active, setActive] = useState(0)
 
   return (
-    <section className="px-2 md:px-6 mb-8 md:mb-12   py-8 md:py-12">
+    <section className="px-2 md:px-6 mb-8 md:mb-12 py-8 md:py-12">
       <div className="max-w-3xl mx-auto">
         {/* <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-amber-900 mb-6 md:mb-8 text-center">
           City Meetups
@@ -80,12 +81,16 @@ export default function CityMeetup() {
                     className="absolute top-2 left-2 object-contain z-10"
                   />
                   )}
-                  <Image
+                  
+                  {/* Updated Main Image to CldImage */}
+                  <CldImage
                     src={meetups[active].img}
                     alt={meetups[active].city}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
+                  
                   {/* <span className="absolute top-2 right-2 bg-white/80 text-xs font-bold px-2 py-1 rounded">{meetups[active].badge}</span> */}
                   <span className="absolute bottom-2 left-2 text-white font-bold text-lg drop-shadow">{meetups[active].city} Meetup</span>
                 </motion.div>

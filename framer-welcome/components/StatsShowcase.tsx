@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { forwardRef, useState } from "react"
 import { stats, statsImages } from "@/data/stats"
+import { CldImage } from "next-cloudinary"
 
 // --- OVERRIDES ---
 function randomColor() {
@@ -11,6 +12,23 @@ function randomColor() {
     }
     return color
 }
+
+// Wrapper to allow CldImage to be animated with framer-motion props like `whileHover`
+const MotionImageWrapper = forwardRef<HTMLDivElement, any>(({ src, style, ...props }, ref) => (
+    <motion.div
+        ref={ref}
+        style={style}
+        {...props}
+    >
+        <CldImage
+            src={src}
+            alt="Stat Image"
+            fill
+            className="object-cover rounded-xl pointer-events-none"
+            sizes="100px"
+        />
+    </motion.div>
+));
 
 function withRotate(Component: React.ComponentType<any>): React.ComponentType<any> {
     return forwardRef<any, any>((props, ref) => (
@@ -49,38 +67,40 @@ function withRandomColor(Component: React.ComponentType<any>): React.ComponentTy
 }
 
 // --- COMPONENT ---
-const Img = withRotate(withHover(motion.img))
+const AnimatedImgContainer = withRotate(withHover(MotionImageWrapper))
 const StatBox = withHover(withRandomColor(motion.div))
 
 export default function StatsShowcase() {
     return (
-        <div >
+        <div>
             {/* Top scallop */}
             <div/>
 
             {/* Main content */}
-            <div >
+            <div>
                 {/* <h1 style={styles.heading}>We proud to have</h1> */}
 
-                {/* <div style={styles.ribbon}>
+                {/* UNCOMMENT THIS TO SHOW THE RIBBON
+                <div style={styles.ribbon}>
                     {statsImages.map((src, i) => (
-                        <Img
+                        <AnimatedImgContainer
                             key={i}
-                            src={src}
-                            alt=""
+                            src={src} // Public ID from data/stats.js
                             style={{
                                 width: 90,
                                 height: 60,
                                 borderRadius: 12,
-                                objectFit: "cover",
+                                position: "relative", // Needed for CldImage fill
                                 transform: `translateY(${Math.sin(i * 0.8) * 18}px)`,
                                 margin: "0 6px",
                                 boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
                                 border: "5px solid white",
+                                overflow: "hidden"
                             }}
                         />
                     ))}
-                </div> */}
+                </div> 
+                */}
 
                 <div style={styles.statsRow}>
                     {stats.map((stat, i) => (
@@ -91,9 +111,6 @@ export default function StatsShowcase() {
                     ))}
                 </div>
             </div>
-
-            {/* Bottom scallop */}
-            {/* <div style={styles.scallopBottom} /> */}
         </div>
     )
 }

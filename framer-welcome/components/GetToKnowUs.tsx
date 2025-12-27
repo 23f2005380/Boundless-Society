@@ -1,14 +1,12 @@
+"use client";
+
 import {
-  Plus,
-  Menu,
-  Mail,
+  X as XIcon,
   Linkedin,
   Instagram,
-  Youtube,
-  X as XIcon,
 } from "lucide-react";
 import { knowUs } from "@/data/oldCouncil";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 
 export default function GetToKnowUs() {
   return (
@@ -32,7 +30,7 @@ export default function GetToKnowUs() {
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-          {knowUs.map((member, i) => (
+          {knowUs.map((member: any, i: number) => (
             <div
               key={i}
               className="bg-black text-white hover:scale-105 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"
@@ -40,19 +38,27 @@ export default function GetToKnowUs() {
               <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
                 <h3 className="font-bold text-base mb-1">{member.name}</h3>
                 <p className="text-xs text-gray-300 mb-2">{member.role}</p>
-                <div className="flex space-x-3 mt-2">
+                {/* <div className="flex space-x-3 mt-2">
                   <XIcon className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                   <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
                   <Linkedin className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-                </div>
+                </div> */}
               </div>
-              <Image
-                src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
-                alt={member.name}
-                width={120} // w-30 ≈ 120px
-                height={120} // h-30 ≈ 120px
-                className="object-cover rounded-lg ml-4 shadow"
-              />
+              
+              {/* FIX: Only render CldImage if member.image exists */}
+              {member.image ? (
+                <CldImage
+                  src={member.image}
+                  alt={member.name}
+                  width={120}
+                  height={120}
+                  className="object-cover rounded-lg ml-4 shadow"
+                  crop="fill"
+                />
+              ) : (
+                // Optional: Render a placeholder div if no image
+                <div className="w-[120px] h-[120px] ml-4" />
+              )}
             </div>
           ))}
         </div>

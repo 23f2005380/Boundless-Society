@@ -2,23 +2,25 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { CldImage } from "next-cloudinary";
 
 export default function TripCard({ trip }) {
   return (
-    <Link href={trip.link}>
+    <Link href={trip.link || "#"}>
       <motion.div
         className="relative w-[345px] min-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden cursor-pointer shadow-lg"
         whileHover="hover"
         initial="initial"
       >
-        <Image
+        {/* Render Trip Image */}
+        <CldImage
           src={trip.img}
           alt={trip.heading}
           fill
           className="object-cover"
+          sizes="(max-width: 768px) 100vw, 350px"
         />
 
         <motion.div

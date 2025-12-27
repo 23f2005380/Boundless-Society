@@ -1,37 +1,37 @@
 export const gallery = [
   {
     name: "Goa Vibes",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071489/Gal1_hnzpjv.png",
+    img: "Gal1_hnzpjv", // Public ID extracted
     link: "#",
   },
   {
     name: "Darjeeling Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071483/Gal2_eqq2ho.png",
+    img: "Gal2_eqq2ho", // Public ID extracted
     link: "#",
   },
   {
     name: "Ooty Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071487/Gal3_qab0n1.png",
+    img: "Gal3_qab0n1", // Public ID extracted
     link: "#",
   },
   {
     name: "Shimoga Trip",
-    img: "/images/Gallery/Gal7.jpg",
+    img: "Gal7_nplwc7", // TODO: Upload to Cloudinary & replace with Public ID
     link: "#",
   },
   {
     name: "Chopta Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071486/Gal4_qqzav1.png",
+    img: "Gal4_qqzav1", // Public ID extracted
     link: "#",
   },
   {
     name: "Lonavala Trip",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071486/Gal5_mtp67i.png",
+    img: "Gal5_mtp67i", // Public ID extracted
     link: "#",
   },
   {
     name: "Mewar Trip",
-    img: "/images/Gallery/Gal6.jpg",
+    img: "Gal6_jh1dxx", // TODO: Upload to Cloudinary & replace with Public ID
     link: "#",
   },
 ];

@@ -11,7 +11,7 @@ import {
 } from "framer-motion";
 
 import { curvedMarque } from "@/data/curvedMarquee";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 
 const generatePath = (width) => {
   const w = width;
@@ -66,12 +66,13 @@ const MarqueeItem = ({ src, index, baseProgress, totalItems, path, title }) => {
             animate="rest"
             className="relative h-full w-full"
           >
-            <Image
+            <CldImage
               src={src}
               fill
-              alt="img"
-              className="w-full h-full"
+              alt={title || "img"}
+              className="w-full h-full object-cover"
               draggable={false}
+              sizes="(max-width: 768px) 150px, 200px"
             />
             <motion.div
               variants={{
