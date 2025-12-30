@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   generator: "",
 };
 import LenisProvider from "@/components/LenisProvider";
+import WelcomeBanner from "@/components/WelcomeBanner";
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
       </Head>
       <LenisProvider>
         <body style={{ background: "#fffbea" }}>
+          <WelcomeBanner />
           <Header />
           <div className="pt-20">{children}</div>
         </body>
