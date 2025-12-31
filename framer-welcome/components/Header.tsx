@@ -14,7 +14,7 @@ export default function Header() {
     { label: "Previous Trips", href: "#previous-trips" },
     { label: "About Us", href: "#about" },
     { label: "City Meetups", href: "/city-meetups" },
- 
+    { label: "Map", href: "/tri-color" },
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificates" }
