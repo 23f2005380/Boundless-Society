@@ -1,0 +1,160 @@
+{
+  "rules": {
+    "admin": {
+      ".read": false,
+      ".write": false,
+      "cities": {
+        ".indexOn": ["type", "createdAt", "registrations"],
+        "$cityId": {
+          ".read": true,
+          ".write": "root.child('auth').child('adminUsers').child(auth.uid).exists()",
+          ".validate": "newData.hasChildren(['name', 'lat', 'lng', 'type', 'description'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "lat": {
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "lng": {
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "type": {
+            ".validate": "newData.isString() && (newData.val() === 'meetup' || newData.val() === 'trip')"
+          },
+          "description": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500"
+          },
+          "registrations": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "formConfigs": {
+        ".indexOn": ["formType", "createdAt", "isActive"],
+        "$formId": {
+          ".read": true,
+          ".write": "root.child('auth').child('adminUsers').child(auth.uid).exists()",
+          ".validate": "newData.hasChildren(['name', 'formType', 'fields', 'isActive'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "description": {
+            ".validate": "newData.isString() && newData.val().length <= 500"
+          },
+          "formType": {
+            ".validate": "newData.isString() && (newData.val() === 'general' || newData.val() === 'cityMeetup' || newData.val() === 'trip')"
+          },
+          "fields": {
+            ".validate": "newData.isArray() && newData.val().length > 0 && newData.val().length <= 50",
+            "$fieldId": {
+              ".validate": "newData.hasChildren(['id', 'name', 'type', 'label', 'required', 'order'])",
+              "id": {
+                ".validate": "newData.isString()"
+              },
+              "name": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+              },
+              "type": {
+                ".validate": "newData.isString() && ['text', 'email', 'phone', 'number', 'textarea', 'select', 'checkbox', 'radio'].indexOf(newData.val()) !== -1"
+              },
+              "label": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+              },
+              "required": {
+                ".validate": "newData.isBoolean()"
+              },
+              "order": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "placeholder": {
+                ".validate": "!newData.exists() || newData.isString()"
+              },
+              "options": {
+                ".validate": "!newData.exists() || newData.isArray()"
+              },
+              "validationPattern": {
+                ".validate": "!newData.exists() || newData.isString()"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "isActive": {
+            ".validate": "newData.isBoolean()"
+          },
+          "gdriveLink": {
+            ".validate": "!newData.exists() || (newData.isString() && (newData.val().indexOf('drive.google.com') !== -1 || newData.val().indexOf('docs.google.com') !== -1))"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "submissions": {
+        ".indexOn": ["formId", "cityId", "submittedAt"],
+        "$submissionId": {
+          ".read": "root.child('auth').child('adminUsers').child(auth.uid).exists()",
+          ".write": "!root.child('admin').child('submissions').child($submissionId).exists()",
+          ".validate": "newData.hasChildren(['formId', 'formName', 'submittedData'])",
+          "formId": {
+            ".validate": "newData.isString()"
+          },
+          "formName": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "cityId": {
+            ".validate": "!newData.exists() || newData.isString()"
+          },
+          "cityName": {
+            ".validate": "!newData.exists() || newData.isString()"
+          },
+          "submittedData": {
+            ".validate": "newData.isObject()"
+          },
+          "submittedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "ip": {
+            ".validate": "!newData.exists() || newData.isString()"
+          },
+          "userAgent": {
+            ".validate": "!newData.exists() || newData.isString()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "auth": {
+        ".read": false,
+        ".write": false,
+        "adminUsers": {
+          ".read": false,
+          ".write": false,
+          "$uid": {
+            ".read": "$uid === auth.uid",
+            ".write": false
+          }
+        }
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
