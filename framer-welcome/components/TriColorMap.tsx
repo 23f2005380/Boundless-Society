@@ -18,21 +18,6 @@ interface TriColorMapProps {
     onCityClick: (city: City) => void;
 }
 
-// Tri-color animation keyframes as a style
-const styles = `
-    @keyframes triColorPulse {
-        0% { fill: #FF671F; }
-        33% { fill: #FFE878; }
-        66% { fill: #046A38; }
-        100% { fill: #FF671F; }
-    }
-    
-    .tri-color-dot {
-        animation: triColorPulse 3s ease-in-out infinite;
-        transition: fill 0.3s ease;
-    }
-`;
-
 export default function TriColorMap({ onCityClick }: TriColorMapProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<L.Map | null>(null);
@@ -42,14 +27,6 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Add styles to document
-        if (!document.querySelector('style[data-tri-color]')) {
-            const styleEl = document.createElement('style');
-            styleEl.setAttribute('data-tri-color', 'true');
-            styleEl.textContent = styles;
-            document.head.appendChild(styleEl);
-        }
-
         // Initialize map
         if (!map.current && mapContainer.current) {
             map.current = L.map(mapContainer.current, {
@@ -58,16 +35,10 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
                 scrollWheelZoom: true,
                 dragging: true,
                 touchZoom: true,
-                tap: true,
                 minZoom: 4,
                 maxZoom: 10,
                 worldCopyJump: false
             }).setView([23.5937, 78.9629], 5);
-
-            // Set background to light cream color matching other pages
-            if (mapContainer.current) {
-                mapContainer.current.style.backgroundColor = '#FEFAE7';
-            }
 
             // Load India GeoJSON
             const loadIndiaGeoJSON = fetch('https://raw.githubusercontent.com/datameet/maps/master/Country/india-soi.geojson')
@@ -75,11 +46,11 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
                 .then(data => {
                     const indiaLayer = L.geoJSON(data, {
                         style: {
-                            fillColor: '#F0F0F0',
+                            fillColor: '#FEF7E4',
                             fillOpacity: 1,
-                            color: '#1F2937',
-                            weight: 1.5,
-                            opacity: 1
+                            color: '#D4A574',
+                            weight: 2.5,
+                            opacity: 0.8
                         }
                     }).addTo(map.current!);
 
@@ -88,8 +59,6 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
                     if (map.current) {
                         const bounds = indiaLayer.getBounds();
                         map.current.fitBounds(bounds, { padding: [50, 50] });
-                        
-                        // Grid removed as per requirements
                     }
                 });
 
@@ -100,53 +69,14 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
                     const statesLayer = L.geoJSON(data, {
                         style: {
                             fillColor: 'transparent',
-                            color: '#D1D5DB',
-                            weight: 1,
-                            opacity: 0.7
+                            color: '#E8D5B7',
+                            weight: 1.5,
+                            opacity: 0.6
                         }
                     }).addTo(map.current!);
 
                     geoJsonLayersRef.current.push(statesLayer);
                 });
-
-            // Function to create animated dot grid
-            const createAnimatedDotGrid = (bounds: L.LatLngBounds) => {
-                const gridCellSize = 2; // Grid spacing in degrees
-                const dotRadius = 3; // Radius of the dots
-                
-                const north = bounds.getNorth() + 0.5;
-                const south = bounds.getSouth() - 0.5;
-                const east = bounds.getEast() + 0.5;
-                const west = bounds.getWest() - 0.5;
-
-                // Create dots at grid intersections
-                let colorIndex = 0;
-                const colors = ['#FF671F', '#FFE878', '#046A38'];
-
-                for (let lat = Math.floor(south); lat <= Math.ceil(north); lat += gridCellSize) {
-                    for (let lng = Math.floor(west); lng <= Math.ceil(east); lng += gridCellSize) {
-                        const dot = L.circleMarker([lat, lng], {
-                            radius: dotRadius,
-                            fillColor: colors[colorIndex % colors.length],
-                            color: 'rgba(0,0,0,0)',
-                            weight: 0,
-                            opacity: 0,
-                            fillOpacity: 0.8,
-                            className: 'tri-color-dot'
-                        }).addTo(map.current!);
-
-                        // Add individual animation with offset
-                        const svgElement = dot.getElement() as SVGElement;
-                        if (svgElement) {
-                            const delay = (colorIndex * 0.1) % 3;
-                            svgElement.style.animationDelay = `${delay}s`;
-                        }
-
-                        gridDotsRef.current.push(dot);
-                        colorIndex++;
-                    }
-                }
-            };
 
             // Wait for both GeoJSON to load before adding markers
             Promise.all([loadIndiaGeoJSON, loadStateBorders])
@@ -196,7 +126,6 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
             
             return () => {
                 window.removeEventListener('resize', handleResize);
-                // Cleanup map on unmount
                 if (map.current) {
                     map.current.remove();
                     map.current = null;
@@ -206,48 +135,63 @@ export default function TriColorMap({ onCityClick }: TriColorMapProps) {
     }, [onCityClick]);
 
     return (
-        <div className="relative w-[80%] h-full mx-auto">
-            {/* Map container - 80% width */}
-            <div
-                ref={mapContainer}
-                className="w-full h-full z-10 relative"
-                style={{ background: '#FEFAE7' }}
-            />
+        <div className="relative w-full max-w-6xl h-full mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Decorative border frame */}
+            <div className="absolute inset-0 -m-1 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 pointer-events-none" />
+            
+            {/* Map container */}
+            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[var(--shadow-elevated)] ring-1 ring-border/50">
+                <div
+                    ref={mapContainer}
+                    className="w-full h-full z-10 relative bg-background"
+                />
 
-            {/* Loading indicator */}
+                {/* Subtle inner shadow overlay */}
+                <div className="absolute inset-0 pointer-events-none rounded-2xl shadow-[inset_0_2px_20px_rgba(0,0,0,0.05)]" />
+            </div>
+
+            {/* Loading indicator with tricolor theme */}
             {isLoading && (
-                <div className="absolute inset-0 z-20 bg-white bg-opacity-50 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
-                        <p className="text-gray-700 font-medium">Loading map...</p>
+                <div className="absolute inset-0 z-20 bg-background/70 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                    <div className="flex flex-col items-center gap-4 p-8 glass-card rounded-2xl">
+                        <div className="relative">
+                            <div className="w-14 h-14 border-4 border-secondary rounded-full" />
+                            <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-primary rounded-full spinner-tricolor" />
+                        </div>
+                        <p className="text-foreground font-medium tracking-wide">Loading map...</p>
                     </div>
                 </div>
             )}
 
-            {/* Legend */}
-            <div className="absolute bottom-6 left-6 bg-white rounded-lg shadow-lg p-4 z-20 text-sm max-w-xs">
-                <div className="font-semibold mb-3 text-gray-800">City Types</div>
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 rounded-full" style={{ background: '#ff671f' }}></div>
-                    <div>
-                        <p className="text-gray-700 font-medium">City Meetup</p>
-                        <p className="text-gray-500 text-xs">Regular community meetups</p>
-                    </div>
+            {/* Enhanced Legend */}
+            <div className="absolute bottom-6 left-6 glass-legend rounded-2xl p-5 z-20 text-sm max-w-xs">
+                <div className="font-semibold mb-4 text-foreground flex items-center gap-2">
+                    <span className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-accent" />
+                    City Types
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ background: '#046a38' }}></div>
-                    <div>
-                        <p className="text-gray-700 font-medium">Trip Location</p>
-                        <p className="text-gray-500 text-xs">Planned trip destination</p>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4 group">
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary to-[hsl(30,100%,65%)] glow-saffron transition-transform group-hover:scale-110" />
+                        <div>
+                            <p className="text-foreground font-medium">City Meetup</p>
+                            <p className="text-muted-foreground text-xs">Regular community meetups</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 group">
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-accent to-[hsl(145,70%,35%)] glow-green transition-transform group-hover:scale-110" />
+                        <div>
+                            <p className="text-foreground font-medium">Trip Location</p>
+                            <p className="text-muted-foreground text-xs">Planned trip destination</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile instruction */}
-            <div className="absolute top-4 right-4 z-20 bg-white bg-opacity-90 rounded-lg shadow-md p-3 text-xs text-gray-700 max-w-xs sm:hidden">
-                👆 Tap on any city to register
+            {/* Mobile instruction - enhanced */}
+            <div className="absolute top-4 right-4 z-20 glass-card rounded-xl px-4 py-3 text-xs text-foreground max-w-[180px] sm:hidden flex items-center gap-2">
+                <span className="text-lg">👆</span>
+                <span>Tap on any city to register</span>
             </div>
         </div>
     );
 }
-

@@ -127,4 +127,31 @@ html.lenis {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+.map-marker {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.map-marker:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.map-popup h3 {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.map-popup button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #ff671f;
+  color: white;
+  font-size: 12px;
+}
+
 
