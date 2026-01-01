@@ -57,7 +57,7 @@ export const CITIES_DATA = [
         name: 'Pune',
         shortName: 'PUN',
         lat: 18.5204,
-        lng: 73.8567,
+        lng: 74.8567,
         type: 'trip',
         description: 'Discover opportunities in the education and IT hub',
         members: 234
