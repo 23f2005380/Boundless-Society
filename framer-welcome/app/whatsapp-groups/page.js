@@ -1,11 +1,16 @@
 "use client";
-import GroupCard from "@/components/GroupCard";
 import React from "react";
-import { whatsappGroups } from "@/data/whatsapp";
-import { delay, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import GroupCard from "@/components/GroupCard";
+import {officialGroups, girlsGroups,regionalGroups,} from "@/data/whatsapp";
+import "./page.css";
 
 const cardAnimation = {
-  initial: { rotate: 0, scale: 0.95, opacity: 0 },
+  initial: {
+    rotate: 0,
+    scale: 0.95,
+    opacity: 0,
+  },
   even: {
     rotate: 5,
     scale: 1,
@@ -29,39 +34,70 @@ const cardAnimation = {
     viewport: { once: true },
   },
 };
-function page() {
+
+const GroupSection = ({ title, groups, startIndex = 0 }) => {
   return (
-    <>
-      <main className="bg-amber-50 relative overflow-hidden">
-        <div
-          className="absolute inset-0 z-0 pointer-events-none"
-          style={{
-            backgroundImage: `
-      repeating-radial-gradient(circle at center 60%, #fae2e3 0px, #fcefe6 35px, #fae2e3 38px)`,
-            maskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
-            WebkitMaskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
-          }}
-        ></div>
-        <div className="w-fit mx-auto p-10 flex flex-wrap justify-center gap-x-10 gap-y-10">
-          {whatsappGroups.map((group, idx) => (
-            <motion.div
-              variants={cardAnimation}
-              initial="initial"
-              whileInView={`${idx % 2 == 0 ? "even" : "odd"}`}
-              // className={`${idx % 2 == 0 ? "rotate-2" : "-rotate-2"}`}
-              key={idx}
-            >
+    <section className="mb-12">
+      <h2 className="section-title">{title}</h2>
+
+      <div className="centered-flex-container">
+        {groups.map((group, idx) => (
+          <motion.div
+            key={idx}
+            variants={cardAnimation}
+            initial="initial"
+            whileInView={(startIndex + idx) % 2 === 0 ? "even" : "odd"}
+            className="flex-item flex justify-center"
+          >
+            <div className="card-height-wrapper w-full">
               <GroupCard data={group} />
-            </motion.div>
-          ))}
-        </div>
-      </main>
-    </>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+function Page() {
+  return (
+    <main className="bg-amber-50 relative overflow-hidden min-h-screen">
+      {/* Background Pattern */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none background-pattern"
+      />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-10 md:py-16">
+        {/* Header */}
+        <header className="text-center mb-8">
+          <h1 className="page-title">WhatsApp Communities</h1>
+
+          <p className="page-subtitle">
+            Join regional groups and official channels for updates and support.
+          </p>
+        </header>
+
+        <GroupSection
+          title="Official Boundless Channel Spaces"
+          groups={officialGroups}
+          startIndex={0}
+        />
+
+        <GroupSection
+          title="Boundless Girls Community"
+          groups={girlsGroups}
+          startIndex={officialGroups.length}
+        />
+
+        <GroupSection
+          title="Regional Space"
+          groups={regionalGroups}
+          startIndex={officialGroups.length + girlsGroups.length}
+        />
+      </div>
+    </main>
   );
 }
 
-export default page;
+export default Page;
