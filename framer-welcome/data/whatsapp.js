@@ -2,43 +2,44 @@
 export const officialGroups = [
   {
     city: "Official Channel",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071470/kerala_vkm9ot.jpg",
+    img: "/images/city/image.png",
     link: "https://whatsapp.com/channel/0029Vb5L53OKWEKqPYtnZd0i",
     color: "#b6dbff",
   },
   {
     city: "Official Community",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071463/Hyderabad_hpo0og.jpg",
+    img: "/images/city/image.png",
     link: "https://chat.whatsapp.com/C0uqqQCTDbX1l476dxpKV4",
     color: "#f5a9dc",
   },
-  {
-    city: "G Space",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071463/Hyderabad_hpo0og.jpg",
-    link: "https://chat.google.com/room/AAAAEusvvGk?cls=5",
-    color: "#ffe68c",
-  },
+{
+  city: "G Space",
+  img: "/images/city/image.png",
+  link: "https://chat.google.com/room/AAAAEusvvGk?cls=5",
+  color: "#ffe68c",
+  linkType: "gspace", 
+},
   {
     city: "Leisure & Relax 1 (Full)",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071476/nagpur_dp_zjvviq.png",
+    img: "/images/city/image.png",
     link: "https://chat.whatsapp.com/EpclLN5PMss8SEtHaW2yc4",
     color: "#ffb78c",
   },
   {
     city: "Leisure & Relax 2 (Full)",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071459/gaya_dp_m6vzs3.jpg",
+    img: "/images/city/image.png",
     link: "https://chat.whatsapp.com/F5Ke0eEjzdE0jkH2xNkWlN",
     color: "#c6f8c4",
   },
   {
     city: "Leisure & Relax 3",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071468/kanpur_gs369t.jpg",
+    img: "/images/city/image.png",
     link: "https://chat.whatsapp.com/EHwDHzyfPnPBD8qSDqFYyy",
     color: "#f5a9dc",
   },
   {
     city: "Memes & Banter",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071454/Bengaluru_ktnirs.jpg",
+    img: "/images/city/image.png",
     link: "https://chat.whatsapp.com/KGxVXJbYzKv1h7ZJAKG2mc",
     color: "#b6dbff",
   },
@@ -48,25 +49,47 @@ export const officialGroups = [
 export const girlsGroups = [
   {
     city: "Girls Community",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071454/Bengaluru_ktnirs.jpg",
+    img: "/images/city/community.png",
     link: "https://chat.whatsapp.com/Hvex415eLZ5EF4FuQWzUwC",
     color: "#b6dbff",
   },
   {
     city: "Girls Group",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071454/Bengaluru_ktnirs.jpg",
+    img: "/images/city/2.png",
     link: "https://chat.whatsapp.com/L0iFeG96JO4EMHjS93omPP",
     color: "#f5a9dc",
   },
   {
     city: "Girls Game Night",
-    img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071470/Mumbai_dp_ztd6n8.jpg",
+    img: "/images/city/gamenight.png",
     link: "https://chat.whatsapp.com/Fg9vKVxCn65IwSv7rZvT8U",
     color: "#b6dbff",
   },
 ];
 
-// Regional Groups
+// Regional Groups -- for search functionality keywords
+const stateKeywordsMap = {
+  maharashtra: ["Nagpur", "Mumbai", "Pune", "Nashik"],
+  up: ["Kanpur", "Lucknow", "Varanasi", "Prayagraj", "Gorakhpur", "Agra"],
+  bihar: ["Gaya", "Patna", "Muzaffarpur"],
+  mp: ["Indore", "Bhopal", "Gwalior"],
+  rajasthan: ["Jaipur", "Udaipur", "Jodhpur"],
+  gujarat: ["Ahmedabad", "Vadodara"],
+  karnataka: ["Bengaluru"],
+  tamilnadu: ["Chennai", "Coimbatore"],
+  telangana: ["Hyderabad"],
+  westbengal: ["Kolkata", "Siliguri"],
+  odisha: ["Bhubaneswar"],
+  chhattisgarh: ["Raipur"],
+  punjab: ["Punjab", "Chandigarh"],
+  haryana: ["Haryana"],
+  himachal: ["Himachal"],
+  uttarakhand: ["Uttrakhand"],
+  northeast: ["North East"],
+  jharkhand: ["Jharkhand"],
+};
+
+
 export const regionalGroups = [
   {
     city: "Nagpur",
@@ -302,7 +325,24 @@ export const regionalGroups = [
     link: "https://chat.whatsapp.com/DzWrwRCFoF77BzGVmXHiXG?mode=wwt",
     color: "#f3e6fb",
   },
-];
+].map((group) => {
+  const cityLower = group.city.toLowerCase();
+
+  const matchedStates = Object.entries(stateKeywordsMap)
+    .filter(([_, cities]) =>
+      cities.some(
+        (city) => city.toLowerCase() === cityLower
+      )
+    )
+    .map(([state]) => state);
+
+  return {
+    ...group,
+    keywords: [cityLower, ...matchedStates],
+  };
+});
+
+
 
 // Legacy export for backward compatibility (if needed elsewhere)
 export const whatsappGroups = [...officialGroups, ...girlsGroups, ...regionalGroups];
