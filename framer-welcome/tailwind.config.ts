@@ -13,10 +13,9 @@ const config: Config = {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
-			'brown': '#3b001b',
-        	'cream': '#faebd4',
-        	'bg-white': '#fefae7',
-
+  			brown: '#3b001b',
+  			cream: '#faebd4',
+  			'bg-white': '#fefae7',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -93,10 +92,16 @@ const config: Config = {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		},
-		fontFamily:{
-			'oswald': ['Oswald', 'sans-serif'],
-        'pacifico': ['Pacifico', 'cursive'],
-		}
+  		fontFamily: {
+  			oswald: [
+  				'Oswald',
+  				'sans-serif'
+  			],
+  			pacifico: [
+  				'Pacifico',
+  				'cursive'
+  			]
+  		}
   	}
   },
   plugins: [require("tailwindcss-animate")],
