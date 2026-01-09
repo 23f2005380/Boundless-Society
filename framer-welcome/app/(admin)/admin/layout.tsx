@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import "@/app/globals.css";
-import Header from "@/components/Header.jsx";
 import Head from "next/head";
+import "@/app/globals.css";
+import LenisProvider from "@/components/LenisProvider";
 
 export const metadata: Metadata = {
-  title: "Boundless Travel Society",
-  description: "IITM based society to make traveling jhakas",
+  title: "Boundless Admin Page",
+  description: "IITM Access page for Boundless Travel Society",
   generator: "",
 };
-import LenisProvider from "@/components/LenisProvider";
 
 export default function RootLayout({
   children,
@@ -22,8 +21,7 @@ export default function RootLayout({
       </Head>
       <LenisProvider>
         <body style={{ background: "#fffbea" }}>
-          <Header />
-          <div className="pt-20">{children}</div>
+          <div className="">{children}</div>
         </body>
       </LenisProvider>
     </html>
