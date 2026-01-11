@@ -2,15 +2,18 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDooPH8fHo-_CV2RzQMJlh153r-pTrF2K0",
-  authDomain: "boundless-bd1c0.firebaseapp.com",
-  projectId: "boundless-bd1c0",
-  storageBucket: "boundless-bd1c0.firebasestorage.app",
-  messagingSenderId: "980518089352",
-  appId: "1:980518089352:web:2c24bc52633a7a22a6e53d",
-  measurementId: "G-5HS331KM7P"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+
+
+
