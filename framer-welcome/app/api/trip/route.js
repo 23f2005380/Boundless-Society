@@ -78,24 +78,31 @@ const tripSchema = yup.object().shape({
     .of(formFieldSchema)
     .min(1, "At least one form field is required")
     .required("Form fields are required"),
+  images: yup
+    .array()
+    .of(
+      yup.object().shape({
+        url: yup.string().required(),
+        publicId: yup.string().required(),
+        sortOrder: yup.number().required(),
+      })
+    )
+    .default([]),
 });
 
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    // Validate using Yup
     const validatedData = await tripSchema.validate(body, {
       abortEarly: false,
       stripUnknown: true,
     });
 
-    // Filter out empty coordinators
     const validCoordinators = (validatedData.coordinators || []).filter(
       (c) => c && c.trim() !== ""
     );
 
-    // Prepare trip data for Firestore
     const tripData = {
       name: validatedData.name,
       description: validatedData.description || "",
@@ -114,7 +121,6 @@ export async function POST(request) {
             type: field.type,
             sortOrder: field.sortOrder,
           };
-          // Include options for radio/select fields, filtering out empty options
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(
               (opt) => opt && opt.trim() !== ""
@@ -123,11 +129,15 @@ export async function POST(request) {
           return fieldData;
         }),
       },
+      images: (validatedData.images || []).map((img, index) => ({
+        url: img.url,
+        publicId: img.publicId,
+        sortOrder: index,
+      })),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
-    // Add to Firestore
     const docRef = await addDoc(collection(db, "trips"), tripData);
 
     return NextResponse.json(
@@ -183,6 +193,7 @@ export async function GET() {
         femaleJoined: data.femaleJoined,
         totalJoined: data.totalJoined,
         form: data.form,
+        images: data.images || [],
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };

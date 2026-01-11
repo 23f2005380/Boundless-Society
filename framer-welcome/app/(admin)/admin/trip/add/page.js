@@ -9,6 +9,8 @@ import {
   Loader2Icon,
   GripVerticalIcon,
   XIcon,
+  ImageIcon,
+  UploadIcon,
 } from "lucide-react";
 import * as yup from "yup";
 import { toast } from "sonner";
@@ -27,12 +29,14 @@ import {
   arrayMove,
   useSortable,
   verticalListSortingStrategy,
+  rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -273,10 +277,61 @@ function SortableFieldRow({ field, onUpdate, onDelete, hasError }) {
   );
 }
 
+function SortableImage({ image, onRemove }) {
+  const {
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+    attributes,
+    listeners,
+  } = useSortable({ id: image.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative aspect-square overflow-hidden rounded-lg border bg-muted ${
+        isDragging ? "z-10 opacity-80 shadow-lg" : ""
+      }`}
+      {...attributes}
+      {...listeners}
+    >
+      <img
+        src={image.preview}
+        alt={`Image ${image.sortOrder + 1}`}
+        className="h-full w-full cursor-grab object-cover active:cursor-grabbing"
+      />
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute right-1 top-1 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(image.id);
+        }}
+      >
+        <XIcon className="size-3" />
+      </Button>
+      <div className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">
+        {image.sortOrder + 1}
+      </div>
+    </div>
+  );
+}
+
 export default function AddTripPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState({});
+  const [isDraggingOver, setIsDraggingOver] = React.useState(false);
+  const fileInputRef = React.useRef(null);
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -294,6 +349,8 @@ export default function AddTripPage() {
     { id: generateId(), name: "", type: "short_text", sortOrder: 0 },
   ]);
 
+  const [images, setImages] = React.useState([]);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -301,10 +358,12 @@ export default function AddTripPage() {
   );
 
   const sortableId = React.useId();
+  const imageSortableId = React.useId();
   const fieldIds = React.useMemo(
     () => formFields.map((f) => f.id),
     [formFields]
   );
+  const imageIds = React.useMemo(() => images.map((i) => i.id), [images]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -392,6 +451,90 @@ export default function AddTripPage() {
     }
   };
 
+  const handleImageDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active && over && active.id !== over.id) {
+      setImages((currentImages) => {
+        const oldIndex = imageIds.indexOf(active.id);
+        const newIndex = imageIds.indexOf(over.id);
+        const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
+        return reorderedImages.map((img, index) => ({
+          ...img,
+          sortOrder: index,
+        }));
+      });
+    }
+  };
+
+  const processFiles = (files) => {
+    const validFiles = Array.from(files).filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (validFiles.length === 0) {
+      toast.error("Please select valid image files");
+      return;
+    }
+
+    validFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            file,
+            preview: e.target.result,
+            data: e.target.result,
+            sortOrder: prev.length,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    processFiles(e.dataTransfer.files);
+  };
+
+  const handleFileSelect = (e) => {
+    if (e.target.files) {
+      processFiles(e.target.files);
+    }
+  };
+
+  const removeImage = (id) => {
+    setImages((prev) =>
+      prev
+        .filter((img) => img.id !== id)
+        .map((img, index) => ({ ...img, sortOrder: index }))
+    );
+  };
+
+  const uploadImages = async () => {
+    if (images.length === 0) return [];
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        images: images.map((img) => ({ data: img.data })),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to upload images");
+    }
+
+    return data.images;
+  };
+
   const handleSaveTrip = async () => {
     setErrors({});
     setIsSubmitting(true);
@@ -404,12 +547,22 @@ export default function AddTripPage() {
 
       await tripSchema.validate(dataToValidate, { abortEarly: false });
 
+      let uploadedImages = [];
+      if (images.length > 0) {
+        toast.loading("Uploading images...", { id: "upload" });
+        uploadedImages = await uploadImages();
+        toast.dismiss("upload");
+      }
+
       const response = await fetch("/api/trip", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataToValidate),
+        body: JSON.stringify({
+          ...dataToValidate,
+          images: uploadedImages,
+        }),
       });
 
       const data = await response.json();
@@ -466,214 +619,299 @@ export default function AddTripPage() {
           Save Trip
         </Button>
       </div>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mx-auto max-w-2xl space-y-8">
-          {/* Basic Trip Data Section */}
-          <section className="space-y-6">
-            <h2 className="text-lg font-semibold">Basic Trip Data</h2>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                placeholder="Enter trip name"
-                value={formData.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                className={errors.name ? "border-destructive" : ""}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name}</p>
-              )}
-            </div>
+      <div className="flex-1 overflow-auto">
+        <div className="flex gap-6 p-6">
+          {/* Left Column - Form */}
+          <div className="mx-auto max-w-2xl flex-1 space-y-8">
+            {/* Basic Trip Data Section */}
+            <section className="space-y-6">
+              <h2 className="text-lg font-semibold">Basic Trip Data</h2>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <textarea
-                id="description"
-                placeholder="Enter trip description"
-                value={formData.description}
-                onChange={(e) => updateField("description", e.target.value)}
-                className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Coordinators</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={addCoordinator}
-                  className="h-8 gap-1 text-sm"
-                >
-                  <PlusIcon className="size-4" />
-                  Add
-                </Button>
-              </div>
               <div className="space-y-2">
-                {formData.coordinators.map((coordinator, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      placeholder={`Coordinator ${index + 1}`}
-                      value={coordinator}
-                      onChange={(e) => updateCoordinator(index, e.target.value)}
-                      className={
-                        errors.coordinators ? "border-destructive" : ""
-                      }
-                    />
-                    {formData.coordinators.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeCoordinator(index)}
-                        className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {errors.coordinators && (
-                <p className="text-sm text-destructive">
-                  {errors.coordinators}
-                </p>
-              )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="totalSeats">Total Seats</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
-                  id="totalSeats"
-                  type="number"
-                  placeholder="0"
-                  value={formData.totalSeats}
-                  onChange={(e) => updateField("totalSeats", e.target.value)}
-                  className={errors.totalSeats ? "border-destructive" : ""}
+                  id="name"
+                  placeholder="Enter trip name"
+                  value={formData.name}
+                  onChange={(e) => updateField("name", e.target.value)}
+                  className={errors.name ? "border-destructive" : ""}
                 />
-                {errors.totalSeats && (
-                  <p className="text-sm text-destructive">
-                    {errors.totalSeats}
-                  </p>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="femaleReservedSeats">
-                  Female Reserved Seats
-                </Label>
-                <Input
-                  id="femaleReservedSeats"
-                  type="number"
-                  placeholder="0"
-                  value={formData.femaleReservedSeats}
-                  onChange={(e) =>
-                    updateField("femaleReservedSeats", e.target.value)
-                  }
-                  className={
-                    errors.femaleReservedSeats ? "border-destructive" : ""
-                  }
+                <Label htmlFor="description">Description</Label>
+                <textarea
+                  id="description"
+                  placeholder="Enter trip description"
+                  value={formData.description}
+                  onChange={(e) => updateField("description", e.target.value)}
+                  className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                {errors.femaleReservedSeats && (
-                  <p className="text-sm text-destructive">
-                    {errors.femaleReservedSeats}
-                  </p>
-                )}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="releasedSeats">Released Seats</Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  id="releasedSeats"
-                  type="number"
-                  placeholder="0"
-                  value={formData.releasedSeats}
-                  onChange={(e) => updateField("releasedSeats", e.target.value)}
-                  className={`max-w-32 ${
-                    errors.releasedSeats ? "border-destructive" : ""
-                  }`}
-                />
-                <div className="flex items-center gap-4">
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="radio"
-                      name="releasedSeatsType"
-                      value="female_only"
-                      checked={formData.releasedSeatsType === "female_only"}
-                      onChange={(e) =>
-                        updateField("releasedSeatsType", e.target.value)
-                      }
-                      className="size-4 accent-primary"
-                    />
-                    <span className="text-sm">Female Only</span>
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="radio"
-                      name="releasedSeatsType"
-                      value="all"
-                      checked={formData.releasedSeatsType === "all"}
-                      onChange={(e) =>
-                        updateField("releasedSeatsType", e.target.value)
-                      }
-                      className="size-4 accent-primary"
-                    />
-                    <span className="text-sm">All</span>
-                  </label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Coordinators</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={addCoordinator}
+                    className="h-8 gap-1 text-sm"
+                  >
+                    <PlusIcon className="size-4" />
+                    Add
+                  </Button>
                 </div>
-              </div>
-              {errors.releasedSeats && (
-                <p className="text-sm text-destructive">
-                  {errors.releasedSeats}
-                </p>
-              )}
-            </div>
-          </section>
-
-          {/* Form Fields Section */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Form Fields</h2>
-              <Button onClick={addFormField} size="sm" variant="outline">
-                <PlusIcon className="mr-2 size-4" />
-                Add Field
-              </Button>
-            </div>
-
-            {errors.formFields && (
-              <p className="text-sm text-destructive">{errors.formFields}</p>
-            )}
-
-            <DndContext
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={handleDragEnd}
-              sensors={sensors}
-              id={sortableId}
-            >
-              <SortableContext
-                items={fieldIds}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="flex flex-col gap-3">
-                  {formFields.map((field) => (
-                    <SortableFieldRow
-                      key={field.id}
-                      field={field}
-                      onUpdate={updateFormField}
-                      onDelete={deleteFormField}
-                      hasError={!!errors.formFields}
-                    />
+                <div className="space-y-2">
+                  {formData.coordinators.map((coordinator, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder={`Coordinator ${index + 1}`}
+                        value={coordinator}
+                        onChange={(e) =>
+                          updateCoordinator(index, e.target.value)
+                        }
+                        className={
+                          errors.coordinators ? "border-destructive" : ""
+                        }
+                      />
+                      {formData.coordinators.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeCoordinator(index)}
+                          className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2Icon className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   ))}
                 </div>
-              </SortableContext>
-            </DndContext>
-          </section>
+                {errors.coordinators && (
+                  <p className="text-sm text-destructive">
+                    {errors.coordinators}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="totalSeats">Total Seats</Label>
+                  <Input
+                    id="totalSeats"
+                    type="number"
+                    placeholder="0"
+                    value={formData.totalSeats}
+                    onChange={(e) => updateField("totalSeats", e.target.value)}
+                    className={errors.totalSeats ? "border-destructive" : ""}
+                  />
+                  {errors.totalSeats && (
+                    <p className="text-sm text-destructive">
+                      {errors.totalSeats}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="femaleReservedSeats">
+                    Female Reserved Seats
+                  </Label>
+                  <Input
+                    id="femaleReservedSeats"
+                    type="number"
+                    placeholder="0"
+                    value={formData.femaleReservedSeats}
+                    onChange={(e) =>
+                      updateField("femaleReservedSeats", e.target.value)
+                    }
+                    className={
+                      errors.femaleReservedSeats ? "border-destructive" : ""
+                    }
+                  />
+                  {errors.femaleReservedSeats && (
+                    <p className="text-sm text-destructive">
+                      {errors.femaleReservedSeats}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="releasedSeats">Released Seats</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="releasedSeats"
+                    type="number"
+                    placeholder="0"
+                    value={formData.releasedSeats}
+                    onChange={(e) =>
+                      updateField("releasedSeats", e.target.value)
+                    }
+                    className={`max-w-32 ${
+                      errors.releasedSeats ? "border-destructive" : ""
+                    }`}
+                  />
+                  <div className="flex items-center gap-4">
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="releasedSeatsType"
+                        value="female_only"
+                        checked={formData.releasedSeatsType === "female_only"}
+                        onChange={(e) =>
+                          updateField("releasedSeatsType", e.target.value)
+                        }
+                        className="size-4 accent-primary"
+                      />
+                      <span className="text-sm">Female Only</span>
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="releasedSeatsType"
+                        value="all"
+                        checked={formData.releasedSeatsType === "all"}
+                        onChange={(e) =>
+                          updateField("releasedSeatsType", e.target.value)
+                        }
+                        className="size-4 accent-primary"
+                      />
+                      <span className="text-sm">All</span>
+                    </label>
+                  </div>
+                </div>
+                {errors.releasedSeats && (
+                  <p className="text-sm text-destructive">
+                    {errors.releasedSeats}
+                  </p>
+                )}
+              </div>
+            </section>
+
+            {/* Form Fields Section */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Form Fields</h2>
+                <Button onClick={addFormField} size="sm" variant="outline">
+                  <PlusIcon className="mr-2 size-4" />
+                  Add Field
+                </Button>
+              </div>
+
+              {errors.formFields && (
+                <p className="text-sm text-destructive">{errors.formFields}</p>
+              )}
+
+              <DndContext
+                collisionDetection={closestCenter}
+                modifiers={[restrictToVerticalAxis]}
+                onDragEnd={handleDragEnd}
+                sensors={sensors}
+                id={sortableId}
+              >
+                <SortableContext
+                  items={fieldIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="flex flex-col gap-3">
+                    {formFields.map((field) => (
+                      <SortableFieldRow
+                        key={field.id}
+                        field={field}
+                        onUpdate={updateFormField}
+                        onDelete={deleteFormField}
+                        hasError={!!errors.formFields}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </section>
+          </div>
+
+          {/* Right Column - Images */}
+          <div className="w-80 shrink-0">
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ImageIcon className="size-4" />
+                  Trip Images
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Drop Zone */}
+                <div
+                  className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 transition-colors ${
+                    isDraggingOver
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingOver(true);
+                  }}
+                  onDragLeave={() => setIsDraggingOver(false)}
+                  onDrop={handleFileDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <UploadIcon className="mb-2 size-8 text-muted-foreground" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Drop images here
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    or click to browse
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </div>
+
+                {/* Image Grid */}
+                {images.length > 0 && (
+                  <DndContext
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleImageDragEnd}
+                    sensors={sensors}
+                    id={imageSortableId}
+                  >
+                    <SortableContext
+                      items={imageIds}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-2 gap-2">
+                        {images.map((image) => (
+                          <SortableImage
+                            key={image.id}
+                            image={image}
+                            onRemove={removeImage}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+
+                {images.length > 0 && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    Drag to reorder • {images.length} image
+                    {images.length > 1 ? "s" : ""}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
