@@ -51,19 +51,18 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                 `}
                 whileHover={{ scale: 1.04, boxShadow: "0 8px 32px #00000022" }}
               >
-                <div className="relative">
+                <div className="relative h-[176px] w-full overflow-hidden rounded-t-[32px]">
                   <Image
                     src={card.img}
                     alt={card.city}
-                    width={400}     // or whatever matches your layout
-                    height={176}    // Tailwind h-44 → 176px
-                    className="rounded-t-[32px] w-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
                 <div className="flex flex-row items-center p-4">
-                  <div className="font-bold text-lg text-[#3B001B]" style={{ width: "50%" }}>{card.city}</div>
+                  <div className="font-bold text-lg text-[#3B001B] flex-1">{card.city}</div>
                   <div className="justify-content-end" style={{ width: "50%" }}>
-                  {/* <a
+                    {/* <a
                     href={card.galleryLink}
                     className="rounded-full px-5 py-1 font-semibold text-sm hover:bg-amber-100 transition"
                   >
