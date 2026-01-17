@@ -1,4 +1,10 @@
 export const previousTrips = [
+   {
+    heading: "Meghalaya Trip",
+    subHeading: "28th Nov to 1st Dec 2025",
+    img: "https://res.cloudinary.com/dxh7qhxlx/image/upload/v1768666578/Mossy_bridges_over_a_serene_stream_vummed.png",
+    link: "https://www.instagram.com/p/DTdOrsPiIIi",
+  },
   {
     heading: "Mewar Trip",
     subHeading: "12th to 15th Sept 2025",

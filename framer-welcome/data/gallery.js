@@ -34,4 +34,9 @@ export const gallery = [
     img: "/images/Gallery/Gal6.jpg",
     link: "#",
   },
+  {
+    name: "Meghalaya Trip",
+    img: "https://res.cloudinary.com/dxh7qhxlx/image/upload/v1768664947/SaveClip.App_613522903_17963490090008840_1376304668771714096_n_albhcm.webp",
+    link: "#",
+  },
 ];

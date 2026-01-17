@@ -90,6 +90,18 @@ const meetups = [
     badge: "",
     logo: "",
   },
+  {
+    city: "Tricolor Trails 3.0",
+    img: "https://res.cloudinary.com/dxh7qhxlx/image/upload/v1768667441/SaveClip.App_587017774_17962196625008840_3230851059148407869_n_bhqtic.webp",
+    title: "Tricolor Trails 3.0",
+    description: (
+      <>
+      Each city meetup fuels the spirit of travel, collaboration, and unity — bringing young travelers together to experience India’s cultural depth and shared identity under one tricolor. This year’s journey connects students through meetups in Rishikesh, Siliguri, Kanpur, Chandigarh, Kolkata, and Chennai.
+      </>
+    ),
+    badge: "",
+    logo: "",
+  },
 
 ]
 
