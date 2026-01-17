@@ -19,9 +19,7 @@ export default function RootLayout({
         <link rel="icon" href="/Logo Bound.png" />
       </Head>
 
-      <body style={{ background: "#fffbea" }} suppressHydrationWarning>
-        {children}
-      </body>
+      <body style={{ background: "#fffbea" }}>{children}</body>
     </html>
   );
 }
