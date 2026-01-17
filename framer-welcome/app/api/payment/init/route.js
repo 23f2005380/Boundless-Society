@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { realtimeDb } from "@/lib/firebase"; // adjust import path if needed
+import { realtimeDb } from "@/lib/firebase";
 import { ref, runTransaction } from "firebase/database";
 
 const razorpay = new Razorpay({
@@ -39,7 +39,7 @@ export async function POST(req) {
     const transactionResult = await runTransaction(tripRef, (currentData) => {
       const dataCallback = currentData || {};
 
-      const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+      const SESSION_TIMEOUT_MS = 1 * 60 * 1000; // 1 minutes
 
       const sessions = dataCallback.sessions || {};
       let activeCount = 0;
