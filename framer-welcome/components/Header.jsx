@@ -44,6 +44,7 @@ export default function Header() {
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificate" },
+    { label: "Trip Registration", href: "/trip-registration" },
   ]);
   function itemClicked(href) {
     setMenuOpen(false); 
