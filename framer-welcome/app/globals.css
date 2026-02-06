@@ -128,3 +128,6 @@ html.lenis {
   overflow: hidden;
 }
 
+::placeholder {
+  color: var(--sidebar-accent);
+}
