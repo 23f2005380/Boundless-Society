@@ -1,11 +1,37 @@
 "use client";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, isFirebaseEnabled } from "@/lib/firebase";
 import { table } from "console";
+import { useEffect, useState } from "react";
 
-export default async function UsersPage() {
-  const snapshot = await getDocs(collection(db, "users"));
-  const users = snapshot.docs.map(doc => doc.data());
+export default function UsersPage() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (!isFirebaseEnabled || !db) {
+          setError("Firebase is not configured");
+          setLoading(false);
+          return;
+        }
+
+        const snapshot = await getDocs(collection(db, "users"));
+        setUsers(snapshot.docs.map(doc => doc.data()));
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch users");
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
 
   return (
     <div className="p-4">

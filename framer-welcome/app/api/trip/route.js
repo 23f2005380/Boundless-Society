@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import * as yup from "yup";
-import { db } from "@/lib/firebase";
+import { db, isFirebaseEnabled } from "@/lib/firebase";
 import {
   collection,
   addDoc,
@@ -92,6 +92,13 @@ const tripSchema = yup.object().shape({
 
 export async function POST(request) {
   try {
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
 
     const validatedData = await tripSchema.validate(body, {
@@ -175,6 +182,13 @@ export async function POST(request) {
 
 export async function GET() {
   try {
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const tripsRef = collection(db, "trips");
     const q = query(tripsRef, orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);

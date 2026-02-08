@@ -1,15 +1,34 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { realtimeDb } from "@/lib/firebase";
+import { realtimeDb, isFirebaseEnabled } from "@/lib/firebase";
 import { ref, runTransaction } from "firebase/database";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+let razorpay = null;
+
+// Only initialize Razorpay if credentials are provided
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+}
 
 export async function POST(req) {
   try {
+    if (!isFirebaseEnabled || !realtimeDb) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    if (!razorpay) {
+      return NextResponse.json(
+        { error: "Payment system is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const body = await req.json();
     const { tripId, amount, currency = "INR" } = body;
 
