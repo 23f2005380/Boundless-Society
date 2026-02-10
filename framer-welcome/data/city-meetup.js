@@ -1,5 +1,80 @@
 let meetupsData = [
   {
+    "sectionTitle": "Tricolor Trails 3.0",
+    "cards": [
+      {
+        "city": "Kanpur",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUDhNh3iHfP/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+     {
+        "city": "Siliguri",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUF7z1tCM7R/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+    {
+        "city": "Chennai",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUIryULD_gS/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+     {
+        "city": "Rishikesh",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUOD7IVCB7h/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+    {
+        "city": "Kolkata",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUSyqHZiBO6/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+     {
+        "city": "Parasnath",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUVsCunCIPc/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+    {
+        "city": "Ooty",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUYV5OZiERM/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+     {
+        "city": "Rajgir",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUddhzTCN76/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+    {
+        "city": "Mahabaleshwar",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUiL6cAiKuQ/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },
+     {
+        "city": "Vrindavan",
+        "img": "https://images.weserv.nl/?url=https://www.instagram.com/p/DUlQB6ziOWU/media/?size=l",
+        "caption": "",
+        "color": "bg-pink-100 border-pink-300",
+        
+      },]
+    },
+
+  {
     "sectionTitle": "Summer Meetups",
     "cards": [
       {

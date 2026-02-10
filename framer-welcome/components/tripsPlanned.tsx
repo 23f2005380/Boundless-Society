@@ -31,22 +31,22 @@ const steps = [
 const trips: Trip[] = [
   {
     id: 'Himachal Trip',
-    title: 'Himachal Trip',
+   title: '',
     status: '',
     description: 'Spirituality at its peak',
-    image: 'Solang-Valley-1024x576.jpg',
+    image: '',
     from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
     to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
     backgroundColor: 'bg-yellow-200',
     textColor: 'text-gray-800',
-    formLink : 'https://forms.gle/faqHdaezZVicaxde6',
-    details : 'https://drive.google.com/file/d/1suz8_BjCJf09Nk03VNf-L9uK74T4qyVb/view?usp=drivesdk',
+    formLink : '',
+    details : '',
     included : [],
     plan: [
       { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
       { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
       { title: 'Day 3', description: 'Relax and return to Udupi.' }
-    ]
+    ] 
   },
   {
     id: 'coming-soon',
