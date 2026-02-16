@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
-import Head from "next/head";
+import { Toaster } from "@/components/ui/sonner";
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
 
 export const metadata: Metadata = {
-  title: "Boundless Travel Society",
-  description: "IITM based society to make traveling jhakas",
-  generator: "",
+  title: "Boundless Society",
+  description: "Admin Panel",
 };
 
 export default function RootLayout({
@@ -14,12 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <Head>
-        <link rel="icon" href="/Logo Bound.png" />
-      </Head>
-
-      <body style={{ background: "#fffbea" }}>{children}</body>
+    // ADDED: suppressHydrationWarning
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

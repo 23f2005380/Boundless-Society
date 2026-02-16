@@ -17,7 +17,7 @@ import {
   SearchIcon,
   SettingsIcon,
   UsersIcon,
-  Plane, // CORRECTED: Changed from PlaneIcon to Plane
+  Plane, 
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"

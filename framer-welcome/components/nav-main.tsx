@@ -1,7 +1,7 @@
 "use client"
 
 import { MailIcon, PlusCircleIcon, type LucideIcon } from "lucide-react"
-import Link from "next/link" // Import Link for proper navigation
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,8 @@ export function NavMain({
     icon?: LucideIcon
   }[]
 }) {
+  const router = useRouter();
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -46,12 +48,16 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              {/* asChild combined with Link allows the button to act as a proper router link */}
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
+              {/* CRITICAL FIX: 
+                 1. Removed 'asChild' prop.
+                 2. Added onClick handler to force navigation.
+              */}
+              <SidebarMenuButton 
+                tooltip={item.title}
+                onClick={() => router.push(item.url)}
+              >
+                {item.icon && <item.icon />}
+                <span>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
