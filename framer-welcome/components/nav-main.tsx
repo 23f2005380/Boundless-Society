@@ -1,6 +1,7 @@
 "use client"
 
 import { MailIcon, PlusCircleIcon, type LucideIcon } from "lucide-react"
+import Link from "next/link" // Import Link for proper navigation
 
 import { Button } from "@/components/ui/button"
 import {
@@ -45,12 +46,12 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              {/* IMPORTANT: 'asChild' allows the <a> tag to work correctly */}
+              {/* asChild combined with Link allows the button to act as a proper router link */}
               <SidebarMenuButton asChild tooltip={item.title}>
-                <a href={item.url}>
+                <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
