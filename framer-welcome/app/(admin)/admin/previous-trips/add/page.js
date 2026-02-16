@@ -33,7 +33,8 @@ export default function AddPreviousTripPage() {
       // 1. Upload to Cloudinary
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
-      uploadFormData.append("upload_preset", "boundless_unsigned"); // Check this matches your Cloudinary settings
+      // Ensure this upload_preset exists in your Cloudinary settings as "Unsigned"
+      uploadFormData.append("upload_preset", "boundless_unsigned"); 
 
       const uploadRes = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -72,7 +73,8 @@ export default function AddPreviousTripPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm mt-10">
+    // UPDATED CLASSNAME: Replaced 'bg-white' with 'bg-card' and added 'text-card-foreground border'
+    <div className="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-xl shadow-sm mt-10 border border-border">
       <h1 className="text-2xl font-bold mb-6">Add Previous Trip</h1>
       
       <form onSubmit={handleUploadAndSave} className="space-y-6">
@@ -124,7 +126,7 @@ export default function AddPreviousTripPage() {
             accept="image/*"
             required
             onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="cursor-pointer"
+            className="cursor-pointer file:text-foreground"
             suppressHydrationWarning
           />
         </div>

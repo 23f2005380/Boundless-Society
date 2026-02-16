@@ -5,14 +5,14 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+//import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 async function Layout({ children }) {
-  const session = await getServerSession(authOptions);
+  //const session = await getServerSession(authOptions);
 
-  if (!session) {
-    redirect("/admin-login");
-  }
+  //if (!session) {
+    //redirect("/admin-login");
+  //}
 
   return (
     <SidebarProvider>

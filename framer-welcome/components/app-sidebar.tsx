@@ -17,6 +17,7 @@ import {
   SearchIcon,
   SettingsIcon,
   UsersIcon,
+  PlaneIcon, // Imported specifically for the Trip section
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -33,17 +34,23 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+// Menu Data Configuration
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin",
+    email: "admin@boundless.com",
+    avatar: "/placeholder-user.jpg", // Changed to a valid image in your public folder
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/admin/dashboard", // Corrected Link
       icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Add Previous Trip", // New Menu Item
+      url: "/admin/previous-trips/add", // Corrected Link
+      icon: PlaneIcon,
     },
     {
       title: "Lifecycle",
@@ -162,7 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Boundless Admin</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
