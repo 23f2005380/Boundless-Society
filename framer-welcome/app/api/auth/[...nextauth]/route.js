@@ -1,42 +1,21 @@
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import CredentialsProvider from "next-auth/providers/credentials";
+// ... other imports
 
 export const authOptions = {
   providers: [
-    Credentials({
-      name: "Admin Login",
-      credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const adminUser = {
-          username: process.env.ADMIN_USER,
-          passwordHash: process.env.ADMIN_PASS_HASH,
-        };
-
-        if (!credentials) return null;
-
-        const validUser = credentials.username === adminUser.username;
-        const validPass = await bcrypt.compare(
-          credentials.password,
-          adminUser.passwordHash
-        );
-
-        if (!validUser || !validPass) return null;
-
-        return { id: "admin", name: "Administrator", role: "admin" };
-      },
-    }),
+    // ... your providers
   ],
-  session: { strategy: "jwt" },
+  // ... other options
   pages: {
-    signIn: "/admin-login",
+    // OLD (INCORRECT):
+    // signIn: "/admin", 
+
+    // NEW (CORRECT):
+    signIn: "/admin-login", // Points to app/(auth)/admin-login/page.js
   },
-  secret: process.env.AUTH_SECRET,
+  // ...
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
