@@ -19,7 +19,7 @@ export default function AddPreviousTripPage() {
     link: "",
   });
 
-  // Helper to convert file to Base64 for the API
+  // Helper to convert file to Base64 for the signed upload API
   const convertFileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -48,27 +48,25 @@ export default function AddPreviousTripPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          images: [base64Image], // Your API expects an array
-          folder: "previous_trips", // Organize your uploads
+          images: [base64Image],
+          folder: "previous_trips",
         }),
       });
       
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
 
-      // Get the URL from your API response (assuming it returns { links: [url] })
       const imageUrl = uploadData.links?.[0]; 
-
       if (!imageUrl) throw new Error("No image URL returned from upload");
 
-      // 3. Send Data to your Database
+      // 3. Send Data to your Database API
       const apiRes = await fetch("/api/previous-trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           heading: formData.heading,
           subHeading: formData.subHeading,
-          img: imageUrl, // Use the signed URL
+          img: imageUrl,
           link: formData.link,
         }),
       });
@@ -76,7 +74,9 @@ export default function AddPreviousTripPage() {
       if (!apiRes.ok) throw new Error("Failed to save trip to database");
 
       toast.success("Previous trip added successfully!");
-      router.push("/admin/dashboard");
+      
+      // Redirect back to the list
+      router.push("/admin/previous-trips");
 
     } catch (error) {
       console.error("Error:", error);
@@ -91,8 +91,6 @@ export default function AddPreviousTripPage() {
       <h1 className="text-2xl font-bold mb-6">Add Previous Trip</h1>
       
       <form onSubmit={handleUploadAndSave} className="space-y-6">
-        
-        {/* Heading Input */}
         <div className="space-y-2">
           <Label htmlFor="heading">Trip Name (Heading)</Label>
           <Input
@@ -101,11 +99,9 @@ export default function AddPreviousTripPage() {
             required
             value={formData.heading}
             onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
-            suppressHydrationWarning
           />
         </div>
 
-        {/* SubHeading Input */}
         <div className="space-y-2">
           <Label htmlFor="subHeading">Date/Subtitle (SubHeading)</Label>
           <Input
@@ -114,11 +110,9 @@ export default function AddPreviousTripPage() {
             required
             value={formData.subHeading}
             onChange={(e) => setFormData({ ...formData, subHeading: e.target.value })}
-            suppressHydrationWarning
           />
         </div>
 
-        {/* Link Input */}
         <div className="space-y-2">
           <Label htmlFor="link">Instagram/Reel Link (Optional)</Label>
           <Input
@@ -126,11 +120,9 @@ export default function AddPreviousTripPage() {
             placeholder="https://instagram.com/..."
             value={formData.link}
             onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-            suppressHydrationWarning
           />
         </div>
 
-        {/* File Input */}
         <div className="space-y-2">
           <Label htmlFor="image">Trip Image</Label>
           <Input
@@ -140,15 +132,12 @@ export default function AddPreviousTripPage() {
             required
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             className="cursor-pointer file:text-foreground"
-            suppressHydrationWarning
           />
         </div>
 
-        {/* Submit Button */}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Uploading & Saving..." : "Add Trip"}
         </Button>
-
       </form>
     </div>
   );

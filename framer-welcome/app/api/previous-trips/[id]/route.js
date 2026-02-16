@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
-// GET single trip (for pre-filling the edit form)
+// GET single trip
 export async function GET(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params; // <--- FIX: await params here
+
     const docRef = doc(db, "previous_trips", id);
     const docSnap = await getDoc(docRef);
 
@@ -22,7 +23,8 @@ export async function GET(req, { params }) {
 // UPDATE trip
 export async function PUT(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params; // <--- FIX: await params here
+
     const body = await req.json();
     const docRef = doc(db, "previous_trips", id);
 
@@ -40,7 +42,8 @@ export async function PUT(req, { params }) {
 // DELETE trip
 export async function DELETE(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params; // <--- FIX: await params here
+
     await deleteDoc(doc(db, "previous_trips", id));
     return NextResponse.json({ success: true, message: "Trip deleted" });
   } catch (error) {
