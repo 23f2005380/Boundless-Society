@@ -19,6 +19,16 @@ export default function AddPreviousTripPage() {
     link: "",
   });
 
+  // Helper to convert file to Base64 for the API
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleUploadAndSave = async (e) => {
     e.preventDefault();
 
@@ -30,31 +40,35 @@ export default function AddPreviousTripPage() {
     setLoading(true);
 
     try {
-      // 1. Upload to Cloudinary
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
-      // Ensure this upload_preset exists in your Cloudinary settings as "Unsigned"
-      uploadFormData.append("upload_preset", "boundless_unsigned"); 
+      // 1. Convert Image to Base64
+      const base64Image = await convertFileToBase64(file);
 
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: uploadFormData,
-        }
-      );
+      // 2. Upload to Cloudinary via YOUR Server (Signed Upload)
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64Image], // Your API expects an array
+          folder: "previous_trips", // Organize your uploads
+        }),
+      });
       
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Image upload failed");
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
 
-      // 2. Send Data to your API
+      // Get the URL from your API response (assuming it returns { links: [url] })
+      const imageUrl = uploadData.links?.[0]; 
+
+      if (!imageUrl) throw new Error("No image URL returned from upload");
+
+      // 3. Send Data to your Database
       const apiRes = await fetch("/api/previous-trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           heading: formData.heading,
           subHeading: formData.subHeading,
-          img: uploadData.secure_url,
+          img: imageUrl, // Use the signed URL
           link: formData.link,
         }),
       });
@@ -73,7 +87,6 @@ export default function AddPreviousTripPage() {
   };
 
   return (
-    // UPDATED CLASSNAME: Replaced 'bg-white' with 'bg-card' and added 'text-card-foreground border'
     <div className="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-xl shadow-sm mt-10 border border-border">
       <h1 className="text-2xl font-bold mb-6">Add Previous Trip</h1>
       
