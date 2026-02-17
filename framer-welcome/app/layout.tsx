@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Using Google Fonts (Inter) instead of local files
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
-
-// Initialize the Inter font
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+import Head from "next/head";
 
 export const metadata: Metadata = {
-  title: "Boundless Society",
-  description: "Admin Panel",
+  title: "Boundless Travel Society",
+  description: "IITM based society to make traveling jhakas",
+  generator: "",
 };
 
 export default function RootLayout({
@@ -20,14 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // FIXED: Added suppressHydrationWarning to ignore McAfee extension errors
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} antialiased font-sans`}
-      >
-        {children}
-        <Toaster />
-      </body>
+    <html lang="en">
+      <Head>
+        <link rel="icon" href="/Logo Bound.png" />
+      </Head>
+
+      <body style={{ background: "#fffbea" }}>{children}</body>
     </html>
   );
 }
