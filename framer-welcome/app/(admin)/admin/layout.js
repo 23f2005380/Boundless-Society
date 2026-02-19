@@ -10,9 +10,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 async function Layout({ children }) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    redirect("/admin-login");
-  }
+ 
 
   return (
     <SidebarProvider>
