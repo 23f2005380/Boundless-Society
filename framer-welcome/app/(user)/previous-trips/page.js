@@ -1,9 +1,35 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Section from "@/components/Section";
 import TripCard from "@/components/TripCard";
-import { previousTrips } from "@/data/previousTrips";
 
 function PrevTrips() {
+  // 1. Create state to hold the data from the database
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Fetch data from your API when the page loads
+  useEffect(() => {
+    async function fetchTrips() {
+      try {
+        const response = await fetch("/api/previous-trips");
+        if (response.ok) {
+          const data = await response.json();
+          // 3. Update state with the fetched trips
+          setTrips(data.trips || []);
+        } else {
+          console.error("Failed to fetch trips");
+        }
+      } catch (error) {
+        console.error("Error fetching trips:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTrips();
+  }, []);
+
   return (
     <Section
       svgFill="#fffbeb"
@@ -14,21 +40,30 @@ function PrevTrips() {
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
-            backgroundImage: `
-      repeating-radial-gradient(circle at center 60%, #fae2e3 0px, #fcefe6 35px, #fae2e3 38px)`,
-            maskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
-            WebkitMaskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
+            backgroundImage: `repeating-radial-gradient(circle at center 60%, #fae2e3 0px, #fcefe6 35px, #fae2e3 38px)`,
+            maskImage: `linear-gradient(to top, black 40%, transparent 98%)`,
+            WebkitMaskImage: `linear-gradient(to top, black 40%, transparent 98%)`,
           }}
         ></div>
 
         <div className="relative z-10 w-fit mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-4 pb-15 place-items-center">
-          {previousTrips.map((trip, idx) => (
-            <TripCard key={idx} trip={trip} />
-          ))}
+          {/* 4. Show Loading state or the Data */}
+          {loading ? (
+            <div className="col-span-full text-center text-xl text-gray-500 py-20">
+              Loading trips...
+            </div>
+          ) : trips.length > 0 ? (
+            trips.map((trip) => (
+              <TripCard 
+                key={trip.id} 
+                trip={trip} 
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-xl text-gray-500 py-20">
+              No previous trips found.
+            </div>
+          )}
         </div>
       </div>
     </Section>

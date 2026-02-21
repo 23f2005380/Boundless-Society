@@ -17,6 +17,7 @@ import {
   SearchIcon,
   SettingsIcon,
   UsersIcon,
+  Plane, 
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -33,17 +34,23 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+// Menu Data Configuration
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin",
+    email: "admin@boundless.com",
+    avatar: "/placeholder-user.jpg",
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/admin", // Points to the main stats page
       icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Add Previous Trip",
+      url: "/admin/previous-trips/add",
+      icon: Plane, // CORRECTED: Using Plane component
     },
     {
       title: "Lifecycle",
@@ -150,7 +157,8 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+// CHANGED: Export Default
+export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -160,9 +168,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <a href="/admin">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Boundless Admin</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
