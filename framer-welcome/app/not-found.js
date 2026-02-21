@@ -35,7 +35,7 @@ export default function NotFound() {
       </h1>
 
       <button
-        className="w-[150px] rotate-[-2deg] origin-center text-[15px] font-gochi text-black cursor-pointer rounded-[5px] shadow-md transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] bg-[#5cdb95] border-none pb-[3px] active:translate-y-[5px] active:pb-0 mt-10"
+        className="w-[150px] rotate-[-2deg] origin-center text-[15px] font-gochi text-black cursor-pointer rounded-[5px] shadow-md transition-all duration-300 ease-elastic bg-[#5cdb95] border-none pb-[3px] active:translate-y-[5px] active:pb-0 mt-10"
         onClick={() => router.push("/")}
       >
         <span className="block px-4 py-2 bg-[#f1f5f8] rounded-[5px] border-2 border-[#494a4b]">
