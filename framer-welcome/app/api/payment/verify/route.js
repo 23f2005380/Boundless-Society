@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { realtimeDb } from "@/lib/firebase";
+import { realtimeDb, isFirebaseEnabled } from "@/lib/firebase";
 import { ref, runTransaction } from "firebase/database";
 
 export async function POST(req) {
   try {
+    if (!isFirebaseEnabled || !realtimeDb) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const body = await req.json();
     const { orderId, paymentId, signature, sessionId, tripId } = body;
 

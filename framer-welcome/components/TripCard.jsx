@@ -7,6 +7,21 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 export default function TripCard({ trip }) {
+  const [imgError, setImgError] = React.useState(false);
+
+  // Validate and normalize image URL
+  const getValidImageUrl = (url) => {
+    if (!url) return "/placeholder.jpg";
+    // If it's already a full URL, return it
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    // If it starts with /, it's a valid absolute path
+    if (url.startsWith("/")) return url;
+    // Otherwise, it's invalid - use placeholder
+    return "/placeholder.jpg";
+  };
+
+  const imageSrc = imgError ? "/placeholder.jpg" : getValidImageUrl(trip.img);
+
   return (
     <Link href={trip.link}>
       <motion.div
@@ -15,10 +30,11 @@ export default function TripCard({ trip }) {
         initial="initial"
       >
         <Image
-          src={trip.img}
+          src={imageSrc}
           alt={trip.heading}
           fill
           className="object-cover"
+          onError={() => setImgError(true)}
         />
 
         <motion.div
