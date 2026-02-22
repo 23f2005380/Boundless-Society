@@ -34,6 +34,7 @@ const DottedSection = ({
 
       <div style={{ background: svgFill }} className={`pt-15 -mt-1`}>
         <div className="relative w-full overflow-hidden -pb-10">
+          {/* Dotted background layer */}
           <div
             className="absolute inset-0 z-0"
             style={{
@@ -41,12 +42,14 @@ const DottedSection = ({
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Cpath d='M25 5 L30 20 L45 25 L30 30 L25 45 L20 30 L5 25 L20 20 Z' fill='%23a7f3d0'/%3E%3C/svg%3E")`,
               backgroundSize: "15px 15px",
               backgroundRepeat: "repeat",
-              maskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
-              WebkitMaskImage: `
-      linear-gradient(to top, black 40%, transparent 98%)
-    `,
+            }}
+          />
+          
+          {/* Gradient overlay - replaces mask-image */}
+          <div
+            className="absolute inset-0 z-[1] pointer-events-none"
+            style={{
+              background: `linear-gradient(to top, transparent 40%, ${svgFill} 98%)`
             }}
           />
 

@@ -10,7 +10,8 @@ function About() {
         sectionHeading="ABOUT US"
         headingStyle="text-brown"
       />
-      <div className="bg-[#fffbeb] px-8 pb-16 text-center">
+      {/* EXACT MASTER LAYOUT RESTORED */}
+      <div className="bg-[#fffbeb] px-8 pb-16 text-center" style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}>
         <AnimatedByChar>
           <p>
             We believe in learning that goes beyond textbooks – a journey shaped

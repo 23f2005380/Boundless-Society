@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import GraphemeSplitter from "grapheme-splitter";
 
@@ -16,6 +16,7 @@ const container = {
   }),
 };
 
+// EXACT MASTER PHYSICS
 const child = {
   hidden: {
     opacity: 0,
@@ -73,15 +74,20 @@ const renderChars = (node, keyPrefix = "") => {
 };
 
 const AnimatedByChar = ({ children }) => {
-  const elements = React.Children.toArray(children);
+  // HIDDEN OPTIMIZATION: Memoizing the elements array stops React from
+  // destroying and recreating 1,500 spans on every scroll tick.
+  const elements = useMemo(() => React.Children.toArray(children), [children]);
 
   return (
     <motion.div
       variants={container}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.4 }}
+      // REPEATS ON SCROLL: once is false.
+      // TRIGGER: changed amount to 0.1 so it starts smoothly earlier.
+      viewport={{ once: false, amount: 0.1 }}
       custom={1}
+      // EXACT MASTER STYLING:
       className="text-lg md:text-xl text-gray-800 leading-relaxed max-w-3xl mx-auto"
     >
       {elements.map((el, i) => renderChars(el, `el-${i}`))}

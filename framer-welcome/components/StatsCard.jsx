@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { stats } from "@/data/stats";
 
 const StatItem = ({ end, label, isVisible }) => {
@@ -7,21 +6,33 @@ const StatItem = ({ end, label, isVisible }) => {
 
   useEffect(() => {
     if (!isVisible) return;
-    let start = 0;
-    const duration = 1500; // 1.5s
-    const stepTime = 15;
-    const steps = Math.ceil(duration / stepTime);
-    const increment = end / steps;
-    let currentStep = 0;
+    
+    let startTime;
+    const duration = 1500; // 1.5 seconds
 
-    const timer = setInterval(() => {
-      currentStep++;
-      const newCount = Math.min(Math.round(increment * currentStep), end);
-      setCount(newCount);
-      if (newCount >= end) clearInterval(timer);
-    }, stepTime);
+    const updateCount = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
 
-    return () => clearInterval(timer);
+      // Calculate how far along the animation is (between 0 and 1)
+      const percentage = Math.min(progress / duration, 1);
+      
+      // Use easeOut logic so the numbers slow down as they reach the end
+      const easeOutProgress = 1 - Math.pow(1 - percentage, 3);
+      
+      const currentCount = Math.round(end * easeOutProgress);
+      setCount(currentCount);
+
+      if (progress < duration) {
+        requestAnimationFrame(updateCount); // Syncs perfectly with 60FPS monitor
+      } else {
+        setCount(end); // Ensure it finishes exactly on the target number
+      }
+    };
+
+    // Start the animation
+    requestAnimationFrame(updateCount);
+
   }, [isVisible, end]);
 
   return (
@@ -45,7 +56,7 @@ export default function StatsCard() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-          observer.disconnect();
+          observer.disconnect(); // Correctly stops observing once triggered!
         }
       },
       { threshold: 0.3 }
