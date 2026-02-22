@@ -12,13 +12,13 @@ function Proud() {
       dotColor="#c4b5fd"
     >
       {/* Wrap this container in a div that utilizes hardware acceleration */}
-      <div style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)' }}>
-        <CurvedMarquee />
-      </div>
-      <div style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)' }}>
-        <StatsCard />
-      </div>
-    </DottedSection>
+     <div className="relative w-full overflow-hidden">
+   <CurvedMarquee />
+     </div>
+     <div className="relative w-full">
+  <StatsCard />
+     </div>
+  </DottedSection>
   );
 }
 
