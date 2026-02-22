@@ -60,10 +60,16 @@ const MarqueeItem = React.memo(({ src, index, baseProgress, totalItems, path, ti
           className="relative h-full w-full"
         >
           <Image
-            src={src}
+            src={src} // Make sure this URL in curvedMarquee.js is updated to your Cloudinary link
             fill
-            alt="img"
-            priority={true} 
+            alt={title || "marquee image"}
+            
+            // --- CRITICAL PERFORMANCE OPTIMIZATIONS ADDED HERE ---
+            loading="lazy" 
+            decoding="async" // Forces off-thread decoding so it doesn't freeze Framer Motion
+            sizes="(max-width: 768px) 128px, 192px" // Tells browser exactly how big it will render (prevents over-fetching)
+            quality={60} // Automatically applies compression via Cloudinary
+            
             className="w-full h-full object-cover"
             draggable={false}
           />

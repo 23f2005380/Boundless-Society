@@ -11,10 +11,15 @@ function Proud() {
       sectionHeading="We proud to have"
       dotColor="#c4b5fd"
     >
-      <CurvedMarquee />
-      <StatsCard></StatsCard>
+      {/* Wrap this container in a div that utilizes hardware acceleration */}
+      <div style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)' }}>
+        <CurvedMarquee />
+      </div>
+      <div style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)' }}>
+        <StatsCard />
+      </div>
     </DottedSection>
   );
 }
 
-export default Proud;
+export default React.memo(Proud);
