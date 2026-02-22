@@ -45,6 +45,9 @@ function Gallery() {
                       src={data.img}
                       alt={data.name}
                       fill
+                      loading="lazy"
+                      decoding="async" // Critical to prevent the scroll thread from freezing
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-50 transition-opacity duration-300 z-10 flex items-center justify-center text-white font-semibold text-2xl">

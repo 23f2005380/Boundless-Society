@@ -146,3 +146,7 @@ html.lenis {
   opacity: 1;
   transform: scale(1);
 }
+
+html, body {
+  overscroll-behavior: none; 
+}
