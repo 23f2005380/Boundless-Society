@@ -98,6 +98,11 @@ body {
   }
 }
 
+@keyframes travelPath {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
 
 .nosifer-regular {
   font-family: "Nosifer", sans-serif;

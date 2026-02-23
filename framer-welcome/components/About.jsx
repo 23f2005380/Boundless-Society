@@ -2,16 +2,21 @@ import React from "react";
 import Section from "./Section";
 import AnimatedByChar from "./AnimatedByChar";
 
-function About() {
+
+const About = function About() {
   return (
-    <>
+    // 'content-visibility: auto' skips rendering until the user scrolls here
+    // 'contain: paint' traps layout recalculations so they don't affect the rest of the page
+    <div style={{ contentVisibility: "auto", contain: "paint" }}>
       <Section
         svgFill="#fffbeb"
         sectionHeading="ABOUT US"
         headingStyle="text-brown"
       />
-      {/* EXACT MASTER LAYOUT RESTORED */}
-      <div className="bg-[#fffbeb] px-8 pb-16 text-center" style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}>
+      <div 
+        className="bg-[#fffbeb] px-8 pb-16 text-center" 
+        style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+      >
         <AnimatedByChar>
           <p>
             We believe in learning that goes beyond textbooks – a journey shaped
@@ -40,8 +45,8 @@ function About() {
           </p>
         </AnimatedByChar>
       </div>
-    </>
+    </div>
   );
-}
+};
 
 export default About;
