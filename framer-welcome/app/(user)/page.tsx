@@ -1,19 +1,17 @@
-"use client";
-
 import dynamic from 'next/dynamic';
 
 // 1. Keep Hero static so it loads instantly
 import Hero from "@/components/Hero1";
 import Section from "@/components/Section";
 
-// 2. Lazy load the rest!
-const TripsPlanned = dynamic(() => import("@/components/tripsPlanned"), { ssr: true });
-const Gallery = dynamic(() => import("@/components/Gallery"), { ssr: true });
-const Prev = dynamic(() => import("@/components/Prev"), { ssr: true });
-const CityMeetup = dynamic(() => import("@/components/cityMeetup"), { ssr: true });
-const Proud = dynamic(() => import("@/components/Proud"), { ssr: true });
-const About = dynamic(() => import("@/components/About"), { ssr: true });
-const AmazingTeam = dynamic(() => import("@/components/AmazingTeam"), { ssr: true });
+// 2. Lazy load the rest as Server Components!
+const TripsPlanned = dynamic(() => import("@/components/tripsPlanned"));
+const Gallery = dynamic(() => import("@/components/Gallery"));
+const Prev = dynamic(() => import("@/components/Prev"));
+const CityMeetup = dynamic(() => import("@/components/cityMeetup"));
+const Proud = dynamic(() => import("@/components/Proud"));
+const About = dynamic(() => import("@/components/About"));
+const AmazingTeam = dynamic(() => import("@/components/AmazingTeam"));
 
 export default function BoundlessTravelSociety() {
   return (

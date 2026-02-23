@@ -1,11 +1,13 @@
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { stats } from "@/data/stats";
 
 const StatItem = ({ end, label, isVisible }) => {
-  const [count, setCount] = useState(0);
+  // 1. Replace useState with useRef
+  const numberRef = useRef(null);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || !numberRef.current) return;
     
     let startTime;
     const duration = 1500; // 1.5 seconds
@@ -14,31 +16,39 @@ const StatItem = ({ end, label, isVisible }) => {
       if (!startTime) startTime = timestamp;
       const progress = timestamp - startTime;
 
-      // Calculate how far along the animation is (between 0 and 1)
       const percentage = Math.min(progress / duration, 1);
-      
-      // Use easeOut logic so the numbers slow down as they reach the end
       const easeOutProgress = 1 - Math.pow(1 - percentage, 3);
-      
       const currentCount = Math.round(end * easeOutProgress);
-      setCount(currentCount);
+      
+      // 2. Directly update the DOM node's text. 
+      // This happens instantly in the browser and completely skips the React render cycle!
+      if (numberRef.current) {
+        numberRef.current.innerText = currentCount.toLocaleString() + "+";
+      }
 
       if (progress < duration) {
-        requestAnimationFrame(updateCount); // Syncs perfectly with 60FPS monitor
+        requestAnimationFrame(updateCount);
       } else {
-        setCount(end); // Ensure it finishes exactly on the target number
+        // Ensure final number is exact
+        if (numberRef.current) {
+          numberRef.current.innerText = end.toLocaleString() + "+";
+        }
       }
     };
 
-    // Start the animation
     requestAnimationFrame(updateCount);
 
   }, [isVisible, end]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4">
-      <div className="sm:text-5xl text-4xl lg:text-7xl md:text-5xl font-oswald text-brown font-bold">
-        {count.toLocaleString()}+
+      {/* 3. Attach the ref to the div and set the initial visible state to 0+ */}
+      <div 
+        ref={numberRef}
+        className="sm:text-5xl text-4xl lg:text-7xl md:text-5xl font-oswald text-brown font-bold"
+        style={{ willChange: "contents" }} // Hints the browser that this text will change rapidly
+      >
+        0+
       </div>
       <div className="mt-1 text-base font-oswald text-brown text-center">
         {label}
@@ -48,7 +58,7 @@ const StatItem = ({ end, label, isVisible }) => {
 };
 
 export default function StatsCard() {
-  const containerRef = useRef();
+  const containerRef = useRef(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -56,10 +66,11 @@ export default function StatsCard() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-          observer.disconnect(); // Correctly stops observing once triggered!
+          observer.disconnect(); 
         }
       },
-      { threshold: 0.3 }
+      // Lowered threshold slightly so the animation triggers right as it enters view
+      { threshold: 0.1 } 
     );
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();

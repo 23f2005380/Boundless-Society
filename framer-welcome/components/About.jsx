@@ -2,12 +2,9 @@ import React from "react";
 import Section from "./Section";
 import AnimatedByChar from "./AnimatedByChar";
 
-
 const About = function About() {
   return (
-    // 'content-visibility: auto' skips rendering until the user scrolls here
-    // 'contain: paint' traps layout recalculations so they don't affect the rest of the page
-    <div style={{ contentVisibility: "auto", contain: "paint" }}>
+    <>
       <Section
         svgFill="#fffbeb"
         sectionHeading="ABOUT US"
@@ -15,6 +12,7 @@ const About = function About() {
       />
       <div 
         className="bg-[#fffbeb] px-8 pb-16 text-center" 
+        // Removed content-visibility here as well!
         style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
       >
         <AnimatedByChar>
@@ -45,7 +43,7 @@ const About = function About() {
           </p>
         </AnimatedByChar>
       </div>
-    </div>
+    </>
   );
 };
 

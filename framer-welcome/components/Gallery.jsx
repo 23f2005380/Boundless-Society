@@ -1,9 +1,8 @@
-"use client";
 import React from "react";
-import { motion } from "framer-motion";
 import Section from "@/components/Section";
 import Image from "next/image";
 import { gallery } from "@/data/gallery";
+
 
 function Gallery() {
   return (
@@ -21,21 +20,7 @@ function Gallery() {
                 transform: "perspective(1200px) rotateX(20deg) rotateY(20deg)",
               }}
             >
-              <motion.div
-                className="flex gap-3 whitespace-nowrap"
-                animate={{
-                  x: [0, -((480 + 12) * gallery.length)],
-                }}
-                transition={{
-                  x: {
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    duration: 40,
-                    ease: "linear",
-                  },
-                }}
-                whileHover={{ animationPlayState: "paused" }}
-              >
+              <div className="flex gap-3 whitespace-nowrap w-max animate-gallery">
                 {[...gallery, ...gallery].map((data, idx) => (
                   <div
                     key={idx}
@@ -45,8 +30,9 @@ function Gallery() {
                       src={data.img}
                       alt={data.name}
                       fill
-                      loading="lazy"
-                      decoding="async" // Critical to prevent the scroll thread from freezing
+                      // Changed to eager loading. Lazy loading moving elements kills the frame rate!
+                      priority={idx < 4} 
+                      decoding="async" 
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover"
                     />
@@ -55,7 +41,7 @@ function Gallery() {
                     </div>
                   </div>
                 ))}
-              </motion.div>
+              </div>
             </div>
           </div>
         </Section>
