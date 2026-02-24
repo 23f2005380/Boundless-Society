@@ -1,5 +1,5 @@
 import { X, Instagram, Linkedin } from "lucide-react";
-import Image from "next/image";
+import MemberAvatar from "./MemberAvatar";
 import { team } from "@/data/teamMembers";
 
 export default function Team() {
@@ -55,12 +55,11 @@ export default function Team() {
                 </div>
               </div>
               <div className="flex-shrink-0">
-                <Image
+                <MemberAvatar
                   src={member.image}
                   alt={member.name}
-                  width={112} // 28 * 4 (Tailwind’s w-28 = 7rem = 112px)
-                  height={112} // same for h-28
-                  className="object-cover rounded-2xl bg-gray-700"
+                  containerClassName="w-28 h-28"
+                  className="rounded-2xl bg-gray-700"
                 />
               </div>
             </div>

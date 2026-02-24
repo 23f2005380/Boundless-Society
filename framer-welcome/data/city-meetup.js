@@ -1,4 +1,191 @@
-let meetupsData = [
+const meetupsData = [
+  {
+    sectionTitle: "Tri-Colour Trails 2.0",
+    cards: [
+      {
+        city: "Patna",
+        img: "/city/Tri-Colour2.0/patna.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - PATNA",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/tri-colour-trails-patna",
+      },
+      {
+        city: "Nagpur",
+        img: "/city/Tri-Colour2.0/nagpur.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - NAGPUR",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/tri-colour-trails-nagpur",
+      },
+      {
+        city: "Bhubaneswar",
+        img: "/city/Tri-Colour2.0/Bhuveneshwar.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - BHUVENESHWAR",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/tri-colour-trails-bhuveneshwar",
+      },
+      {
+        city: "Mumbai",
+        img: "/city/Tri-Colour2.0/mumbai.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - MUMBAI",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/tri-colour-trails-mumbai",
+      },
+      {
+        city: "Delhi",
+        img: "/city/Tri-Colour2.0/delhi.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - DELHI",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/tri-colour-trails-delhi",
+      },
+      {
+        city: "Bengaluru",
+        img: "/city/Tri-Colour2.0/bengaluru.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - BANGALORE",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/tri-colour-trails-bangalore",
+      },
+      {
+        city: "Kolkata",
+        img: "/city/Tri-Colour2.0/kolkata.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - KOLKATA",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/tri-colour-trails-kolkata",
+      },
+      {
+        city: "Gorakhpur",
+        img: "/city/Tri-Colour2.0/gorakhpur.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - GORAKHPUR",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/tri-colour-trails-gorakhpur",
+      },
+      {
+        city: "Jamshedpur",
+        img: "/city/Tri-Colour2.0/jamshedpur.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - JAMSHEDPUR",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/tri-colour-trails-jamshedpur",
+      },
+      {
+        city: "Indore",
+        img: "/city/Tri-Colour2.0/indore.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - INDORE",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/tri-colour-trails-indore",
+      },
+      {
+        city: "Jaipur",
+        img: "/city/Tri-Colour2.0/jaipur.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - JAIPUR",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/tri-colour-trails-jaipur",
+      },
+      {
+        city: "Chennai",
+        img: "/city/Tri-Colour2.0/chennai.webp",
+        caption: "TRI COLOUR TRAILS 2.0 - CHENNAI",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/tri-colour-trails-chennai",
+      },
+    ],
+  },
+
+  {
+    sectionTitle: "Navrang 2.0",
+    cards: [
+      {
+        city: "Mumbai",
+        img: "/city/Navrang2.0/mumbai.jpg",
+        caption: "NAVRANG 2.0 - MUMBAI",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/navrang-mumbai",
+      },
+      {
+        city: "Patna",
+        img: "/city/Navrang2.0/patna .webp",
+        caption: "NAVRANG 2.0 - PATNA",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/navrang-patna",
+      },
+      {
+        city: "Jaipur",
+        img: "/city/Navrang2.0/jaipur.jpg",
+        caption: "NAVRANG 2.0 - JAIPUR",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/navrang-jaipur",
+      },
+      {
+        city: "Hyderabad",
+        img: "/city/Navrang2.0/hydrabad.jpg",
+        caption: "NAVRANG 2.0 - HYDERABAD",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/navrang-hyderabad",
+      },
+      {
+        city: "Ahmedabad",
+        img: "/city/Navrang2.0/ahemdabad.webp",
+        caption: "NAVRANG 2.0 - AHMEDABAD",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/navrang-ahmedabad",
+      },
+      {
+        city: "Lucknow",
+        img: "/city/Navrang2.0/lucknow.jpg",
+        caption: "NAVRANG 2.0 - LUCKNOW",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/navrang-lucknow",
+      },
+      {
+        city: "Nagpur",
+        img: "/city/Tri-Colour2.0/nagpur.webp",
+        caption: "NAVRANG 2.0 - NAGPUR",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/navrang-nagpur",
+      },
+      {
+        city: "Delhi",
+        img: "/city/Tri-Colour2.0/delhi.webp",
+        caption: "NAVRANG 2.0 - DELHI",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/navrang-delhi",
+      },
+      {
+        city: "Kolkata",
+        img: "/city/Navrang2.0/kolkata.webp",
+        caption: "NAVRANG 2.0 - KOLKATA",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/navrang-kolkata",
+      },
+      {
+        city: "Gorakhpur",
+        img: "/city/Tri-Colour2.0/gorakhpur.webp",
+        caption: "NAVRANG 2.0 - GORAKHPUR",
+        color: "bg-amber-100 border-amber-300",
+        galleryLink: "/gallery/navrang-gorakhpur",
+      },
+      {
+        city: "Jamshedpur",
+        img: "/city/Navrang2.0/jamshedpur.jpg",
+        caption: "NAVRANG 2.0 - JAMSHEDPUR",
+        color: "bg-green-100 border-green-300",
+        galleryLink: "/gallery/navrang-jamshedpur",
+      },
+      {
+        city: "Indore",
+        img: "/city/Navrang2.0/indore.jpg",
+        caption: "NAVRANG 2.0 - INDORE",
+        color: "bg-pink-100 border-pink-300",
+        galleryLink: "/gallery/navrang-indore",
+      },
+      {
+        city: "Chennai",
+        img: "/city/Navrang2.0/chennai.jpg",
+        caption: "NAVRANG 2.0 - CHENNAI",
+        color: "bg-rose-100 border-rose-300",
+        galleryLink: "/gallery/navrang-chennai",
+      },
+    ],
+  },
+
   {
     "sectionTitle": "Summer Meetups",
     "cards": [
@@ -121,7 +308,7 @@ let meetupsData = [
         "galleryLink": "/gallery/udaipur"
       },
       {
-        "city": "Dehli",
+        "city": "Delhi",
         "img": "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071401/delhi_pd_zkelom.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",
@@ -169,7 +356,7 @@ let meetupsData = [
         "galleryLink": "/gallery/udaipur"
       },
       {
-        "city": "Bangalore",
+        "city": "Bengaluru",
         "img": "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071407/Bangalore_26_gjk5pp.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ KOLKATA",
         "color": "bg-pink-100 border-pink-300",
@@ -190,7 +377,7 @@ let meetupsData = [
         "galleryLink": "/gallery/udaipur"
       },
       {
-        "city": "Dehli",
+        "city": "Delhi",
         "img": "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071408/delhi_26_knjyml.jpg",
         "caption": "IIT MADRAS BS STUDENTS MEET UP @ UDAIPUR",
         "color": "bg-green-100 border-green-300",

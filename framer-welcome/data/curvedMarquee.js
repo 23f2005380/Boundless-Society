@@ -31,4 +31,16 @@ export const curvedMarque = [
     title: "Tungnath",
     img: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071545/Tungnath_h9tw1h.jpg",
   },
+  {
+    title: "Pushkar",
+    img: "/Proud/Pushkar.webp",
+  },
+  {
+    title: "Meghalaya",
+    img: "/Proud/Meghalaya.webp",
+  },
+  {
+    title: "Kalsubai",
+    img: "/Proud/Kalsubai.webp",
+  },
 ];
