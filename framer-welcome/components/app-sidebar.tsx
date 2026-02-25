@@ -17,7 +17,8 @@ import {
   SearchIcon,
   SettingsIcon,
   UsersIcon,
-  Plane, 
+  Plane,
+  MapPinIcon, // <-- Added MapPinIcon here
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -48,9 +49,14 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Add Previous Trip",
-      url: "/admin/previous-trips/add",
-      icon: Plane, // CORRECTED: Using Plane component
+      title: "Previous Trips", // Updated title
+      url: "/admin/previous-trips", // Pointing to the table view
+      icon: Plane,
+    },
+    {
+      title: "City Meetups", // <-- Added new section here
+      url: "/admin/city-meetups",
+      icon: MapPinIcon, 
     },
     {
       title: "Lifecycle",
@@ -157,7 +163,7 @@ const data = {
   ],
 }
 
-// CHANGED: Export Default
+
 export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
