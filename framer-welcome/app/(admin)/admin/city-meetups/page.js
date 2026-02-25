@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { TrashIcon, PlusIcon, PencilIcon } from "lucide-react"; // <-- Import PencilIcon
+import { TrashIcon, PlusIcon, PencilIcon } from "lucide-react";
 
 export default function ManageCityMeetupsPage() {
   const [meetups, setMeetups] = useState([]);
@@ -69,6 +69,7 @@ export default function ManageCityMeetupsPage() {
               <TableHead>Main Section</TableHead>
               <TableHead>Sub Section</TableHead>
               <TableHead>City Name</TableHead>
+              <TableHead>Color</TableHead> {/* <-- Added Color Header */}
               <TableHead>Image</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -79,6 +80,20 @@ export default function ManageCityMeetupsPage() {
                 <TableCell className="font-medium">{meetup.mainSection}</TableCell>
                 <TableCell>{meetup.subSection}</TableCell>
                 <TableCell>{meetup.cityName}</TableCell>
+                
+                {/* <-- Added Color Cell with preview circle --> */}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-6 h-6 rounded-full border border-gray-300 shadow-sm" 
+                      style={{ backgroundColor: meetup.color || "#FEFAE7" }}
+                    />
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {meetup.color || "#FEFAE7"}
+                    </span>
+                  </div>
+                </TableCell>
+
                 <TableCell>
                   {meetup.img ? (
                     <img 
@@ -91,7 +106,6 @@ export default function ManageCityMeetupsPage() {
                   )}
                 </TableCell>
                 <TableCell className="text-right flex justify-end gap-2">
-                  {/* EDIT BUTTON */}
                   <Button 
                     variant="outline" 
                     size="icon"
@@ -100,7 +114,6 @@ export default function ManageCityMeetupsPage() {
                     <PencilIcon className="h-4 w-4" />
                   </Button>
 
-                  {/* DELETE BUTTON */}
                   <Button 
                     variant="destructive" 
                     size="icon"
