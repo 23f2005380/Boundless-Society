@@ -3,9 +3,11 @@ import "./globals.css";
 import Head from "next/head";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    "https://boundless.iitmbs.org"
+  ),
   title: "Boundless Travel Society",
-  description: "IITM based society to make traveling jhakas",
-  generator: "",
+  description: "IITM based society to make travelling jhakkas !",
 };
 
 export default function RootLayout({

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { db } from "@/firebaseConfig";
+import { realtimeDb as db, isFirebaseEnabled } from "@/lib/firebase";
 import { ref, get } from "firebase/database";
 
 export default function VerifyCertificate() {
@@ -15,6 +15,13 @@ export default function VerifyCertificate() {
 
   async function handleVerify() {
     if (!input) return;
+    
+    if (!isFirebaseEnabled || !db) {
+      setStatus("not-verified");
+      alert("Certificate verification is currently unavailable. Please try again later.");
+      return;
+    }
+
     setStatus("checking");
     setName("");
 

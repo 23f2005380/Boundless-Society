@@ -7,22 +7,24 @@ import { useRouter } from "next/navigation";
 
 function GroupCard({ data }) {
   const route = useRouter();
+
+  const buttonLabel =
+    data.linkType === "gspace" ? "G Space Link" : "WhatsApp Link";
+
   return (
     <motion.div
       initial={{ scale: 1 }}
       animate={{ scale: 1 }}
-      whileHover={{
-        scale: 1.05,
-      }}
+      whileHover={{ scale: 1.05 }}
       transition={{
         type: "spring",
         damping: 10,
         stiffness: 200,
       }}
-      className={`md:w-52 rounded-xl p-2 pb-4 border border-black transform`}
+      className="md:w-52 rounded-xl p-2 pb-4 border border-black"
       style={{ backgroundColor: data.color }}
     >
-      {/* Image Container */}
+      {/* Image */}
       <div className="relative mb-4 w-full aspect-[6/4] rounded-xl flex items-center justify-center border border-black">
         <Image
           src={data.img}
@@ -37,13 +39,13 @@ function GroupCard({ data }) {
         {data.city}
       </h2>
 
-      {/* WhatsApp Link Button */}
+      {/* Action Button */}
       <div className="flex justify-center">
         <button
           onClick={() => route.push(data.link)}
-          className="bg-white hover:bg-black hover:text-white text-black font-semibold py-3 px-8 rounded-full border-1 border-black transition-all duration-300 cursor-pointer"
+          className="bg-white hover:bg-black hover:text-white text-black font-semibold py-3 px-8 rounded-full border border-black transition-all duration-300 cursor-pointer"
         >
-          WhatsApp Link
+          {buttonLabel}
         </button>
       </div>
     </motion.div>

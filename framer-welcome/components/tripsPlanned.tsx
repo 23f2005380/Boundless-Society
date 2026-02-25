@@ -1,20 +1,23 @@
-import React, { useState } from "react";
+'use client';
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import Section from "@/components/Section";
-import { plannedTrips } from "@/data/plannedTrips";
 import Image from "next/image";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface Trip {
   id: string;
-  title: string;
-  status: string;
+  title?: string;
+  status?: string;
   description?: string;
+  registrationLink?: string;
   image?: string;
   details?: string;
   backgroundColor: string;
   textColor: string;
-  from: string;
+  from?: string;
   to: string;
   formLink: string;
   included: string[];
@@ -28,45 +31,75 @@ const steps = [
   { title: "Step Four", description: "This is the fourth step." },
   { title: "Step Five", description: "This is the fifth step." },
 ];
-const trips: Trip[] = [
-  {
-    id: 'Himachal Trip',
-    title: 'Himachal Trip',
-    status: '',
-    description: 'Spirituality at its peak',
-    image: 'Solang-Valley-1024x576.jpg',
-    from : "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
-    to : "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
-    backgroundColor: 'bg-yellow-200',
-    textColor: 'text-gray-800',
-    formLink : 'https://forms.gle/faqHdaezZVicaxde6',
-    details : 'https://drive.google.com/file/d/1suz8_BjCJf09Nk03VNf-L9uK74T4qyVb/view?usp=drivesdk',
-    included : [],
-    plan: [
-      { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
-      { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
-      { title: 'Day 3', description: 'Relax and return to Udupi.' }
-    ]
-  },
-  {
-    id: 'coming-soon',
-    title: 'Coming Soon',
-    status: 'Stay Tuned for more details',
-    backgroundColor: 'bg-purple-200',
-    textColor: 'text-gray-800',
-    from : "",
-    to : "",
-    formLink : "",
-   included : []
-  }
-];
+// const trips: Trip[] = [
+//   {
+//     id: 'Himachal Trip',
+//     title: 'Himachal Trip',
+//     status: '',
+//     description: 'Spirituality at its peak',
+//     image: 'Solang-Valley-1024x576.jpg',
+//     from: "Reach SMET (Shivamogga Town Railway Station) before 6:00 AM on 5th September to kick off the adventure",
+//     to: "Book your return from UD (Udupi Railway Station) after 9:00 PM on 7th September",
+//     backgroundColor: 'bg-yellow-200',
+//     textColor: 'text-gray-800',
+//     formLink: 'https://forms.gle/faqHdaezZVicaxde6',
+//     details: 'https://drive.google.com/file/d/1suz8_BjCJf09Nk03VNf-L9uK74T4qyVb/view?usp=drivesdk',
+//     included: [],
+//     plan: [
+//       { title: 'Sept 5', description: 'Sakrebyle elephant camp, mandagadde bird sanctuary.' },
+//       { title: 'Day 2', description: 'Visit Jog Falls and nearby areas.' },
+//       { title: 'Day 3', description: 'Relax and return to Udupi.' }
+//     ]
+//   },
+
 let currentStep = 0; // This should be managed by your component state
 
 const tripsPlanned = () => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Trip[]>([]);
 
   const toggleCard = (tripId: string) => {
     setExpandedCard(expandedCard === tripId ? null : tripId);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "upcoming_trips"));
+        const data: Trip[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          title: doc.data().title || "",
+          status: doc.data().status || "",
+          description: doc.data().description || "",
+          image: doc.data().imageUrl || "",
+          details: doc.data().details || "",
+          backgroundColor: doc.data().backgroundColor || "bg-yellow-200",
+          textColor: doc.data().textColor || "text-gray-800",
+          from: doc.data().from || "",
+          to: doc.data().to || "",
+          formLink: doc.data().registrationLink || "",
+          included: doc.data().included || [],
+          plan: doc.data().plan || [],
+        }));
+
+        setPosts(data);
+      } catch (error) {
+        console.error("Error fetching trips:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const comingSoonCard: Trip = {
+    id: "coming-soon",
+    title: "Coming Soon",
+    status: "Stay Tuned for more details",
+    backgroundColor: "bg-purple-200",
+    textColor: "text-gray-800",
+    from: "",
+    to: "",
+    formLink: "",
+    included: [],
   };
 
   return (
@@ -77,7 +110,7 @@ const tripsPlanned = () => {
     >
       <div className="max-w-4xl mx-auto p-6 mb-20">
         <div className="space-y-4">
-          {trips.map((trip) => (
+          {[...posts, comingSoonCard].map((trip) => (
             <motion.div
               key={trip.id}
               layout
@@ -125,31 +158,31 @@ const tripsPlanned = () => {
                 </div>
               </motion.div>
 
-            <AnimatePresence>
-              {expandedCard === trip.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 pb-6">
-                    {trip.image && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
-                        className="mb-6 overflow-hidden rounded-2xl"
-                      >
-                        <img
-                          src={trip.image}
-                          alt={trip.title}
-                          className="w-full h-64 md:h-80 object-cover object-top shadow-lg"
-                        />
-                      </motion.div>
-                    )}
-          
+              <AnimatePresence>
+                {expandedCard === trip.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6">
+                      {trip.image && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.4, delay: 0.1 }}
+                          className="mb-6 overflow-hidden rounded-2xl"
+                        >
+                          <img
+                            src={trip.image}
+                            alt={trip.title}
+                            className="w-full h-64 md:h-80 object-cover object-top shadow-lg"
+                          />
+                        </motion.div>
+                      )}
+
 
                       {/* <div className="flex flex-col relative ml-4">
       {trip.plan.map((step, index) => {
