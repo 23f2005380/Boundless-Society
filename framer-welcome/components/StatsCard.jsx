@@ -3,13 +3,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { stats } from "@/data/stats";
 
 const StatItem = ({ end, label, isVisible }) => {
-  // 1. Replace useState with useRef
   const numberRef = useRef(null);
 
   useEffect(() => {
     if (!isVisible || !numberRef.current) return;
     
     let startTime;
+    let rafId; 
+    let timeoutId; // Timeout to defer the start
     const duration = 1500; // 1.5 seconds
 
     const updateCount = (timestamp) => {
@@ -20,33 +21,42 @@ const StatItem = ({ end, label, isVisible }) => {
       const easeOutProgress = 1 - Math.pow(1 - percentage, 3);
       const currentCount = Math.round(end * easeOutProgress);
       
-      // 2. Directly update the DOM node's text. 
-      // This happens instantly in the browser and completely skips the React render cycle!
       if (numberRef.current) {
         numberRef.current.innerText = currentCount.toLocaleString() + "+";
       }
 
       if (progress < duration) {
-        requestAnimationFrame(updateCount);
+        rafId = requestAnimationFrame(updateCount);
       } else {
-        // Ensure final number is exact
         if (numberRef.current) {
           numberRef.current.innerText = end.toLocaleString() + "+";
         }
       }
     };
 
-    requestAnimationFrame(updateCount);
+    // Wait 150ms before starting the heavy number crunching
+    // This allows the scroll motion to complete smoothly first!
+    timeoutId = setTimeout(() => {
+      rafId = requestAnimationFrame(updateCount);
+    }, 150);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
 
   }, [isVisible, end]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4">
-      {/* 3. Attach the ref to the div and set the initial visible state to 0+ */}
       <div 
         ref={numberRef}
         className="sm:text-5xl text-4xl lg:text-7xl md:text-5xl font-oswald text-brown font-bold"
-        style={{ willChange: "contents" }} // Hints the browser that this text will change rapidly
+        style={{ 
+          // Forces all numbers to be the exact same width.
+          // This prevents the browser from recalculating layout 60x a second!
+          fontVariantNumeric: "tabular-nums", 
+        }} 
       >
         0+
       </div>
@@ -69,7 +79,6 @@ export default function StatsCard() {
           observer.disconnect(); 
         }
       },
-      // Lowered threshold slightly so the animation triggers right as it enters view
       { threshold: 0.1 } 
     );
     if (containerRef.current) observer.observe(containerRef.current);

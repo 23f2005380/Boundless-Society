@@ -1,76 +1,53 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { useState } from "react";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import Link from "next/link"; // Assuming you use this
 import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const headerRef = useRef(null);
+  const [hidden, setHidden] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  
+  const { scrollY } = useScroll();
 
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
+  // Framer Motion efficiently tracks scroll without causing layout thrashing
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() || 0;
+    
+    // Background color toggle
+    setIsScrolled(latest > 100);
 
-    const updateHeader = () => {
-      if (!headerRef.current) return;
-      const currentScrollY = window.scrollY;
-
-      // Toggle Background - Direct DOM is faster than React State for high-freq scroll
-      if (currentScrollY < 100) {
-        headerRef.current.classList.add("bg-transparent");
-        headerRef.current.classList.remove("bg-amber-50", "shadow-md");
-      } else {
-        headerRef.current.classList.add("bg-amber-50", "shadow-md");
-        headerRef.current.classList.remove("bg-transparent");
-      }
-
-      // Hide/Show Logic
-      if (!headerRef.current.dataset.menuOpen) {
-        if (currentScrollY > lastScrollY && currentScrollY > 300) {
-          headerRef.current.style.transform = "translateY(-110%)";
-        } else {
-          headerRef.current.style.transform = "translateY(0%)";
-        }
-      }
-
-      lastScrollY = currentScrollY;
-      ticking = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(updateHeader);
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    // Hide/Show header logic
+    if (latest > previous && latest > 300 && !menuOpen) {
+      setHidden(true); // Scrolling down
+    } else {
+      setHidden(false); // Scrolling up
+    }
+  });
 
   return (
-    <header
-      ref={headerRef}
-      style={{ 
-        willChange: "transform", // Forces GPU layer
-        transform: "translateY(0%)",
-        transition: "transform 0.3s ease-in-out, background-color 0.3s ease" 
+    <motion.header
+      variants={{
+        visible: { y: "0%" },
+        hidden: { y: "-110%" }
       }}
-      className="flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] bg-transparent"
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      // Use standard Tailwind classes for the background transition
+      className={`flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] transition-colors duration-300 ${
+        isScrolled ? "bg-amber-50 shadow-md" : "bg-transparent"
+      }`}
     >
-      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <Image src="/Logo Bound.png" alt="Logo" width={56} height={56} className="object-contain rounded-full" />
+      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center overflow-hidden">
+        <Image src="/Logo Bound.png" alt="Logo" width={56} height={56} className="object-contain" />
       </div>
 
       <div className="relative z-[1000]">
         <button
           className="bg-[#3B001B] text-white border-none px-6 py-2 rounded-2xl text-lg font-bold hover:opacity-90 active:scale-95 transition-all"
-          onClick={() => {
-            setMenuOpen(!menuOpen);
-            if (headerRef.current) headerRef.current.dataset.menuOpen = !menuOpen ? "true" : "";
-          }}
+          onClick={() => setMenuOpen(!menuOpen)}
         >
           MENU
         </button>
@@ -84,10 +61,11 @@ export default function Header() {
               className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 min-w-[300px]"
             >
               {/* Menu items here mapping from your data */}
+              <p>Menu Content</p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -11,10 +11,10 @@ const About = function About() {
         headingStyle="text-brown"
       />
       <div 
-        className="bg-[#fffbeb] px-8 pb-16 text-center" 
-        // Removed content-visibility here as well!
-        style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+        className="bg-[#fffbeb] px-8 pb-16 text-center space-y-4" 
+        style={{ contain: 'content' }}
       >
+        {/* ONE single wrapper to create the continuous sequential animation effect */}
         <AnimatedByChar>
           <p>
             We believe in learning that goes beyond textbooks – a journey shaped

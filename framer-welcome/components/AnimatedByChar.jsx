@@ -7,7 +7,7 @@ const splitter = new GraphemeSplitter();
 // Recursive character renderer
 const renderChars = (node, keyPrefix, counter, textAccumulator) => {
   if (typeof node === "string") {
-    textAccumulator.push(node); // Save plain text for screen readers
+    textAccumulator.push(node); 
     const words = node.split(/(\s+)/);
 
     return words.map((word, wordIndex) => {
@@ -16,7 +16,7 @@ const renderChars = (node, keyPrefix, counter, textAccumulator) => {
         <span 
           className="inline-flex" 
           key={`${keyPrefix}-w-${wordIndex}`}
-          aria-hidden="true" // Hide these fragmented spans from screen readers
+          aria-hidden="true" 
         >
           {chars.map((char, i) => {
             const delay = counter.value * 0.02; 
@@ -52,7 +52,6 @@ const renderChars = (node, keyPrefix, counter, textAccumulator) => {
 const AnimatedByChar = ({ children }) => {
   const containerRef = useRef(null);
 
-  // 1. Build the DOM nodes and accumulate plain text exactly once
   const { elements, rawText } = useMemo(() => {
     const counter = { value: 0 };
     const textAccumulator = [];
@@ -62,33 +61,40 @@ const AnimatedByChar = ({ children }) => {
     return { elements, rawText: textAccumulator.join("") };
   }, [children]);
 
-  // 2. Native Vanilla JS Observer (Bypasses React entirely during scroll)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
+    let timeoutId;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // We directly mutate the DOM classList. 
-        // React doesn't know about this, meaning 0 re-renders!
         if (entry.isIntersecting) {
-          el.classList.add("is-visible");
+          // OPTIMIZATION: Wait 150ms before triggering the massive CSS animation.
+          // This ensures your scroll wheel motion finishes smoothly before the CPU spikes!
+          timeoutId = setTimeout(() => {
+            el.classList.add("is-visible");
+          }, 100);
         } else {
+          // Reset the animation if you scroll away
+          if (timeoutId) clearTimeout(timeoutId);
           el.classList.remove("is-visible");
         }
       },
-      { threshold: 0.1 } // Triggers when 10% visible
+      { threshold: 0.1 } 
     );
 
     observer.observe(el);
 
-    return () => observer.disconnect();
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      // Added sr-only (Screen Reader Only) text so visually impaired users can read the paragraph seamlessly
       aria-label={rawText} 
       className="text-lg md:text-xl text-gray-800 leading-relaxed max-w-3xl mx-auto"
     >

@@ -201,7 +201,8 @@ header {
 }
 
 
-html.lenis {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -213,9 +214,12 @@ html.lenis {
   will-change: transform;
 }
 
-/* FIX: Change none to auto and ensure height is auto */
-html, body {
-  overscroll-behavior: auto; 
-  height: auto;
-  min-height: 100%;
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Ensure nothing else is forcing overflow hidden */
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
