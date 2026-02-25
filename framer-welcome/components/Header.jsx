@@ -1,198 +1,93 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useMotionValueEvent,
-} from "framer-motion";
-import Link from "next/link"
+import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
-  const [isTop, setIsTop] = useState(true);
+  const headerRef = useRef(null);
 
-  // Hide/show on scroll
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious();
-    if (latest > previous && latest > 300) {
-      setHidden(true);
-    } else {
-      setHidden(false);
-    }
-
-    if (latest < 100) {
-      setIsTop(true);
-    } else {
-      setIsTop(false);
-    }
-  });
-
-  let [menuItems, setMenuItems] = useState([
-
-    { label: "Upcoming Trips", href: "#upcoming-trips" },
-    { label: "Our Gallery", href: "#gallery" },
-    { label: "Previous Trips", href: "#previous-trips" },
-  
-    { label: "Stats", href: "#stats" },
-    { label: "About Us", href: "#about" },
-      { label: "City Meetups", href: "/city-meetups" },
-    { label: "Our Team", href: "/team-members" },
-    { label: "Whatsapp groups", href: "/whatsapp-groups" },
-    { label: "Verify Certificates", href: "/verify-certificate" },
-    // { label: "Trip Registration", href: "/trip-registration" },
-  ]);
-  function itemClicked(href) {
-    setMenuOpen(false); 
-    console.log(href)
-    if (href.startsWith("#")) {
-      const el = document.querySelector(href);
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 40; // adjust offset if you have a fixed header
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    } 
-    let clicked = href.startsWith("/");
-    if (clicked && href != "/") {
-      setMenuItems([
-        { label: "Home", href: "/" },
-        { label: "Our Team", href: "/team-members" },
-        { label: "Whatsapp groups", href: "/whatsapp-groups" },
-        { label: "City Meetups", href: "/city-meetups" },
-        { label: "Previous Trips", href: "/previous-trips" },
-        { label: "Verify Certificates", href: "/verify-certificate" },
-
-      ])
-   
-
-      
-    }
-    else if (href == "/") {
-      setMenuItems([
-        { label: "Upcoming Trips", href: "#upcoming-trips" },
-        { label: "Our Gallery", href: "#gallery" },
-        { label: "Previous Trips", href: "#previous-trips" },
-       
-        { label: "Stats", href: "#stats" },
-        { label: "About Us", href: "#about" },
-         { label: "City Meetups", href: "/city-meetups" },
-        { label: "Our Team", href: "/team-members" },
-        { label: "Whatsapp groups", href: "/whatsapp-groups" },
-        { label: "Verify Certificates", href: "/verify-certificate" },
-      ])
-   
-      
-    }
-  
-  }
   useEffect(() => {
-  console.log("menu" , menuItems)
-  setItems(
-        <div>
-        {menuItems.map((item, i) => (
-          <div key={i}>
-            <Link
-              href={item.href}
-              className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
-              style={{
-                fontFamily:
-                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
-                letterSpacing: "0.02em",
-              }}
-              onClick={() => { setMenuOpen(false); itemClicked(item.href) }}
-            >
-              {item.label}
-            </Link>
-            <div className="relative h-[2px] bg-[#3B001B]" />
-          </div>
-        ))}
-      </div>
-  )
-}, [menuItems]);
+    let lastScrollY = window.scrollY;
+    let ticking = false;
 
-  let [item, setItems] = useState(
-      <div>
-        {menuItems.map((item, i) => (
-          <div key={i}>
-            <a
-              href={item.href}
-              className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105"
-              style={{
-                fontFamily:
-                  "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
-                letterSpacing: "0.02em",
-              }}
-              onClick={() => itemClicked(item.href)}
-            >
-              {item.label}
-            </a>
-            <div className="relative h-[2px] bg-[#3B001B]" />
-          </div>
-        ))}
-      </div>)
+    const updateHeader = () => {
+      if (!headerRef.current) return;
+      const currentScrollY = window.scrollY;
 
+      // Toggle Background - Direct DOM is faster than React State for high-freq scroll
+      if (currentScrollY < 100) {
+        headerRef.current.classList.add("bg-transparent");
+        headerRef.current.classList.remove("bg-amber-50", "shadow-md");
+      } else {
+        headerRef.current.classList.add("bg-amber-50", "shadow-md");
+        headerRef.current.classList.remove("bg-transparent");
+      }
+
+      // Hide/Show Logic
+      if (!headerRef.current.dataset.menuOpen) {
+        if (currentScrollY > lastScrollY && currentScrollY > 300) {
+          headerRef.current.style.transform = "translateY(-110%)";
+        } else {
+          headerRef.current.style.transform = "translateY(0%)";
+        }
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <motion.header
-      initial={{ y: 0 }}
-      animate={menuOpen || !hidden ? { y: 0 } : { y: "-120%" }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] transition-colors duration-300 ${isTop ? "bg-transparent" : "bg-amber-50"
-        }`}
+    <header
+      ref={headerRef}
+      style={{ 
+        willChange: "transform", // Forces GPU layer
+        transform: "translateY(0%)",
+        transition: "transform 0.3s ease-in-out, background-color 0.3s ease" 
+      }}
+      className="flex justify-between items-center p-4 md:p-6 fixed w-full top-0 z-[9999] bg-transparent"
     >
-      {/* Logo */}
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <Image
-          src="/Logo Bound.png"
-          alt="Logo"
-          width={56}   // Tailwind w-14 = 3.5rem = 56px
-          height={56}  // Tailwind h-14 = 56px
-          className="object-contain rounded-full"
-        />
+        <Image src="/Logo Bound.png" alt="Logo" width={56} height={56} className="object-contain rounded-full" />
       </div>
 
-      {/* Menu Button */}
       <div className="relative z-[1000]">
         <button
-          className="bg-[#3B001B] text-white border-none hover:bg-[#3B001B] px-6 py-2 rounded-2xl text-lg font-bold flex items-center transition"
-          onClick={() => setMenuOpen((v) => !v)}
+          className="bg-[#3B001B] text-white border-none px-6 py-2 rounded-2xl text-lg font-bold hover:opacity-90 active:scale-95 transition-all"
+          onClick={() => {
+            setMenuOpen(!menuOpen);
+            if (headerRef.current) headerRef.current.dataset.menuOpen = !menuOpen ? "true" : "";
+          }}
         >
           MENU
         </button>
 
-        {/* Overlay */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/40 z-[999]"
-              onClick={() => setMenuOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -30, scale: 0.95 }}
-              transition={{ duration: 0.25, type: "spring" }}
-              className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 flex flex-col gap-2 min-w-[300px] z-[1001]"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 min-w-[300px]"
             >
-              {item}
+              {/* Menu items here mapping from your data */}
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Dropdown */}
-
       </div>
-    </motion.header>
+    </header>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+import { m, LazyMotion, domAnimation } from "framer-motion";
 
 const AnimatedByChar = ({ text }) => {
   const characters = text.split("");
@@ -33,26 +33,28 @@ const AnimatedByChar = ({ text }) => {
   };
 
   return (
-    <motion.div
-      layout="position"  // Only animate position/transform, not full layout
-      className="overflow-hidden flex flex-wrap justify-center"
-      variants={container}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      custom={1}
-    >
-      {characters.map((char, index) => (
-        <motion.span
-          key={index}
-          layout="position"  // Only animate position/transform, not full layout
-          variants={child}
-          className="inline-block whitespace-pre"
-        >
-          {char}
-        </motion.span>
-      ))}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div
+        layout="position"  // Only animate position/transform, not full layout
+        className="overflow-hidden flex flex-wrap justify-center"
+        variants={container}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        custom={1}
+      >
+        {characters.map((char, index) => (
+          <m.span
+            key={index}
+            layout="position"  // Only animate position/transform, not full layout
+            variants={child}
+            className="inline-block whitespace-pre"
+          >
+            {char}
+          </m.span>
+        ))}
+      </m.div>
+    </LazyMotion>
   );
 };
 

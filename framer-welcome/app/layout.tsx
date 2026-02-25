@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
+import { Oswald, Pacifico, Nosifer } from "next/font/google";
 import "./globals.css";
-import Head from "next/head";
+import LenisProvider from "@/components/LenisProvider";
+
+const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
+const pacifico = Pacifico({ weight: "400", subsets: ["latin"], variable: "--font-pacifico" });
+const nosifer = Nosifer({ weight: "400", subsets: ["latin"], variable: "--font-nosifer" });
 
 export const metadata: Metadata = {
   title: "Boundless Travel Society",
   description: "IITM based society to make traveling jhakas",
-  generator: "",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <Head>
-        <link rel="icon" href="/Logo Bound.png" />
-      </Head>
-
-      <body style={{ background: "#fffbea" }}>{children}</body>
+    <html lang="en" className="lenis">
+      <body 
+        className={`${oswald.variable} ${pacifico.variable} ${nosifer.variable} antialiased`} 
+        style={{ background: "#fffbea" }}
+      >
+        <LenisProvider>
+          {children}
+        </LenisProvider>
+      </body>
     </html>
   );
 }

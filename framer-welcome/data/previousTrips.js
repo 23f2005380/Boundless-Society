@@ -2,14 +2,13 @@ export const previousTrips = [
   {
     heading: "Mewar Trip",
     subHeading: "12th to 15th Sept 2025",
-    img: "Prev Trips/Mewar.png",
+    img: "/Prev Trips/Mewar.png", // <-- Added leading slash
     link: "https://www.instagram.com/reel/DNVzUOyo2KS/?igsh=dzVmZTNyeWkwMjVp",
   },
-
   {
     heading: "Shimoga Trip",
     subHeading: "5th to 7th Sept 2025",
-    img: "Prev Trips/Shimoga.png",
+    img: "/Prev Trips/Shimoga.png", // <-- Added leading slash
     link: "https://www.instagram.com/reel/DMXsYMNzVEt/?igsh=MTV1NjJncnJ0eWxiYw==",
   },
   {
