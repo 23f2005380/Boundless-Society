@@ -30,11 +30,12 @@ export default function ManageCityMeetupsPage() {
     fetchMeetups();
   }, []);
 
-  const handleDelete = async (id) => {
+const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this meetup?")) return;
 
     try {
-      const res = await fetch(`/api/city-meetups/${id}`, {
+      // Changed to use ?id= param strategy
+      const res = await fetch(`/api/city-meetups?id=${id}`, {
         method: "DELETE",
       });
 
@@ -69,7 +70,7 @@ export default function ManageCityMeetupsPage() {
               <TableHead>Main Section</TableHead>
               <TableHead>Sub Section</TableHead>
               <TableHead>City Name</TableHead>
-              <TableHead>Color</TableHead> {/* <-- Added Color Header */}
+              <TableHead>Color</TableHead>
               <TableHead>Image</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -81,7 +82,6 @@ export default function ManageCityMeetupsPage() {
                 <TableCell>{meetup.subSection}</TableCell>
                 <TableCell>{meetup.cityName}</TableCell>
                 
-                {/* <-- Added Color Cell with preview circle --> */}
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div 

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { TrashIcon, PlusIcon, XIcon, CheckIcon } from "lucide-react";
+import { TrashIcon, PlusIcon, XIcon, CheckIcon, Loader2Icon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,7 +18,6 @@ import {
 export default function AddCityMeetupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState(null);
   
   // -- MAIN SECTION STATE --
   const [sections, setSections] = useState([]);
@@ -34,11 +33,14 @@ export default function AddCityMeetupPage() {
   const [newSubSectionName, setNewSubSectionName] = useState("");
   const [newSubSectionPriority, setNewSubSectionPriority] = useState("");
 
-  // -- NEW: FORM DATA STATE (Includes City Name) --
+  // -- FORM DATA STATE --
   const [formData, setFormData] = useState({
     cityName: "",
     color: "#FFD700",
   });
+
+  // -- IMAGE STATE --
+  const [image, setImage] = useState({ file: null, preview: null, base64: null });
 
   // 1. Fetch data on load
   const fetchData = async () => {
@@ -124,16 +126,18 @@ export default function AddCityMeetupPage() {
     } catch (error) { toast.error(error.message); }
   };
 
-  // 4. File Converter
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+ // 4. Handle File Change
+const handleFileChange = (e) => {
+  // Corrected line: added after the optional chaining operator
+  const file = e.target.files?.[0]; 
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+       setImage({ file, preview: reader.result, base64: reader.result });
+    };
+    reader.readAsDataURL(file);
+   }
   };
-
 
   // 5. Final Form Submission
   const handleUploadAndSave = async (e) => {
@@ -147,7 +151,7 @@ export default function AddCityMeetupPage() {
       return;
     }
 
-    if (!file) {
+    if (!image.base64) {
       toast.error("Please select an image first.");
       return;
     }
@@ -155,24 +159,20 @@ export default function AddCityMeetupPage() {
     setLoading(true);
 
     try {
-      // Use FormData instead of Base64
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
-      uploadFormData.append("folder", "city_meetups");
-
+      
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
-        // Do NOT set Content-Type header; browser sets it automatically with the boundary for FormData
-        body: uploadFormData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [image.base64],
+          folder: "city_meetups"
+        }),
       });
-      
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+      const imageUrl = uploadData.links?.[0];
 
-      const imageUrl = uploadData.links?.[0]; 
-      if (!imageUrl) throw new Error("No image URL returned");
-
-      // Save meetup with string names of the selected sections AND City Name
+      // 2. Save to DB
       const apiRes = await fetch("/api/city-meetups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -308,7 +308,7 @@ export default function AddCityMeetupPage() {
           )}
         </div>
 
-        {/* NEW CITY NAME FIELD */}
+        {/* CITY NAME FIELD */}
         <div className="space-y-2">
           <Label htmlFor="cityName">City Name</Label>
           <Input
@@ -317,19 +317,6 @@ export default function AddCityMeetupPage() {
             required
             value={formData.cityName}
             onChange={(e) => setFormData({ ...formData, cityName: e.target.value })}
-          />
-        </div>
-
-        {/* IMAGE FIELD */}
-        <div className="space-y-2">
-          <Label htmlFor="image">Meetup Image</Label>
-          <Input
-            id="image"
-            type="file"
-            accept="image/*"
-            required
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="cursor-pointer file:text-foreground"
           />
         </div>
 
@@ -348,8 +335,25 @@ export default function AddCityMeetupPage() {
           </div>
         </div>
 
+        {/* IMAGE UPLOAD FIELD */}
+        <div className="space-y-2">
+          <Label htmlFor="image">Meetup Image</Label>
+          {image.preview && (
+            <img src={image.preview} alt="Preview" className="h-40 object-cover rounded-md mb-2 border" />
+          )}
+          <Input 
+            id="image" 
+            type="file" 
+            accept="image/*" 
+            required 
+            onChange={handleFileChange} 
+            className="cursor-pointer file:text-foreground" 
+          />
+        </div>
+
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Uploading & Saving..." : "Add City Meetup"}
+          {loading ? <Loader2Icon className="mr-2 size-4 animate-spin" /> : null}
+          {loading ? "Saving..." : "Add City Meetup"}
         </Button>
       </form>
     </div>

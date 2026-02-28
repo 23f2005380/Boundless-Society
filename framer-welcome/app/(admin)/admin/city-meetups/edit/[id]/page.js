@@ -6,86 +6,75 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from "@/components/ui/select";
+import { Loader2Icon } from "lucide-react";
 
 export default function EditCityMeetupPage({ params }) {
   const router = useRouter();
-  
-  // Unwrap the params promise using React.use()
   const resolvedParams = React.use(params);
   const id = resolvedParams.id; 
   
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [file, setFile] = useState(null);
   
   const [sections, setSections] = useState([]);
   const [subSections, setSubSections] = useState([]);
-
-  const [formData, setFormData] = useState({
-    mainSection: "",
-    subSection: "",
-    cityName: "",
-    color: "#FEFAE7", // Default fallback color
-    img: "", 
+  const [formData, setFormData] = useState({ 
+    mainSection: "", 
+    subSection: "", 
+    cityName: "", 
+    color: "#FEFAE7", 
+    img: "" 
   });
+  
+  const [newImage, setNewImage] = useState({ file: null, preview: null, base64: null });
 
   useEffect(() => {
-    // Prevent fetching if ID is missing or undefined
     if (!id || id === "undefined") return;
-
     const fetchData = async () => {
       try {
         const [secRes, subSecRes, meetupRes] = await Promise.all([
-          fetch("/api/meetup-sections"),
-          fetch("/api/meetup-sub-sections"),
-          fetch(`/api/city-meetups/${id}`) 
+          fetch("/api/meetup-sections"), 
+          fetch("/api/meetup-sub-sections"), 
+          fetch(`/api/city-meetups?id=${id}`)
         ]);
-        
         const secData = await secRes.json();
         const subSecData = await subSecRes.json();
         const meetupData = await meetupRes.json();
         
         if (secRes.ok) setSections(secData.sections || []);
         if (subSecRes.ok) setSubSections(subSecData.subSections || []);
-        
-        if (meetupRes.ok) {
+        if (meetupRes.ok && meetupData.meetup) {
           setFormData({
             mainSection: meetupData.meetup.mainSection || "",
             subSection: meetupData.meetup.subSection || "",
             cityName: meetupData.meetup.cityName || "",
-            color: meetupData.meetup.color || "#FEFAE7", // FETCH EXISTING COLOR
+            color: meetupData.meetup.color || "#FEFAE7",
             img: meetupData.meetup.img || "",
           });
-        } else {
-          toast.error("Meetup not found");
         }
-      } catch (error) {
-        toast.error("Failed to load data");
-      } finally {
-        setFetching(false);
-      }
+      } catch (error) { toast.error("Failed to load data"); } 
+      finally { setFetching(false); }
     };
-
     fetchData();
   }, [id]);
 
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
       const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewImage({ file, preview: reader.result, base64: reader.result });
+      };
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+    }
   };
-
-  // Remove the convertFileToBase64 function completely
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -94,55 +83,39 @@ export default function EditCityMeetupPage({ params }) {
     try {
       let imageUrl = formData.img;
 
-      if (file) {
-        // Use FormData instead of Base64
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", file);
-        uploadFormData.append("folder", "city_meetups");
-
+      if (newImage.base64) {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          body: uploadFormData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ images: [newImage.base64], folder: "city_meetups" }),
         });
-        
         const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-        imageUrl = uploadData.links?.[0]; 
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+        imageUrl = uploadData.links?.[0];
       }
 
-      const apiRes = await fetch(`/api/city-meetups/${id}`, {
+      const apiRes = await fetch(`/api/city-meetups`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mainSection: formData.mainSection,
-          subSection: formData.subSection,
-          cityName: formData.cityName,
-          color: formData.color,
-          img: imageUrl,
-        }),
+        body: JSON.stringify({ id, ...formData, img: imageUrl }),
       });
 
       if (!apiRes.ok) throw new Error("Failed to update meetup");
-
       toast.success("City Meetup updated successfully!");
       router.push("/admin/city-meetups");
 
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error(error.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { toast.error(error.message); } 
+    finally { setLoading(false); }
   };
 
-  if (fetching) return <div className="p-10">Loading meetup data...</div>;
+  if (fetching) return <div className="p-10 text-center">Loading meetup data...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-xl shadow-sm mt-10 border border-border">
       <h1 className="text-2xl font-bold mb-6">Edit City Meetup</h1>
-      
       <form onSubmit={handleUpdate} className="space-y-6">
         
+        {/* Main Section */}
         <div className="space-y-2">
           <Label>Main Section</Label>
           <Select 
@@ -158,6 +131,7 @@ export default function EditCityMeetupPage({ params }) {
           </Select>
         </div>
 
+        {/* Sub Section */}
         <div className="space-y-2">
           <Label>Sub Section</Label>
           <Select 
@@ -173,6 +147,7 @@ export default function EditCityMeetupPage({ params }) {
           </Select>
         </div>
 
+        {/* City Name */}
         <div className="space-y-2">
           <Label htmlFor="cityName">City Name</Label>
           <Input
@@ -183,7 +158,7 @@ export default function EditCityMeetupPage({ params }) {
           />
         </div>
 
-        {/* --- COLOR PICKER ADDED HERE --- */}
+        {/* Color Picker */}
         <div className="space-y-2">
           <Label htmlFor="color">Card Color</Label>
           <div className="flex items-center gap-4">
@@ -197,27 +172,32 @@ export default function EditCityMeetupPage({ params }) {
             <span className="text-sm text-muted-foreground uppercase">{formData.color}</span>
           </div>
         </div>
-        {/* ------------------------------- */}
 
-        {formData.img && (
-          <div className="space-y-2">
-            <Label>Current Image</Label>
-            <img src={formData.img} alt="Current" className="h-32 rounded-md object-cover" />
-          </div>
-        )}
-
+        {/* Image Preview & Upload */}
         <div className="space-y-2">
-          <Label htmlFor="image">Replace Image (Optional)</Label>
-          <Input
-            id="image"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="cursor-pointer file:text-foreground"
+          <Label>Meetup Image</Label>
+          <div className="flex flex-col gap-2">
+            <img 
+              src={newImage.preview || formData.img} 
+              alt="Preview" 
+              className="h-48 w-full object-cover rounded-md border shadow-sm" 
+            />
+            <p className="text-xs text-muted-foreground">
+              {newImage.preview ? "New image selected" : "Current image"}
+            </p>
+          </div>
+          <Label htmlFor="image" className="mt-4 block">Replace Image (Optional)</Label>
+          <Input 
+            id="image" 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            className="cursor-pointer" 
           />
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <Loader2Icon className="mr-2 size-4 animate-spin" /> : null}
           {loading ? "Updating..." : "Update City Meetup"}
         </Button>
       </form>
