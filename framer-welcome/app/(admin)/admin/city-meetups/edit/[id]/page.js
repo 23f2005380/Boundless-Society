@@ -85,6 +85,8 @@ export default function EditCityMeetupPage({ params }) {
     });
   };
 
+  // Remove the convertFileToBase64 function completely
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -93,11 +95,14 @@ export default function EditCityMeetupPage({ params }) {
       let imageUrl = formData.img;
 
       if (file) {
-        const base64Image = await convertFileToBase64(file);
+        // Use FormData instead of Base64
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", file);
+        uploadFormData.append("folder", "city_meetups");
+
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ images: [base64Image], folder: "city_meetups" }),
+          body: uploadFormData,
         });
         
         const uploadData = await uploadRes.json();
@@ -112,7 +117,7 @@ export default function EditCityMeetupPage({ params }) {
           mainSection: formData.mainSection,
           subSection: formData.subSection,
           cityName: formData.cityName,
-          color: formData.color, // SEND UPDATED COLOR TO DATABASE
+          color: formData.color,
           img: imageUrl,
         }),
       });

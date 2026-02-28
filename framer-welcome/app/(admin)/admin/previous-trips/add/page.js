@@ -29,6 +29,7 @@ export default function AddPreviousTripPage() {
     });
   };
 
+
   const handleUploadAndSave = async (e) => {
     e.preventDefault();
 
@@ -40,17 +41,14 @@ export default function AddPreviousTripPage() {
     setLoading(true);
 
     try {
-      // 1. Convert Image to Base64
-      const base64Image = await convertFileToBase64(file);
+      // 1. Upload to Cloudinary via YOUR Server using FormData
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      uploadFormData.append("folder", "previous_trips");
 
-      // 2. Upload to Cloudinary via YOUR Server (Signed Upload)
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          images: [base64Image],
-          folder: "previous_trips",
-        }),
+        body: uploadFormData,
       });
       
       const uploadData = await uploadRes.json();
@@ -59,7 +57,7 @@ export default function AddPreviousTripPage() {
       const imageUrl = uploadData.links?.[0]; 
       if (!imageUrl) throw new Error("No image URL returned from upload");
 
-      // 3. Send Data to your Database API
+      // 2. Send Data to your Database API
       const apiRes = await fetch("/api/previous-trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

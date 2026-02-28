@@ -64,15 +64,16 @@ export default function EditTripPage() {
     try {
       let imageUrl = formData.img;
 
-      // 1. If a NEW file is selected, upload it
+      // 1. If a NEW file is selected, upload it using FormData
       if (file) {
-        const base64Image = await convertFileToBase64(file);
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", file);
+        uploadFormData.append("folder", "previous_trips");
         
         // Use your API upload route
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ images: [base64Image], folder: "previous_trips" }),
+          body: uploadFormData,
         });
         
         const uploadData = await uploadRes.json();

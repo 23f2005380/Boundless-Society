@@ -134,6 +134,7 @@ export default function AddCityMeetupPage() {
     });
   };
 
+
   // 5. Final Form Submission
   const handleUploadAndSave = async (e) => {
     e.preventDefault();
@@ -154,12 +155,15 @@ export default function AddCityMeetupPage() {
     setLoading(true);
 
     try {
-      const base64Image = await convertFileToBase64(file);
+      // Use FormData instead of Base64
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      uploadFormData.append("folder", "city_meetups");
 
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: [base64Image], folder: "city_meetups" }),
+        // Do NOT set Content-Type header; browser sets it automatically with the boundary for FormData
+        body: uploadFormData,
       });
       
       const uploadData = await uploadRes.json();
