@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import Link from "next/link"; // Assuming you use this
 import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const menuItems = [
+    { label: "Upcoming Trips", href: "#upcoming-trips" },
+    { label: "Our Gallery", href: "#gallery" },
+    { label: "Previous Trips", href: "#previous-trips" },
+    { label: "Stats", href: "#stats" },
+    { label: "About Us", href: "#about" },
+    { label: "City Meetups", href: "/city-meetups" },
+    { label: "Our Team", href: "#team" },
+    { label: "Whatsapp groups", href: "/whatsapp-groups" },
+    { label: "Verify Certificates", href: "/verify-certificates" },
+  ];
   
   const { scrollY } = useScroll();
 
@@ -26,6 +37,19 @@ export default function Header() {
       setHidden(false); // Scrolling up
     }
   });
+
+  const handleMenuClick = (href) => {
+    setMenuOpen(false);
+    if (href.startsWith("#")) {
+      const el = document.querySelector(href);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 40;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    } else {
+      window.location.href = href;
+    }
+  };
 
   return (
     <motion.header
@@ -60,8 +84,22 @@ export default function Header() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute right-0 mt-4 bg-[#FFE878] rounded-[48px] shadow-2xl px-10 py-8 min-w-[300px]"
             >
-              {/* Menu items here mapping from your data */}
-              <p>Menu Content</p>
+              {menuItems.map((item) => (
+                <div key={item.label}>
+                  <button
+                    onClick={() => handleMenuClick(item.href)}
+                    className="font-black text-2xl text-[#3B001B] py-1 px-2 transition-all duration-200 hover:pl-6 hover:text-[#9c1352] hover:scale-105 text-left w-full"
+                    style={{
+                      fontFamily:
+                        "Oswald, Bebas Neue, Impact, Arial Black, sans-serif",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                  <div className="relative h-[2px] bg-[#3B001B] overflow-visible" />
+                </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
