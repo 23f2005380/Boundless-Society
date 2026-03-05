@@ -3,6 +3,8 @@
 import MeetupSection from "@/components/MeetupSection"
 import meetupsData from "@/data/city-meetup.js"
 
+
+
 type MeetupCard = {
   city: string
   img: string

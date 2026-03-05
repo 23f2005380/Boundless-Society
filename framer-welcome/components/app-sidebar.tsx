@@ -48,30 +48,45 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Add Previous Trip",
-      url: "/admin/previous-trips/add",
-      icon: Plane, // CORRECTED: Using Plane component
+      title: "Upcoming Trips",
+      url: "/admin/trip/upcoming", // Points to the main stats page
+      icon: LayoutDashboardIcon,
+    },
+    // {
+    //   title: "Add Previous Trip",
+    //   url: "/admin/previous-trips/add",
+    //   icon: Plane, // CORRECTED: Using Plane component
+    // },
+    {
+      title: "Gallery",
+      url: "/admin/gallery",
+      icon: CameraIcon, 
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
+      title: "Previous-Trips(CRUD)",
+      url: "/admin/previous-trips",
+      icon: Plane, 
     },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
+    // {
+    //   title: "Lifecycle",
+    //   url: "#",
+    //   icon: ListIcon,
+    // },
+    // {
+    //   title: "Analytics",
+    //   url: "#",
+    //   icon: BarChartIcon,
+    // },
+    // {
+    //   title: "Projects",
+    //   url: "#",
+    //   icon: FolderIcon,
+    // },
+    // {
+    //   title: "Team",
+    //   url: "#",
+    //   icon: UsersIcon,
+    // },
   ],
   navClouds: [
     {
