@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,12 +31,12 @@ export default function ManageTripsPage() {
     fetchTrips();
   }, []);
 
-  // Handle Delete
+  // Handle Delete (Updated to use ?id= strategy)
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this trip? This action cannot be undone.")) return;
 
     try {
-      const res = await fetch(`/api/previous-trips/${id}`, {
+      const res = await fetch(`/api/previous-trips?id=${id}`, {
         method: "DELETE",
       });
 

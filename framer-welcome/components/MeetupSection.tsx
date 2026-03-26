@@ -47,7 +47,7 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                   flex flex-col w-full max-w-[340px] min-w-[180px]
                   rounded-[32px] border-2 shadow-xl
                   transition-transform duration-300
-                  ${card.color}
+                  bg-white
                 `}
                 whileHover={{ scale: 1.04, boxShadow: "0 8px 32px #00000022" }}
               >
@@ -59,7 +59,12 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                     className="object-cover"
                   />
                 </div>
-                <div className="flex flex-row items-center p-4">
+                
+                {/* 🎨 DYNAMIC COLOR ADDED HERE */}
+                <div 
+                  className="flex flex-row items-center p-4 rounded-b-[30px]"
+                  style={{ backgroundColor: card.color }} 
+                >
                   <div className="font-bold text-lg text-[#3B001B] flex-1">{card.city}</div>
                   <div className="justify-content-end" style={{ width: "50%" }}>
                     {/* <a
@@ -70,6 +75,7 @@ export default function MeetupSection({ title, cards }: { title: string, cards: 
                   </a> */}
                   </div>
                 </div>
+                
               </motion.div>
             ))}
           </motion.div>
