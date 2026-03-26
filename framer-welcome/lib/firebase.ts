@@ -36,7 +36,7 @@ if (isFirebaseConfigured) {
   }
 }
 
-export { auth, db, realtimeDb };
+export {app, auth, db, realtimeDb };
 export const isFirebaseEnabled = isFirebaseConfigured && !!app;
 
 
