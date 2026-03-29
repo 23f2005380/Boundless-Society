@@ -54,15 +54,21 @@ const data = {
       icon: Plane,
     },
     {
+      title: "Upcoming Trips",
+      url: "/admin/trip/upcoming", // Points to the main stats page
+      icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Gallery",
+      url: "/admin/gallery",
+      icon: CameraIcon, 
+    }, 
+    {
       title: "City Meetups", // <-- Added new section here
       url: "/admin/city-meetups",
       icon: MapPinIcon, 
     },
-    {
-      title: "Previous-Trips(CRUD)",
-      url: "/admin/previous-trips",
-      icon: Plane, 
-    },
+
     // {
     //   title: "Lifecycle",
     //   url: "#",

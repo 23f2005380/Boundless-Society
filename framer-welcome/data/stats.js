@@ -1,6 +1,6 @@
 export const stats = [
-  { number:5000, label: "Members" },
-  { number:1200, label: "Female Members" },
+  { number:5200, label: "Members" },
+  { number:1300, label: "Female Members" },
   { number:100, label: "Core Members" },
   { number:85, label: "Meetups" },
   { number:22, label: "Trips" },
