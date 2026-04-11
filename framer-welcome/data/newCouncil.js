@@ -5,6 +5,7 @@ export const councilMembers = [
 export const departmentHeads = [
     { name: "Aman Kumar", role: "Technical", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071427/aman_efh83y.jpg" },
     { name: "Nityashree", role: "Females Corner", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071437/nitya_mye2zd.jpg" },
+    { name: "Akanksha Rath", role: "Females Corner", image: "https://res.cloudinary.com/dia2m9kdb/image/upload/v1775897401/WhatsApp_Image_2026-04-11_at_14.17.09_dneu77.jpg" },
     { name: "Vishnu M.", role: "Public Relations", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071444/vishnu_hq0zyv.jpg" },
     { name: "Saurav Pal", role: "Research", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071440/saurav_sbude7.jpg" },
     { name: "Vivek Subramani", role: "Media", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071444/vivek_i2bzfx.jpg" },
