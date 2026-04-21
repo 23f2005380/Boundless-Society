@@ -10,7 +10,7 @@ export const departmentHeads = [
     { name: "Saurav Pal", role: "Research", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071440/saurav_sbude7.jpg" },
     { name: "Vivek Subramani", role: "Media", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071444/vivek_i2bzfx.jpg" },
     { name: "Alok Chaubey", role: "Documentation and Graphic Designing", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071427/alok_zmwfxq.jpg" },
-    { name: "Ananay Purvey", role: "City Operation", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071430/ananay_e8gvg3.jpg" },
+    { name: "Ananay Purvey", role: "City Operation", image: "https://res.cloudinary.com/dia2m9kdb/image/upload/v1776792765/WhatsApp_Image_2026-04-21_at_22.45.30_vy7ifa.jpg" },
     { name: "Ankaj Kumar", role: "Trip Coordination", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071430/ankaj_cvinmw.jpg" },
     { name: "Satyam Pandey", role: "Trip Coordination", image: "https://res.cloudinary.com/duuyaejwy/image/upload/v1761071440/satyam_mzkvao.jpg" },
 ];
