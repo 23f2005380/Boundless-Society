@@ -4,7 +4,6 @@ import { doc, deleteDoc } from "firebase/firestore";
 
 export async function DELETE(request, { params }) {
   try {
-    // FIX: Await the params promise
     const resolvedParams = await params;
     const { id } = resolvedParams;
 

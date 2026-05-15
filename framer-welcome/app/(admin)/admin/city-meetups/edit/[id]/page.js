@@ -39,31 +39,72 @@ export default function EditCityMeetupPage({ params }) {
     if (!id || id === "undefined") return;
     const fetchData = async () => {
       try {
-        const [secRes, subSecRes, meetupRes] = await Promise.all([
-          fetch("/api/meetup-sections"), 
-          fetch("/api/meetup-sub-sections"), 
-          fetch(`/api/city-meetups?id=${id}`)
+        const [secRes, meetupRes] = await Promise.all([
+          fetch("/api/city-meetups/meetup-sections"),
+          fetch(`/api/city-meetups?id=${id}`),
         ]);
+
         const secData = await secRes.json();
-        const subSecData = await subSecRes.json();
         const meetupData = await meetupRes.json();
-        
+
         if (secRes.ok) setSections(secData.sections || []);
-        if (subSecRes.ok) setSubSections(subSecData.subSections || []);
+
         if (meetupRes.ok && meetupData.meetup) {
+          const mainName = meetupData.meetup.mainSection || "";
           setFormData({
-            mainSection: meetupData.meetup.mainSection || "",
+            mainSection: mainName,
             subSection: meetupData.meetup.subSection || "",
             cityName: meetupData.meetup.cityName || "",
             color: meetupData.meetup.color || "#FEFAE7",
             img: meetupData.meetup.img || "",
           });
+
+          // Find section id for the meetup's main section name and load sub-sections for it
+          const matched = (secData.sections || []).find((s) => s.name === mainName);
+          if (matched) {
+            try {
+              const subRes = await fetch(`/api/city-meetups/meetup-sub-sections?sectionId=${matched.id}`);
+              const subData = await subRes.json();
+              if (subRes.ok) setSubSections(subData.subSections || []);
+            } catch (err) {
+              console.warn("Failed to load sub-sections for section", matched.id);
+            }
+          }
         }
       } catch (error) { toast.error("Failed to load data"); } 
       finally { setFetching(false); }
     };
     fetchData();
   }, [id]);
+
+  // When user changes the selected main section, fetch sub-sections for it
+  useEffect(() => {
+    const loadForSelected = async () => {
+      if (!formData.mainSection || sections.length === 0) return;
+      const matched = sections.find((s) => s.name === formData.mainSection);
+      if (!matched) {
+        setSubSections([]);
+        setFormData((f) => ({ ...f, subSection: "" }));
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/city-meetups/meetup-sub-sections?sectionId=${matched.id}`);
+        const data = await res.json();
+        if (res.ok) {
+          setSubSections(data.subSections || []);
+          // If the current subSection name is not in the new list, clear it
+          if (!data.subSections?.some((ss) => ss.name === formData.subSection)) {
+            setFormData((f) => ({ ...f, subSection: "" }));
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load sub-sections for selected section", matched.id);
+      }
+    };
+
+    loadForSelected();
+  }, [formData.mainSection, sections]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];

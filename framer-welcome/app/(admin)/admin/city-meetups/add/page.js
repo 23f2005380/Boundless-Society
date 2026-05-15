@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { TrashIcon, PlusIcon, XIcon, CheckIcon, Loader2Icon } from "lucide-react";
+import { TrashIcon, PlusIcon, XIcon, CheckIcon, Loader2Icon, PencilIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -25,6 +25,8 @@ export default function AddCityMeetupPage() {
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
   const [newSectionPriority, setNewSectionPriority] = useState("");
+  const [isEditingSection, setIsEditingSection] = useState(false);
+  const [editingSectionName, setEditingSectionName] = useState("");
 
   // -- SUB SECTION STATE --
   const [subSections, setSubSections] = useState([]);
@@ -32,6 +34,8 @@ export default function AddCityMeetupPage() {
   const [isAddingSubSection, setIsAddingSubSection] = useState(false);
   const [newSubSectionName, setNewSubSectionName] = useState("");
   const [newSubSectionPriority, setNewSubSectionPriority] = useState("");
+  const [isEditingSubSection, setIsEditingSubSection] = useState(false);
+  const [editingSubSectionName, setEditingSubSectionName] = useState("");
 
   // -- FORM DATA STATE --
   const [formData, setFormData] = useState({
@@ -45,16 +49,9 @@ export default function AddCityMeetupPage() {
   // 1. Fetch data on load
   const fetchData = async () => {
     try {
-      const [secRes, subSecRes] = await Promise.all([
-        fetch("/api/meetup-sections"),
-        fetch("/api/meetup-sub-sections")
-      ]);
-      
+      const secRes = await fetch("/admin/city-meetups/meetup-sections");
       const secData = await secRes.json();
-      const subSecData = await subSecRes.json();
-      
       if (secRes.ok) setSections(secData.sections || []);
-      if (subSecRes.ok) setSubSections(subSecData.subSections || []);
     } catch (error) {
       toast.error("Failed to load sections data");
     }
@@ -64,11 +61,32 @@ export default function AddCityMeetupPage() {
     fetchData();
   }, []);
 
+  // When main section changes, fetch sub-sections belonging to it
+  useEffect(() => {
+    const fetchSubSectionsForSection = async () => {
+      if (!selectedSectionId) {
+        setSubSections([]);
+        setSelectedSubSectionId("");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/admin/city-meetups/meetup-sub-sections?sectionId=${selectedSectionId}`);
+        const data = await res.json();
+        if (res.ok) setSubSections(data.subSections || []);
+      } catch (error) {
+        toast.error("Failed to load sub-sections for selected section");
+      }
+    };
+
+    fetchSubSectionsForSection();
+  }, [selectedSectionId]);
+
   // 2. Handlers for Main Section
   const handleAddSection = async () => {
     if (!newSectionName.trim()) return toast.error("Section name cannot be empty");
     try {
-      const res = await fetch("/api/meetup-sections", {
+      const res = await fetch("/admin/city-meetups/meetup-sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newSectionName, priority: newSectionPriority }),
@@ -83,10 +101,42 @@ export default function AddCityMeetupPage() {
     } catch (error) { toast.error("Failed to create section"); }
   };
 
+  const handleStartEditSection = () => {
+    const selectedSection = sections.find((section) => section.id === selectedSectionId);
+    if (!selectedSection) return toast.error("Select a section first");
+    setEditingSectionName(selectedSection.name || "");
+    setIsEditingSection(true);
+    setIsAddingSection(false);
+  };
+
+  const handleUpdateSection = async () => {
+    if (!selectedSectionId) return toast.error("Select a section first");
+    if (!editingSectionName.trim()) return toast.error("Section name cannot be empty");
+
+    try {
+      const res = await fetch(`/admin/city-meetups/meetup-sections/${selectedSectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingSectionName }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Section updated!");
+        setIsEditingSection(false);
+        setEditingSectionName("");
+        await fetchData();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to update section");
+    }
+  };
+
   const handleDeleteSection = async () => {
     if (!selectedSectionId || !confirm("Delete this main section?")) return;
     try {
-      const res = await fetch(`/api/meetup-sections/${selectedSectionId}`, { method: "DELETE" });
+      const res = await fetch(`/admin/city-meetups/meetup-sections/${selectedSectionId}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Main Section removed");
         setSelectedSectionId("");
@@ -98,26 +148,64 @@ export default function AddCityMeetupPage() {
   // 3. Handlers for Sub Section
   const handleAddSubSection = async () => {
     if (!newSubSectionName.trim()) return toast.error("Sub-section name cannot be empty");
+    if (!selectedSectionId) return toast.error("Select a main section before adding a sub-section");
     try {
-      const res = await fetch("/api/meetup-sub-sections", {
+      const res = await fetch("/admin/city-meetups/meetup-sub-sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newSubSectionName, priority: newSubSectionPriority }),
+        body: JSON.stringify({ name: newSubSectionName, priority: newSubSectionPriority, sectionId: selectedSectionId }),
       });
       const data = await res.json();
       if (res.ok) {
         toast.success("Sub Section added!");
         setNewSubSectionName(""); setNewSubSectionPriority(""); setIsAddingSubSection(false);
-        await fetchData();
+        // Refresh sub-sections for the current section and select the new one
+        const secRes = await fetch(`/admin/city-meetups/meetup-sub-sections?sectionId=${selectedSectionId}`);
+        const secData = await secRes.json();
+        if (secRes.ok) setSubSections(secData.subSections || []);
         setSelectedSubSectionId(data.id);
       } else throw new Error(data.error);
     } catch (error) { toast.error("Failed to create sub-section"); }
   };
 
+  const handleStartEditSubSection = () => {
+    const selectedSubSection = subSections.find((subSection) => subSection.id === selectedSubSectionId);
+    if (!selectedSubSection) return toast.error("Select a sub-section first");
+    setEditingSubSectionName(selectedSubSection.name || "");
+    setIsEditingSubSection(true);
+    setIsAddingSubSection(false);
+  };
+
+  const handleUpdateSubSection = async () => {
+    if (!selectedSubSectionId) return toast.error("Select a sub-section first");
+    if (!editingSubSectionName.trim()) return toast.error("Sub-section name cannot be empty");
+
+    try {
+      const res = await fetch(`/admin/city-meetups/meetup-sub-sections/${selectedSubSectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingSubSectionName }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Sub-section updated!");
+        setIsEditingSubSection(false);
+        setEditingSubSectionName("");
+        const secRes = await fetch(`/admin/city-meetups/meetup-sub-sections?sectionId=${selectedSectionId}`);
+        const secData = await secRes.json();
+        if (secRes.ok) setSubSections(secData.subSections || []);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to update sub-section");
+    }
+  };
+
   const handleDeleteSubSection = async () => {
     if (!selectedSubSectionId || !confirm("Delete this sub-section?")) return;
     try {
-      const res = await fetch(`/api/meetup-sub-sections/${selectedSubSectionId}`, { method: "DELETE" });
+      const res = await fetch(`/admin/city-meetups/meetup-sub-sections/${selectedSubSectionId}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Sub Section removed");
         setSelectedSubSectionId("");
@@ -229,6 +317,29 @@ const handleFileChange = (e) => {
                 <XIcon className="h-4 w-4" />
               </Button>
             </div>
+          ) : isEditingSection ? (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Edit section name"
+                value={editingSectionName}
+                onChange={(e) => setEditingSectionName(e.target.value)}
+                autoFocus
+              />
+              <Button type="button" onClick={handleUpdateSection} size="icon" variant="default">
+                <CheckIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsEditingSection(false);
+                  setEditingSectionName("");
+                }}
+                size="icon"
+                variant="ghost"
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <div className="flex-1">
@@ -247,6 +358,11 @@ const handleFileChange = (e) => {
               <Button type="button" variant="outline" size="icon" onClick={() => setIsAddingSection(true)} title="Add New">
                 <PlusIcon className="h-4 w-4" />
               </Button>
+              {selectedSectionId && (
+                <Button type="button" variant="outline" size="icon" onClick={handleStartEditSection} title="Edit">
+                  <PencilIcon className="h-4 w-4" />
+                </Button>
+              )}
               {selectedSectionId && (
                 <Button type="button" variant="destructive" size="icon" onClick={handleDeleteSection} title="Delete">
                   <TrashIcon className="h-4 w-4" />
@@ -281,6 +397,29 @@ const handleFileChange = (e) => {
                 <XIcon className="h-4 w-4" />
               </Button>
             </div>
+          ) : isEditingSubSection ? (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Edit sub-section name"
+                value={editingSubSectionName}
+                onChange={(e) => setEditingSubSectionName(e.target.value)}
+                autoFocus
+              />
+              <Button type="button" onClick={handleUpdateSubSection} size="icon" variant="default">
+                <CheckIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsEditingSubSection(false);
+                  setEditingSubSectionName("");
+                }}
+                size="icon"
+                variant="ghost"
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <div className="flex-1">
@@ -299,6 +438,11 @@ const handleFileChange = (e) => {
               <Button type="button" variant="outline" size="icon" onClick={() => setIsAddingSubSection(true)} title="Add New">
                 <PlusIcon className="h-4 w-4" />
               </Button>
+              {selectedSubSectionId && (
+                <Button type="button" variant="outline" size="icon" onClick={handleStartEditSubSection} title="Edit">
+                  <PencilIcon className="h-4 w-4" />
+                </Button>
+              )}
               {selectedSubSectionId && (
                 <Button type="button" variant="destructive" size="icon" onClick={handleDeleteSubSection} title="Delete">
                   <TrashIcon className="h-4 w-4" />

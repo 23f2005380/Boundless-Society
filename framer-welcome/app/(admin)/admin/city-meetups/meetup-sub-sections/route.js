@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where } from "firebase/firestore";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const sectionId = searchParams.get("sectionId");
+
     const subSectionsRef = collection(db, "meetup_sub_sections");
-    const q = query(subSectionsRef, orderBy("priority", "asc"));
+    const q = sectionId
+      ? query(subSectionsRef, where("sectionId", "==", sectionId), orderBy("priority", "asc"))
+      : query(subSectionsRef, orderBy("priority", "asc"));
+
     const querySnapshot = await getDocs(q);
 
     const subSections = querySnapshot.docs.map((doc) => ({
@@ -23,9 +29,14 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
+    if (!body.sectionId) {
+      return NextResponse.json({ error: "sectionId is required" }, { status: 400 });
+    }
+
     const subSectionData = {
       name: body.name,
       priority: Number(body.priority) || 99,
+      sectionId: body.sectionId,
       createdAt: serverTimestamp(),
     };
 
