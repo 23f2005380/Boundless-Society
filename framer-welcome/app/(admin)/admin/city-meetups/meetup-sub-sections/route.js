@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 
 export async function GET(request) {
   try {
@@ -9,15 +9,17 @@ export async function GET(request) {
 
     const subSectionsRef = collection(db, "meetup_sub_sections");
     const q = sectionId
-      ? query(subSectionsRef, where("sectionId", "==", sectionId), orderBy("priority", "asc"))
-      : query(subSectionsRef, orderBy("priority", "asc"));
+      ? query(subSectionsRef, where("sectionId", "==", sectionId))
+      : query(subSectionsRef);
 
     const querySnapshot = await getDocs(q);
 
-    const subSections = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const subSections = querySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .sort((left, right) => (Number(left.priority) || 99) - (Number(right.priority) || 99));
 
     return NextResponse.json({ subSections }, { status: 200 });
   } catch (error) {
