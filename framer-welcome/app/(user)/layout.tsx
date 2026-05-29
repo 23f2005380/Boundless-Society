@@ -34,12 +34,12 @@ export default function RootLayout({
       <Head>
         <link rel="icon" href="/Logo Bound.png" />
       </Head>
-      <LenisProvider>
-        <body style={{ background: "#fffbea" }}>
+      <body style={{ background: "#fffbea" }}>
+        <LenisProvider>
           <Header />
           <div className="pt-20">{children}</div>
-        </body>
-      </LenisProvider>
+        </LenisProvider>
+      </body>
     </html>
   );
 }
