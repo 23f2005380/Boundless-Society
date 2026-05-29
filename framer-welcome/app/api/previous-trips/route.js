@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { sanitizeMediaUrls } from "@/lib/previous-trip-media";
 
 /* GET All Trips OR Single Trip (if ?id= is passed) */
 export async function GET(req) {
@@ -41,6 +42,16 @@ export async function POST(req) {
       subHeading: body.subHeading,
       img: body.img, 
       link: body.link || "",
+      
+      // New fields
+      title: body.title || "",
+      date: body.date || "",
+      venue: body.venue || "",
+      participants: body.participants !== undefined ? Number(body.participants) : 0,
+      summary: body.summary || "",
+      photos: sanitizeMediaUrls(body.photos),
+      videos: sanitizeMediaUrls(body.videos),
+      
       createdAt: serverTimestamp(),
     };
 
@@ -55,12 +66,27 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, heading, subHeading, img, link } = body;
+    const { 
+      id, heading, subHeading, img, link,
+      title, date, venue, participants, summary,
+      photos, videos
+    } = body;
 
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
     await updateDoc(doc(db, "previous_trips", id), {
-      heading, subHeading, img, link, updatedAt: serverTimestamp()
+      heading, 
+      subHeading, 
+      img, 
+      link: link || "",
+      title: title || "",
+      date: date || "",
+      venue: venue || "",
+      participants: participants !== undefined ? Number(participants) : 0,
+      summary: summary || "",
+      photos: sanitizeMediaUrls(photos),
+      videos: sanitizeMediaUrls(videos),
+      updatedAt: serverTimestamp()
     });
 
     return NextResponse.json({ success: true, message: "Trip updated" }, { status: 200 });

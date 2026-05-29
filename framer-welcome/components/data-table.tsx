@@ -671,7 +671,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           {item.header}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="flex flex-col">
+      <SheetContent side="right" className="flex flex-col gap-4 p-6">
         <SheetHeader className="gap-1">
           <SheetTitle>{item.header}</SheetTitle>
           <SheetDescription>

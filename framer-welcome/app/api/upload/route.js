@@ -9,17 +9,16 @@ export async function POST(req) {
     const formData = await req.json();
     const images = formData.images; // Expecting array of base64 strings
     const folder = formData.folder || "uploads";
+    const resourceType = formData.resourceType === "video" ? "video" : "image";
 
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
-        { error: "No images provided" },
+        { error: "No files provided" },
         { status: 400 }
       );
     }
 
-    // Upload to Cloudinary
-    // This now returns an array of URL strings because of the fix in lib/cloudinary.js
-    const urls = await uploadImages(images, { folder });
+    const urls = await uploadImages(images, { folder, resourceType });
 
     return NextResponse.json({ 
       success: true, 

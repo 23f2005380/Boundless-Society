@@ -9,11 +9,11 @@ cloudinary.config({
 
 // 2. Single Image Upload
 export async function uploadImage(imageData, options = {}) {
-  const { folder = "uploads" } = options;
+  const { folder = "uploads", resourceType = "image" } = options;
 
   const result = await cloudinary.uploader.upload(imageData, {
     folder,
-    resource_type: "image",
+    resource_type: resourceType,
     timeout: 120000, // 2 minutes timeout for large files
   });
 
