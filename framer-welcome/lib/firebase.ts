@@ -6,7 +6,7 @@ import { getAuth } from "firebase/auth";
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "DISABLED",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "disabled.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "disabled",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "boundless-785f1",
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "disabled.appspot.com",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "0",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:000:web:00000000",
