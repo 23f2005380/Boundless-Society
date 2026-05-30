@@ -37,14 +37,13 @@ export default function Header() {
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
     { label: "Previous Trips", href: "#previous-trips" },
-  
     { label: "Stats", href: "#stats" },
     { label: "About Us", href: "#about" },
       { label: "City Meetups", href: "/city-meetups" },
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificate" },
-    // { label: "Trip Registration", href: "/trip-registration" },
+    { label: "Trip Registration", href: "/trip-registration" }
   ]);
   function itemClicked(href) {
     setMenuOpen(false); 
