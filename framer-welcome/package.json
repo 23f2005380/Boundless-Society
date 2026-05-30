@@ -53,6 +53,7 @@
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.6.1",
     "framer-motion": "^12.19.2",
     "grapheme-splitter": "^1.0.4",
     "gsap": "^3.13.0",

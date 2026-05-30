@@ -14,10 +14,10 @@ export default function Header() {
     { label: "Previous Trips", href: "#previous-trips" },
     { label: "About Us", href: "#about" },
     { label: "City Meetups", href: "/city-meetups" },
- 
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
-    { label: "Verify Certificates", href: "/verify-certificates" }
+    { label: "Verify Certificates", href: "/verify-certificates" },
+    // { label: "Trip Registration", href: "/trip-registration" }
   ];
 
   // Smooth scroll handler
