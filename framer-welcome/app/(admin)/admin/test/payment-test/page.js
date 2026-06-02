@@ -217,7 +217,7 @@ function Page() {
         )}
 
         {testLogs.length > 0 && (
-          <div className="bg-gray-900 text-green-400 p-4 rounded text-xs font-mono h-64 overflow-y-auto text-left">
+          <div className="bg-gray-900 text-green-400 p-4 rounded text-xs  h-64 overflow-y-auto text-left">
             {testLogs.map((log, i) => (
               <div key={i}>{log}</div>
             ))}

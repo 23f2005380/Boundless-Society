@@ -88,7 +88,7 @@ const handleDelete = async (id) => {
                       className="w-6 h-6 rounded-full border border-gray-300 shadow-sm" 
                       style={{ backgroundColor: meetup.color || "#FEFAE7" }}
                     />
-                    <span className="text-xs text-muted-foreground font-mono">
+                    <span className="text-xs text-muted-foreground ">
                       {meetup.color || "#FEFAE7"}
                     </span>
                   </div>

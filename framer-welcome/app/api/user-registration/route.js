@@ -10,8 +10,6 @@ export async function POST(request) {
         if (!token) {
             return Response.json({ error: "Missing token" }, { status: 400 });
         }
-
-        // ✅ Verify the Firebase ID token
         let decodedToken;
         try {
             decodedToken = await adminAuth.verifyIdToken(token);

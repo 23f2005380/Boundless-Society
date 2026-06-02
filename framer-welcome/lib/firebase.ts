@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, initializeFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
@@ -22,6 +23,7 @@ let app: any = null;
 let auth: any = null;
 let db: any = null;
 let realtimeDb: any = null;
+let storage: any = null;
 
 if (isFirebaseConfigured) {
   try {
@@ -31,12 +33,13 @@ if (isFirebaseConfigured) {
       experimentalForceLongPolling: true,
     });
     realtimeDb = getDatabase(app);
+    storage = getStorage(app);
   } catch (error) {
     console.warn("Firebase initialization error - Firebase features will be disabled:", error);
   }
 }
 
-export {app, auth, db, realtimeDb };
+export {app, auth, db, realtimeDb, storage };
 export const isFirebaseEnabled = isFirebaseConfigured && !!app;
 
 

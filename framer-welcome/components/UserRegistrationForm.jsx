@@ -37,8 +37,8 @@ export default function UserRegistrationForm({ user, setUser }) {
         fetchForm();
     }, []);
 
-    const handleChange = (fieldId, value) => {
-        setFormValues((prev) => ({ ...prev, [fieldId]: value }));
+    const handleChange = (fieldName, value) => {
+        setFormValues((prev) => ({ ...prev, [fieldName]: value }));
     };
 
     const handleLogout = async () => {
@@ -50,6 +50,14 @@ export default function UserRegistrationForm({ user, setUser }) {
         }
     };
 
+    const convertToBase64 = (file) =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -57,17 +65,44 @@ export default function UserRegistrationForm({ user, setUser }) {
         setSubmitting(true);
 
         try {
-            const firestoreValues = {};
-            for (const [key, value] of Object.entries(formValues)) {
-                if (value instanceof File) continue; // Files need separate Storage upload
-                firestoreValues[key] = value;
-            }
+            const formData = new FormData(e.currentTarget);
+            const imageEntry = [...formData.entries()].find(([, value]) => value instanceof File && value.size > 0);
+            const imageFieldName = imageEntry?.[0];
+            const imageFile = imageEntry?.[1];
+            const formDataObj = Object.fromEntries(formData.entries());
 
+            if (imageFile) {
+                const base64Image = await convertToBase64(imageFile);
+                if (
+                    !base64Image ||
+                    typeof base64Image !== "string" ||
+                    !base64Image.startsWith("data:image")
+                ) {
+                    throw new Error("Invalid image conversion");
+                }
+                const uploadRes = await fetch("/api/uploadImage", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        images: [base64Image],
+                        folder: "trip_registrations",
+                    }),
+                });
+                const data = await uploadRes.json();
+                if (!uploadRes.ok) {
+                    throw new Error(data.error || "Upload failed");
+                }
+                const imageUrl = data.images[0].secure_url || data.images[0];
+                formDataObj[imageFieldName] = imageUrl;
+                console.log(formDataObj)
+            }
             const token = await user.getIdToken();
             const res = await fetch("/api/user-registration", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, formData: firestoreValues }),
+                body: JSON.stringify({ token, formData: formDataObj }),
             });
 
             const data = await res.json();
@@ -76,7 +111,6 @@ export default function UserRegistrationForm({ user, setUser }) {
                 await signOut(auth);
                 return;
             }
-
             alert("Form submitted successfully!");
         } catch (error) {
             console.error("Submission error:", error);
@@ -108,9 +142,9 @@ export default function UserRegistrationForm({ user, setUser }) {
                                     <div key={field.id} className="text-start">
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <input
+                                            name={field.name}
                                             type="text"
-                                            value={formValues[field.id] || ""}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                            onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none"
                                         />
                                     </div>
@@ -120,9 +154,9 @@ export default function UserRegistrationForm({ user, setUser }) {
                                     <div key={field.id} className="text-start">
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <textarea
+                                            name={field.name}
                                             rows="1"
-                                            value={formValues[field.id] || ""}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                            onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none resize-none"
                                         />
                                     </div>
@@ -132,9 +166,9 @@ export default function UserRegistrationForm({ user, setUser }) {
                                     <div key={field.id} className="text-start">
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <input
+                                            name={field.name}
                                             type="date"
-                                            value={formValues[field.id] || ""}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                            onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none"
                                         />
                                     </div>
@@ -148,10 +182,10 @@ export default function UserRegistrationForm({ user, setUser }) {
                                                 <label key={option} className="flex items-center space-x-2 mb-1">
                                                     <input
                                                         type="radio"
-                                                        name={field.id}
+                                                        name={field.name}
                                                         value={option}
-                                                        checked={formValues[field.id] === option}
-                                                        onChange={(e) => handleChange(field.id, e.target.value)}
+                                                        checked={formValues[field.name] === option}
+                                                        onChange={(e) => handleChange(field.name, e.target.value)}
                                                     />
                                                     <span>{option}</span>
                                                 </label>
@@ -164,8 +198,8 @@ export default function UserRegistrationForm({ user, setUser }) {
                                     <div key={field.id} className="text-start">
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <select
-                                            value={formValues[field.id] || ""}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                            name={field.name}
+                                            onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none appearance-none"
                                         >
                                             <option value="" disabled className="bg-amber-100">Select an option</option>
@@ -181,7 +215,9 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <input
                                             type="file"
-                                            onChange={(e) => handleChange(field.id, e.target.files[0])}
+                                            accept="image/png, image/jpg, image/jpeg"
+                                            name={field.name}
+                                            onChange={(e) => handleChange(field.name, e.target.files[0])}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-900 file:text-white hover:file:bg-amber-800 cursor-pointer"
                                         />
                                     </div>
