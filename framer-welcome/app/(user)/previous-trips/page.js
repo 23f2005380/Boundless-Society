@@ -177,16 +177,33 @@ function PrevTrips() {
                             <GlimpsesGallery trip={selectedTrip} />
                           </div>
 
-                          {selectedTrip.summary && (
-                            <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-2xl p-6 sm:p-7 shadow-sm space-y-4">
-                              <h3 className="text-lg font-bold text-amber-900 border-b border-amber-50 pb-2">
-                                Trip Summary
-                              </h3>
-                              <div className="text-gray-700 text-sm leading-relaxed space-y-4 font-normal max-h-[350px] overflow-y-auto pr-1">
-                                {selectedTrip.summary.split("\n").map((para, idx) => (
-                                  para.trim() && <p key={idx}>{para.trim()}</p>
-                                ))}
-                              </div>
+                          {(selectedTrip.summary || selectedTrip.feedback) && (
+                            <div className="space-y-6">
+                              {selectedTrip.summary && (
+                                <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-2xl p-6 sm:p-7 shadow-sm space-y-4">
+                                  <h3 className="text-lg font-bold text-amber-900 border-b border-amber-50 pb-2">
+                                    Trip Summary
+                                  </h3>
+                                  <div className="text-gray-700 text-sm leading-relaxed space-y-4 font-normal max-h-[350px] overflow-y-auto pr-1">
+                                    {selectedTrip.summary.split("\n").map((para, idx) => (
+                                      para.trim() && <p key={idx}>{para.trim()}</p>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {selectedTrip.feedback && (
+                                <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-2xl p-6 sm:p-7 shadow-sm space-y-4">
+                                  <h3 className="text-lg font-bold text-amber-900 border-b border-amber-50 pb-2">
+                                    Feedback
+                                  </h3>
+                                  <div className="text-gray-700 text-sm leading-relaxed space-y-4 font-normal max-h-[350px] overflow-y-auto pr-1">
+                                    {selectedTrip.feedback.split("\n").map((para, idx) => (
+                                      para.trim() && <p key={idx}>{para.trim()}</p>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

@@ -49,6 +49,11 @@ export async function POST(req) {
       venue: body.venue || "",
       participants: body.participants !== undefined ? Number(body.participants) : 0,
       summary: body.summary || "",
+      feedback: body.feedback || "",
+      graphData: Array.isArray(body.graphData) ? body.graphData.map(item => ({
+        x: item.x !== undefined ? String(item.x) : "",
+        y: item.y !== undefined ? String(item.y) : ""
+      })) : [],
       photos: sanitizeMediaUrls(body.photos),
       videos: sanitizeMediaUrls(body.videos),
       
@@ -68,7 +73,7 @@ export async function PUT(req) {
     const body = await req.json();
     const { 
       id, heading, subHeading, img, link,
-      title, date, venue, participants, summary,
+      title, date, venue, participants, summary, feedback, graphData,
       photos, videos
     } = body;
 
@@ -84,6 +89,11 @@ export async function PUT(req) {
       venue: venue || "",
       participants: participants !== undefined ? Number(participants) : 0,
       summary: summary || "",
+      feedback: feedback || "",
+      graphData: Array.isArray(graphData) ? graphData.map(item => ({
+        x: item.x !== undefined ? String(item.x) : "",
+        y: item.y !== undefined ? String(item.y) : ""
+      })) : [],
       photos: sanitizeMediaUrls(photos),
       videos: sanitizeMediaUrls(videos),
       updatedAt: serverTimestamp()
