@@ -1,5 +1,19 @@
 const meetups = [
   {
+    city: "TRI-COLOR TRAILS 3.0 ",
+    img: "/city-meet/tri_color.jpg",
+    title: "TRI-COLOR TRAILS 3.0 ",
+    description: (
+      <>
+        Boundless brings you the most celebrated and lived event of the year - Tri Color Trails 3.0,
+a New Year gift to make your year truly unforgettable
+✨
+      </>
+    ),
+    badge: "",
+    logo: "",
+  },
+  {
     city: "Navrang 2.0",
     img: "/city-meet/Navrang2.jpg",
     title: "Navrang 2.0",
