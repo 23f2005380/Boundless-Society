@@ -4,33 +4,37 @@ import { useEffect, useRef, useState } from "react";
 import {
   motion,
   AnimatePresence,
-  useScroll,
-  useMotionValueEvent,
 } from "framer-motion";
 import Link from "next/link"
 import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
   const [isTop, setIsTop] = useState(true);
+  const prevScrollYRef = useRef(0);
 
-  // Hide/show on scroll
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious();
-    if (latest > previous && latest > 300) {
-      setHidden(true);
-    } else {
-      setHidden(false);
-    }
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-    if (latest < 100) {
-      setIsTop(true);
-    } else {
-      setIsTop(false);
-    }
-  });
+    const handleScroll = () => {
+      const latest = window.scrollY;
+      const previous = prevScrollYRef.current;
+
+      if (latest > previous && latest > 300) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+
+      setIsTop(latest < 100);
+      prevScrollYRef.current = latest;
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   let [menuItems, setMenuItems] = useState([
 
