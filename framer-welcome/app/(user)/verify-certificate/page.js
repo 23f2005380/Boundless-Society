@@ -1,8 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { realtimeDb as db, isFirebaseEnabled } from "@/lib/firebase";
-import { ref, get } from "firebase/database";
+
+// Firebase lookup disabled; verify via local CSV file instead.
+// import { realtimeDb as db, isFirebaseEnabled } from "@/lib/firebase";
+// import { ref, get } from "firebase/database";
+
+const CSV_URL = "/Boundless Certificates.csv";
+
+function parseCsv(text) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.split(",").map((cell) => cell.trim().replace(/^"|"$/g, "")))
+    .filter((cols) => cols.length >= 3)
+    .map(([name, email, certificateNumber]) => ({
+      name,
+      email,
+      certificateNumber,
+    }))
+    .filter(
+      (row) =>
+        row.certificateNumber &&
+        row.certificateNumber.toLowerCase() !== "certificate number"
+    );
+}
 
 export default function VerifyCertificate() {
   const [input, setInput] = useState("");
@@ -10,35 +33,37 @@ export default function VerifyCertificate() {
   const [name, setName] = useState("");
 
   function sanitizeKey(key) {
-    return key.trim().replace(/[.#$/\[\]]/g, "_");
+    return key.trim();
   }
 
   async function handleVerify() {
     if (!input) return;
-    
-    if (!isFirebaseEnabled || !db) {
-      setStatus("not-verified");
-      alert("Certificate verification is currently unavailable. Please try again later.");
-      return;
-    }
 
     setStatus("checking");
     setName("");
 
-    const sanitizedInput = sanitizeKey(input);
-    const certRef = ref(db, `${sanitizedInput}`);
+    const sanitizedInput = sanitizeKey(input).toLowerCase();
 
     try {
-      const snapshot = await get(certRef);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setName(data.name || "");
+      const response = await fetch(encodeURI(CSV_URL));
+      if (!response.ok) {
+        throw new Error(`Failed to load CSV: ${response.status}`);
+      }
+
+      const csvText = await response.text();
+      const records = parseCsv(csvText);
+      const match = records.find(
+        (record) => record.certificateNumber.toLowerCase() === sanitizedInput
+      );
+
+      if (match) {
+        setName(match.name || "");
         setStatus("verified");
       } else {
         setStatus("not-verified");
       }
     } catch (error) {
-      console.error("Error fetching certificate:", error);
+      console.error("Error reading certificate CSV:", error);
       setStatus("not-verified");
     }
   }
