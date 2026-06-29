@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { app, auth } from "@/lib/firebase";
 import {
     getFirestore,
@@ -12,17 +12,22 @@ import {
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
-const db = getFirestore(app);
-
 export default function UserRegistrationForm({ user, setUser }) {
+    const dbRef = useRef(null);
+    const [dbReady, setDbReady] = useState(false);
+    useEffect(() => {
+        dbRef.current = getFirestore(app);
+        setDbReady(true);
+    }, []);
     const [fields, setFields] = useState([]);
     const [formValues, setFormValues] = useState({});
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
+        if (!dbRef.current) return;
         const fetchForm = async () => {
-            const q = query(collection(db, "trips"), orderBy("createdAt", "desc"), limit(1));
+            const q = query(collection(dbRef.current, "trips"), orderBy("createdAt", "desc"), limit(1));
             const snapshot = await getDocs(q);
 
             if (!snapshot.empty) {
