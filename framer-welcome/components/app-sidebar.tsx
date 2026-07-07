@@ -18,7 +18,8 @@ import {
   SettingsIcon,
   UsersIcon,
   Plane,
-  MapPinIcon, // <-- Added MapPinIcon here
+  MapPinIcon,
+  Vote,
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -64,9 +65,14 @@ const data = {
       icon: CameraIcon, 
     }, 
     {
-      title: "City Meetups", // <-- Added new section here
+      title: "City Meetups",
       url: "/admin/city-meetups",
-      icon: MapPinIcon, 
+      icon: MapPinIcon,
+    },
+    {
+      title: "HOD Election",
+      url: "/admin/election",
+      icon: Vote,
     },
 
     // {

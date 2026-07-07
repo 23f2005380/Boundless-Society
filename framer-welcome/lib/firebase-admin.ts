@@ -1,6 +1,7 @@
 // lib/firebase-admin.ts
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
 const serviceAccount = {
   projectId: process.env.FIREBASE_PROJECT_ID,
@@ -10,8 +11,9 @@ const serviceAccount = {
 
 if (!getApps().length) {
   initializeApp({
-    credential: cert(serviceAccount),
+    credential: cert(serviceAccount as Parameters<typeof cert>[0]),
   });
 }
 
 export const adminAuth = getAuth();
+export const adminDb = getFirestore();
