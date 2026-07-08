@@ -104,10 +104,6 @@ body {
     opacity: 0; 
     transform: scale(0.1); 
   }
-  60% { 
-    opacity: 1; 
-    transform: scale(1.15); /* The spring overshoot */
-  }
   100% { 
     opacity: 1; 
     transform: scale(1); 
