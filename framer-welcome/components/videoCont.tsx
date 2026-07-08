@@ -73,7 +73,7 @@ export default function VideoContainer() {
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/et-Th2dwGVA?autoplay=1&controls=1&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0&playsinline=1"
+              src="https://www.youtube.com/embed/3mlK6pDtP_0?autoplay=1&controls=1&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0&playsinline=1"
               title="YouTube video player"
               frameBorder="0"
               allow="autoplay; encrypted-media"
