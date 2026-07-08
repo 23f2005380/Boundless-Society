@@ -129,15 +129,16 @@ body {
   animation-play-state: paused;
 }
 
-.char-node {
+.char-node,
+.word-node {
   opacity: 0;
   transform: scale(0.1);
   display: inline-block;
-  will-change: transform, opacity;
 }
 
-/* When the parent div gets this class, the characters pop in */
-.is-visible .char-node {
+/* When the parent div gets this class, the characters/words pop in */
+.is-visible .char-node,
+.is-visible .word-node {
   animation: springPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
