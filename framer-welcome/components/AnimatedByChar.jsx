@@ -74,7 +74,7 @@ const AnimatedByChar = ({ children }) => {
           // This ensures your scroll wheel motion finishes smoothly before the CPU spikes!
           timeoutId = setTimeout(() => {
             el.classList.add("is-visible");
-          }, 100);
+          }, 300);
         } else {
           // Reset the animation if you scroll away
           if (timeoutId) clearTimeout(timeoutId);

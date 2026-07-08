@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { curvedMarque } from "@/data/curvedMarquee";
 import Image from "next/image";
 
-// 1. Move the massive string outside the component so React doesn't re-parse it on every render
+// STAR_CLIP_PATH clip-path string
 const STAR_CLIP_PATH = "polygon(100% 50%,91.69% 55.06%,98.55% 61.97%,89.27% 64.89%,94.27% 73.24%,84.57% 73.86%,87.43% 83.16%,77.85% 81.44%,78.4% 91.15%,69.52% 87.19%,67.73% 96.75%,60.05% 90.78%,56.03% 99.64%,50% 92%,43.97% 99.64%,39.95% 90.78%,32.27% 96.75%,30.48% 87.19%,21.6% 91.15%,22.15% 81.44%,12.57% 83.16%,15.43% 73.86%,5.73% 73.24%,10.73% 64.89%,1.45% 61.97%,8.31% 55.06%,0% 50%,8.31% 44.94%,1.45% 38.03%,10.73% 35.11%,5.73% 26.76%,15.43% 26.14%,12.57% 16.84%,22.15% 18.56%,21.6% 8.85%,30.48% 12.81%,32.27% 3.25%,39.95% 9.22%,43.97% 0.36%,50% 8%,56.03% 0.36%,60.05% 9.22%,67.73% 3.25%,69.52% 12.81%,78.4% 8.85%,77.85% 18.56%,87.43% 16.84%,84.57% 26.14%,94.27% 26.76%,89.27% 35.11%,98.55% 38.03%,91.69% 44.94%)";
 
 const generatePath = (width) => {
@@ -30,11 +30,10 @@ const generatePath = (width) => {
 
 const MarqueeItem = React.memo(({ src, index, totalItems, path, title }) => {
   const duration = 11;
-
   const delay = -(duration / totalItems) * index;
 
   return (
-    <motion.div
+    <div
       className="absolute w-48 max-sm:w-32 aspect-[79/50] overflow-hidden"
       style={{
         offsetPath: `path("${path}")`,
@@ -58,7 +57,7 @@ const MarqueeItem = React.memo(({ src, index, totalItems, path, title }) => {
             src={src}
             fill
             alt={title}
-            loading="eager"
+            loading="lazy"
             decoding="async"
             sizes="(max-width: 768px) 128px, 192px"
             quality={60}
@@ -93,7 +92,7 @@ const MarqueeItem = React.memo(({ src, index, totalItems, path, title }) => {
           </motion.div>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 MarqueeItem.displayName = "MarqueeItem";
