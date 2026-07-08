@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
 import Header from "@/components/Header.jsx";
-import Head from "next/head";
+import LenisProvider from "@/components/LenisProvider";
 
 export const metadata: Metadata = {
   title: "Boundless Travel Society",
@@ -18,28 +18,18 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://boundless.iitmbs.org/city-meetups"
   }
-
 };
 
-
-import LenisProvider from "@/components/LenisProvider";
-
-export default function RootLayout({
+export default function UserLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <Head>
-        <link rel="icon" href="/Logo Bound.png" />
-      </Head>
-      <LenisProvider>
-        <body style={{ background: "#fffbea" }}>
-          <Header />
-          <div className="pt-20">{children}</div>
-        </body>
-      </LenisProvider>
-    </html>
+    // We remove <html> and <body> here because they are already in app/layout.tsx
+    <LenisProvider>
+      <Header />
+      <div className="pt-20">{children}</div>
+    </LenisProvider>
   );
 }

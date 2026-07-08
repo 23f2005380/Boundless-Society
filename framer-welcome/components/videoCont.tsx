@@ -1,23 +1,47 @@
-import React, { useEffect, useRef } from "react";
+"use client";
+
+import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 
 export default function VideoContainer() {
-  const videoRef = useRef<HTMLIFrameElement>(null);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+
+  // NEW: Ref to directly control the video container without React re-renders
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 1. Delayed video loading
     const timer = setTimeout(() => {
-      if (videoRef.current) {
-        // Post message to the YouTube iframe to play the video
-        videoRef.current.contentWindow?.postMessage(
-          JSON.stringify({
-            event: "command",
-            func: "playVideo",
-            args: [],
-          }),
-          "*"
-        );
+      setShouldLoadVideo(true);
+    }, 50);
+
+    // 2. Smart Scroll Detector
+    let scrollTimeout: NodeJS.Timeout;
+
+    const disablePointerOnScroll = () => {
+      if (videoWrapperRef.current) {
+        // Instantly lock the video the millisecond a scroll starts (stops jitter!)
+        videoWrapperRef.current.style.pointerEvents = 'none';
       }
-    }, 1000);
-    return () => clearTimeout(timer);
+
+      clearTimeout(scrollTimeout);
+
+      // Unlock it 150ms after the scrolling completely stops
+      scrollTimeout = setTimeout(() => {
+        if (videoWrapperRef.current) {
+          videoWrapperRef.current.style.pointerEvents = 'auto';
+        }
+      }, 150);
+    };
+
+    // Add passive listener for maximum scroll performance
+    window.addEventListener("scroll", disablePointerOnScroll, { passive: true });
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(scrollTimeout);
+      window.removeEventListener("scroll", disablePointerOnScroll);
+    };
   }, []);
 
   const circles = [];
@@ -27,13 +51,14 @@ export default function VideoContainer() {
       circles.push(
         <div
           key={i}
+          ref={videoWrapperRef} // <-- Attach our ref here
           style={{
             position: "absolute",
             top: "50%",
             left: "50%",
             width: `${size}vw`,
             height: `${size}vw`,
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, -50%) translateZ(0)",
             borderRadius: "50%",
             background: "#fffae9",
             boxShadow: "0 4px 24px rgba(84,63,63,1)",
@@ -41,24 +66,38 @@ export default function VideoContainer() {
             alignItems: "center",
             justifyContent: "center",
             overflow: "hidden",
+            pointerEvents: "auto", // Clickable by default when not scrolling
           }}
         >
-          <iframe
-            ref={videoRef}
-            width="100%"
-            height="100%"
-            src="https://www.youtube.com/embed/6_TsbomItD0?autoplay=1&controls=0&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0"
-            title="YouTube video player"
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            style={{
-              borderRadius: "50%",
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          ></iframe>
+          {shouldLoadVideo ? (
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/et-Th2dwGVA?autoplay=1&controls=1&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0&playsinline=1"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              style={{
+                borderRadius: "50%",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                // Notice: No pointer-events here. It inherits from the wrapper.
+              }}
+            ></iframe>
+          ) : (
+            <div style={{ position: "relative", width: "100%", height: "100%" }}>
+              <Image
+                src="/placeholder.jpg"
+                alt="Boundless Society Video Thumbnail"
+                fill
+                priority
+                sizes="(max-width: 768px) 60vw, 70vw"
+                style={{ objectFit: "cover", borderRadius: "50%" }}
+              />
+            </div>
+          )}
         </div>
       );
     } else {
@@ -71,10 +110,12 @@ export default function VideoContainer() {
             left: "50%",
             width: `${size}vw`,
             height: `${size}vw`,
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, -50%) translateZ(0)",
             borderRadius: "50%",
             background: "#fffae9",
-            boxShadow: "0 4px 24px rgba(84,63,63,1)",
+            boxShadow: "0 4px 24px rgba(84,63,63,0.6)",
+            WebkitBackfaceVisibility: "hidden",
+            pointerEvents: "none", // Outer decorative circles ALWAYS remain locked
           }}
         />
       );
@@ -91,19 +132,20 @@ export default function VideoContainer() {
         maxHeight: "100vh",
         margin: "0 auto",
         overflow: "hidden",
+        contain: "paint layout",
       }}
     >
       {circles}
       <style>{`
-                @media (min-width: 768px) {
-                    div[style*="position: relative"] {
-                        width: 70vw !important;
-                        height: 70vw !important;
-                        max-width: 900px;
-                        max-height: 900px;
-                    }
-                }
-            `}</style>
+        @media (min-width: 768px) {
+            div[style*="position: relative"] {
+                width: 70vw !important;
+                height: 70vw !important;
+                max-width: 900px;
+                max-height: 900px;
+            }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,43 +1,38 @@
-import AnimatedByChar from "@/components/AnimatedByChar"
+import React from "react";
+import AnimatedByChar from "@/components/AnimatedByChar";
 
-export default function About2() {
-  const scallopCount = 15;
-  const radius = 40;
-  const svgWidth = scallopCount * radius * 2;
-  const svgHeight = radius + 20;
-  const svgFill = "#fffbea"
-  const scallops = Array.from({ length: scallopCount }, () => {
-    return `a${radius},${radius} 0 0,1 ${radius},${radius}
-            a${radius},${radius} 0 0,1 ${radius},-${radius}`;
-  }).join(" ");
-  const pathData = `M0,0 ${scallops} L${svgWidth},${svgHeight} L0,${svgHeight} Z`;
+// 1. Static math calculated exactly once on the server
+const SCALLOP_COUNT = 15;
+const RADIUS = 40;
+const SVG_WIDTH = SCALLOP_COUNT * RADIUS * 2;
+const SVG_HEIGHT = RADIUS + 20;
+const SVG_FILL = "#fffbea";
+
+const SCALLOPS = Array.from({ length: SCALLOP_COUNT }, () => {
+  return `a${RADIUS},${RADIUS} 0 0,1 ${RADIUS},${RADIUS} a${RADIUS},${RADIUS} 0 0,1 ${RADIUS},-${RADIUS}`;
+}).join(" ");
+
+const PATH_DATA = `M0,0 ${SCALLOPS} L${SVG_WIDTH},${SVG_HEIGHT} L0,${SVG_HEIGHT} Z`;
+
+// 2. Removed React.memo to prevent Server Component Crash
+const About2 = function About2() {
   return (
-    <section className={`relative text-black -mt-12 max-sm:-mt-6`}>
-      <div className="w-full overflow-hidden ">
+    // Removed the clipping styles from this section tag! Your design is safe.
+    <section className="relative text-black -mt-12 max-sm:-mt-6">
+      <div className="w-full overflow-hidden">
         <svg
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           preserveAspectRatio="xMidYMid meet"
           className="w-full"
         >
-          <path d={pathData} fill={svgFill} />
+          <path d={PATH_DATA} fill={SVG_FILL} />
         </svg>
       </div>
-      {/* Scalloped edge decoration */}
-      {/* <div className="absolute -top-8 left-0 w-full flex z-20">
-          {Array.from({ length: 32 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-12 h-8 rounded-t-full bg-yellow-50 border-t-2 border-dotted border-yellow-200"
-            />
-          ))}
-        </div> */}
+
       <div className="bg-[#fffbea]">
         <div className="max-w-4xl mx-auto p-8 md:p-12 bg-[#fffbea]">
-          {/* Section Title */}
           <div className="text-center mb-8">
-            {/* Top decorative line */}
             <div className="w-24 h-0.5 bg-blue-500 mx-auto mb-4"></div>
-
 
             <AnimatedByChar text={"About US"}>
               <h2
@@ -50,20 +45,15 @@ export default function About2() {
                   transform: "scaleY(1.5)",
                 }}
               >
-                About Us</h2>
+                About Us
+              </h2>
             </AnimatedByChar>
 
-
-            {/* Bottom decorative line */}
             <div className="w-24 h-0.5 bg-blue-500 mx-auto"></div>
           </div>
 
-          {/* Content */}
-
           <div className="space-y-6 text-center">
             <AnimatedByChar>
-
-              {/* Paragraph 1: Core Belief */}
               <p
                 className="text-lg md:text-xl font-bold text-black leading-relaxed"
                 style={{ fontFamily: "Georgia, Merriweather, serif" }}
@@ -73,7 +63,6 @@ export default function About2() {
                 unshakable friendship.
               </p>
 
-              {/* Paragraph 2: Online Connection */}
               <p
                 className="text-base md:text-lg text-[#333] leading-relaxed"
                 style={{ fontFamily: "Georgia, Merriweather, serif" }}
@@ -83,7 +72,6 @@ export default function About2() {
                 hearts.
               </p>
 
-              {/* Paragraph 3: Bunny Metaphor */}
               <p
                 className="text-lg md:text-xl font-bold text-black leading-relaxed"
                 style={{ fontFamily: "Georgia, Merriweather, serif" }}
@@ -92,7 +80,6 @@ export default function About2() {
                 comfort zones – we hop across them.
               </p>
 
-              {/* Paragraph 4: Description of Bunny Traits */}
               <p
                 className="text-base md:text-lg text-[#333] leading-relaxed"
                 style={{ fontFamily: "Georgia, Merriweather, serif" }}
@@ -102,21 +89,19 @@ export default function About2() {
                 that calls our name.
               </p>
 
-              {/* Final Line: Closing with Charm */}
               <p
                 className="text-base md:text-lg italic text-[#333] leading-relaxed"
                 style={{ fontFamily: "Georgia, Merriweather, serif" }}
               >
-                Why roar for attention...
-
-                when you can hop into leadership with charm, cheer, and a little
-                chaos – the bunny way! 🐰✨
+                Why roar for attention... when you can hop into leadership with
+                charm, cheer, and a little chaos – the bunny way! 🐰✨
               </p>
-
             </AnimatedByChar>
           </div>
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
+
+export default About2;

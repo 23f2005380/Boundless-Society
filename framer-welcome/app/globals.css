@@ -1,8 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nosifer&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,15 +93,63 @@ body {
   }
 }
 
+@keyframes travelPath {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+/* Custom Spring Animation for Characters */
+@keyframes springPop {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.1); 
+  }
+  60% { 
+    opacity: 1; 
+    transform: scale(1.15); /* The spring overshoot */
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes galleryScroll {
+  /* It translates by exactly 50% of the container width (which holds the duplicated array) */
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } 
+}
+
+.animate-gallery {
+  animation: galleryScroll 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-gallery:hover {
+  animation-play-state: paused;
+}
+
+.char-node {
+  opacity: 0;
+  transform: scale(0.1);
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* When the parent div gets this class, the characters pop in */
+.is-visible .char-node {
+  animation: springPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 
 .nosifer-regular {
-  font-family: "Nosifer", sans-serif;
+  font-family: var(--font-nosifer), sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
 .oswald-subtitle {
-  font-family: "Oswald", sans-serif;
+  font-family: var(--font-oswald), sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
@@ -130,4 +173,53 @@ html.lenis {
 
 ::placeholder {
   color: var(--sidebar-accent);
+}
+
+.char-base {
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+  will-change: transform, opacity;
+}
+
+.animate-chars-hidden .char-base {
+  opacity: 0;
+  transform: scale(0.1);
+}
+
+.animate-chars-visible .char-base {
+  opacity: 1;
+  transform: scale(1);
+}
+
+html, body {
+  overscroll-behavior: none; 
+}
+
+header {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-container] {
+  will-change: transform;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Ensure nothing else is forcing overflow hidden */
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
 }

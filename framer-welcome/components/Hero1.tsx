@@ -14,11 +14,7 @@ export default function Hero() {
             className=" text-[#3B001B] mb-3 md:mb-4 oswald-subtitle"
             style={{ fontSize: "42px" }}
           >
-            <AnimatedByChar
-              text="IIT 'M BS TRAVEL SOCIETY"
-              
-            />
-           
+            <AnimatedByChar text="IIT 'M BS TRAVEL SOCIETY" />
           </h2>
           <div>
             <button
@@ -30,17 +26,15 @@ export default function Hero() {
           </div>
         </div>
       </div>
-      {/* Decorative Circle */}
+      {/* Decorative Circle with GPU Acceleration */}
       <div
         style={{
-          maskImage: `
-      linear-gradient(to top, black 50%, transparent 98%)
-    `,
-          WebkitMaskImage: `
-      linear-gradient(to top, black 50%, transparent 98%)
-    `,
+          maskImage: `linear-gradient(to top, black 50%, transparent 98%)`,
+          WebkitMaskImage: `linear-gradient(to top, black 50%, transparent 98%)`,
+          transform: "translateZ(0)", // <-- forces GPU rendering
+          willChange: "transform", // <-- prevents paint flashing
         }}
-        className="flex justify-center "
+        className="flex justify-center"
       >
         <VideoContainer />
       </div>
