@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import GroupCard from "@/components/GroupCard";
 import {
-  officialGroups,
-  girlsGroups,
-  regionalGroups,
+  stateKeywordsMap,
 } from "@/data/whatsapp";
 
 import "./page.css";
@@ -71,8 +69,54 @@ const GroupSection = ({ title, groups, startIndex = 0 }) => {
 
 export default function Page() {
   const [regionalSearch, setRegionalSearch] = useState("");
+  const [official, setOfficial] = useState([]);
+  const [girls, setGirls] = useState([]);
+  const [regional, setRegional] = useState([]);
 
-  const filteredRegionalGroups = regionalGroups.filter((group) => {
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const res = await fetch("/api/whatsapp-groups");
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.groups || [];
+          if (list.length > 0) {
+            // Group they by category
+            const officialList = list.filter((g) => g.category === "official");
+            const girlsList = list.filter((g) => g.category === "girls");
+            const regionalRawList = list.filter((g) => g.category === "regional");
+
+            // Construct keywords dynamically for regional groups
+            const regionalList = regionalRawList.map((group) => {
+              const cityLower = group.city.toLowerCase();
+
+              const matchedStates = Object.entries(stateKeywordsMap)
+                .filter(([_, cities]) =>
+                  cities.some(
+                    (city) => city.toLowerCase() === cityLower
+                  )
+                )
+                .map(([state]) => state);
+
+              return {
+                ...group,
+                keywords: [cityLower, ...matchedStates],
+              };
+            });
+
+            setOfficial(officialList);
+            setGirls(girlsList);
+            setRegional(regionalList);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching WhatsApp groups:", error);
+      }
+    }
+    fetchGroups();
+  }, []);
+
+  const filteredRegionalGroups = regional.filter((group) => {
     if (!regionalSearch.trim()) return true;
 
     const query = regionalSearch.toLowerCase();
@@ -103,15 +147,15 @@ export default function Page() {
 
         <GroupSection
           title="Official Boundless Spaces"
-          groups={officialGroups}
+          groups={official}
           startIndex={0}
         />
 
 
         <GroupSection
           title="Boundless Girls Community"
-          groups={girlsGroups}
-          startIndex={officialGroups.length}
+          groups={girls}
+          startIndex={official.length}
         />
 
         <section className="mb-12">
@@ -119,55 +163,55 @@ export default function Page() {
 
           {/*Search Bar */}
           <div className="flex justify-center mb-8">
-  <div className="relative w-full max-w-md">
+            <div className="relative w-full max-w-md">
 
-    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
-    </span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </span>
 
-    {/* Input */}
-    <input
-      type="text"
-      placeholder="Search state or city (e.g. Maharashtra, Nagpur)"
-      value={regionalSearch}
-      onChange={(e) => setRegionalSearch(e.target.value)}
-      className="
-        w-full
-        pl-12
-        pr-5
-        py-3
-        rounded-full
-        border
-        border-black
-        bg-[#ffe680]
-        text-center
-        outline-none
-        placeholder-gray-700
-        focus:ring-2
-        focus:ring-black
-      "
-    />
-  </div>
-</div>
+              {/* Input */}
+              <input
+                type="text"
+                placeholder="Search state or city (e.g. Maharashtra, Nagpur)"
+                value={regionalSearch}
+                onChange={(e) => setRegionalSearch(e.target.value)}
+                className="
+                  w-full
+                  pl-12
+                  pr-5
+                  py-3
+                  rounded-full
+                  border
+                  border-black
+                  bg-[#ffe680]
+                  text-center
+                  outline-none
+                  placeholder-gray-700
+                  focus:ring-2
+                  focus:ring-black
+                "
+              />
+            </div>
+          </div>
 
 
           <GroupSection
             title=""
             groups={filteredRegionalGroups}
-            startIndex={officialGroups.length + girlsGroups.length}
+            startIndex={official.length + girls.length}
           />
         </section>
       </div>

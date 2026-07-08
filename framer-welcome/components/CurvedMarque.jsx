@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { curvedMarque } from "@/data/curvedMarquee";
 import Image from "next/image";
 
 // STAR_CLIP_PATH clip-path string
@@ -100,6 +99,22 @@ MarqueeItem.displayName = "MarqueeItem";
 export default function CurvedMarquee() {
   const [path, setPath] = useState("");
   const [totalItems, setTotalItems] = useState(4);
+  const [marqueeData, setMarqueeData] = useState([]);
+
+  useEffect(() => {
+    async function fetchMarquee() {
+      try {
+        const res = await fetch("/api/proud-marquee");
+        if (res.ok) {
+          const data = await res.json();
+          setMarqueeData(data.marquee || []);
+        }
+      } catch (error) {
+        console.error("Error fetching marquee:", error);
+      }
+    }
+    fetchMarquee();
+  }, []);
 
   useEffect(() => {
     let resizeTimer;
@@ -132,7 +147,7 @@ export default function CurvedMarquee() {
     };
   }, []);
 
-  if (!path) return null;
+  if (!path || marqueeData.length === 0) return null;
 
   return (
     <div
@@ -143,16 +158,19 @@ export default function CurvedMarquee() {
         transform: "translateZ(0)",
       }}
     >
-      {Array.from({ length: totalItems }).map((_, i) => (
-        <MarqueeItem
-          key={i}
-          src={curvedMarque[i % curvedMarque.length].img}
-          title={curvedMarque[i % curvedMarque.length].title}
-          index={i}
-          totalItems={totalItems}
-          path={path}
-        />
-      ))}
+      {Array.from({ length: totalItems }).map((_, i) => {
+        const item = marqueeData[i % marqueeData.length];
+        return (
+          <MarqueeItem
+            key={i}
+            src={item.img}
+            title={item.title}
+            index={i}
+            totalItems={totalItems}
+            path={path}
+          />
+        );
+      })}
     </div>
   );
 }

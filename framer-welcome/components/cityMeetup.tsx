@@ -1,8 +1,7 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { m, LazyMotion, domAnimation, AnimatePresence } from "framer-motion"
 import Image from "next/image";
-import meetups from "@/data/city"
 
 const variants = {
   initial: { opacity: 0, x: 40 },
@@ -12,6 +11,35 @@ const variants = {
 
 export default function CityMeetup() {
   const [active, setActive] = useState(0)
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchCampaigns() {
+      try {
+        const res = await fetch("/api/meetup-campaigns");
+        if (res.ok) {
+          const data = await res.json();
+          setCampaigns(data.campaigns || []);
+        }
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCampaigns();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-10 font-bold text-amber-900">Loading meetups...</div>;
+  }
+
+  if (campaigns.length === 0) return null;
+
+  // Safe active check (incase a campaign was deleted)
+  const activeIndex = active >= campaigns.length ? 0 : active;
+  const activeItem = campaigns[activeIndex];
 
   return (
     <LazyMotion features={domAnimation}>
@@ -23,9 +51,9 @@ export default function CityMeetup() {
               <div className="flex-1 w-full">
                 {/* Steps */}
                 <div className="flex space-x-2 mb-4 justify-center md:justify-start">
-                  {meetups.map((mItem, idx) => (
+                  {campaigns.map((mItem, idx) => (
                     <button
-                      key={mItem.city}
+                      key={mItem.id || idx}
                       onClick={() => setActive(idx)}
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-lg border-2 flex items-center justify-center font-bold text-lg transition-all
                         ${active === idx
@@ -41,7 +69,7 @@ export default function CityMeetup() {
                 {/* Animated Content */}
                 <AnimatePresence mode="wait">
                   <m.div
-                    key={active}
+                    key={activeIndex}
                     variants={variants}
                     initial="initial"
                     animate="animate"
@@ -49,9 +77,9 @@ export default function CityMeetup() {
                     transition={{ duration: 0.4, type: "spring" }}
                     className="min-h-[160px] mt-2"
                   >
-                    <h3 className="text-xl md:text-2xl font-black text-amber-900 mb-2">{meetups[active].title}</h3>
+                    <h3 className="text-xl md:text-2xl font-black text-amber-900 mb-2">{activeItem.title}</h3>
                     <p className="text-amber-800 text-sm md:text-base leading-relaxed mb-2">
-                      {meetups[active].description}
+                      {activeItem.description}
                     </p>
                   </m.div>
                 </AnimatePresence>
@@ -60,7 +88,7 @@ export default function CityMeetup() {
               <div className="flex-1 w-full flex justify-center">
                 <AnimatePresence mode="wait">
                   <m.div
-                    key={meetups[active].img}
+                    key={activeItem.img}
                     variants={variants}
                     initial="initial"
                     animate="animate"
@@ -68,23 +96,22 @@ export default function CityMeetup() {
                     transition={{ duration: 0.4, type: "spring" }}
                     className="relative w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center"
                   >
-                    {/* Optional logo and badge */}
-                    {meetups[active].logo && (
+                    {activeItem.logo && (
                       <Image
-                      src={meetups[active].logo}
-                      alt="Logo"
-                      width={40}
-                      height={40}
-                      className="absolute top-2 left-2 object-contain z-10"
-                    />
+                        src={activeItem.logo}
+                        alt="Logo"
+                        width={40}
+                        height={40}
+                        className="absolute top-2 left-2 object-contain z-10"
+                      />
                     )}
                     <Image
-                      src={meetups[active].img}
-                      alt={meetups[active].city}
+                      src={activeItem.img}
+                      alt={activeItem.city}
                       fill
                       className="object-cover"
                     />
-                    <span className="absolute bottom-2 left-2 text-white font-bold text-lg drop-shadow">{meetups[active].city} Meetup</span>
+                    <span className="absolute bottom-2 left-2 text-white font-bold text-lg drop-shadow">{activeItem.city} Meetup</span>
                   </m.div>
                 </AnimatePresence>
               </div>

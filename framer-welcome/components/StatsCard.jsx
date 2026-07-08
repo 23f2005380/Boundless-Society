@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { stats } from "@/data/stats";
 
 const StatItem = ({ end, label, isVisible }) => {
   const numberRef = useRef(null);
@@ -70,6 +69,22 @@ const StatItem = ({ end, label, isVisible }) => {
 export default function StatsCard() {
   const containerRef = useRef(null);
   const [visible, setVisible] = useState(false);
+  const [statsData, setStatsData] = useState([]);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/proud-stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStatsData(data.stats || []);
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    }
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -90,7 +105,7 @@ export default function StatsCard() {
       ref={containerRef}
       className="bg-[#80A6FF] rounded-3xl p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-[80vw] mx-auto mt-10"
     >
-      {stats.map((stat) => (
+      {statsData.map((stat) => (
         <StatItem
           key={stat.label}
           end={stat.number}
