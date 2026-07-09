@@ -153,7 +153,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             if (onSuccess) {
                 onSuccess();
             }
-        } catch (error: any) {
+        } catch (error) {
             console.error("Submission error:", error);
             alert(error.message || "Something went wrong. Please try again.");
         } finally {
