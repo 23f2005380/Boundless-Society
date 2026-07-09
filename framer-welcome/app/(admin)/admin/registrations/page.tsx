@@ -26,6 +26,7 @@ interface Trip {
   femaleJoined?: number;
   totalJoined?: number;
   finalRosterSaved?: boolean;
+  isCompleted?: boolean;
 }
 
 interface Registration {
