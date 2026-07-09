@@ -68,7 +68,7 @@ export const girlsGroups = [
 ];
 
 // Regional Groups -- for search functionality keywords
-const stateKeywordsMap = {
+export const stateKeywordsMap = {
   maharashtra: ["Nagpur", "Mumbai", "Pune", "Nashik"],
   up: ["Kanpur", "Lucknow", "Varanasi", "Prayagraj", "Gorakhpur", "Agra"],
   bihar: ["Gaya", "Patna", "Muzaffarpur"],

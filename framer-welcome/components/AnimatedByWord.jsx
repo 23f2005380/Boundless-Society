@@ -35,7 +35,6 @@ const AnimatedByChar = ({ text }) => {
   return (
     <LazyMotion features={domAnimation}>
       <m.div
-        layout="position"  // Only animate position/transform, not full layout
         className="overflow-hidden flex flex-wrap justify-center"
         variants={container}
         initial="hidden"
@@ -46,7 +45,6 @@ const AnimatedByChar = ({ text }) => {
         {characters.map((char, index) => (
           <m.span
             key={index}
-            layout="position"  // Only animate position/transform, not full layout
             variants={child}
             className="inline-block whitespace-pre"
           >
