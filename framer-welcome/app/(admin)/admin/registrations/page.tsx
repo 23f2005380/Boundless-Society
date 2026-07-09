@@ -238,7 +238,7 @@ export default function SubmissionsPage() {
     const origin = window.location.origin;
     const link = `${origin}/trip-registration?tripId=${selectedTripId}`;
     navigator.clipboard.writeText(link);
-    toast.success("Event registration link copied to clipboard! 📋");
+    alert("Event registration link copied to clipboard! 📋");
   };
 
   const handleConsentTemplateChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {

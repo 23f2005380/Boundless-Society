@@ -246,6 +246,7 @@ export async function GET() {
         isCompleted: data.isCompleted,
         finalRosterSaved: data.finalRosterSaved,
         form: data.form,
+        consentFormTemplateUrl: data.consentFormTemplateUrl || "",
         images: data.images || [],
         fee: data.fee !== undefined ? Number(data.fee) : 500,
         razorpayKeyId: data.razorpayKeyId || "",
