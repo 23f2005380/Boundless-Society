@@ -52,6 +52,8 @@ export default function CoordinatorDashboard() {
   const [concernText, setConcernText] = useState("");
   const [submittingConcern, setSubmittingConcern] = useState(false);
 
+  const selectedTrip = trips.find((t) => t.id === selectedTripId);
+
   // Authenticate coordinator by checking email against trip coordinators list
   const verifyCoordinator = async (coordinatorEmail: string) => {
     setAuthLoading(true);
