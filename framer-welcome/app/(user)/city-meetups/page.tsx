@@ -42,9 +42,9 @@ export default function CityMeetupsPage() {
             acc[heading].push({
               city: meetup.cityName || "Unknown City",
               img: meetup.img,
-              caption: meetup.cityName || "", // Using city name as caption 
-              color: meetup.color || "#FEFAE7",// Default generic color (Change if your component requires specific ones)
-              galleryLink: "#", // Placeholder since we aren't saving a link in DB yet
+              caption: meetup.caption || meetup.cityName || "", 
+              color: meetup.color || "bg-rose-100 border-rose-300",
+              galleryLink: meetup.galleryLink || "#", 
             });
             
             return acc;
