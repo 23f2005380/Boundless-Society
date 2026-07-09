@@ -73,6 +73,8 @@ export default function SubmissionsPage() {
   const [concerns, setConcerns] = useState<Concern[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [activeConcernEmail, setActiveConcernEmail] = useState<string | null>(null);
+  const [activeProfileReg, setActiveProfileReg] = useState<Registration | null>(null);
 
   // Tabs Navigation
   const [activeTab, setActiveTab] = useState("registrations"); // "registrations" | "edit-event" | "create-event"
@@ -736,11 +738,12 @@ export default function SubmissionsPage() {
                         <TableRow key={reg.id} className="hover:bg-muted/50 transition">
                           <TableCell>
                             <div className="font-semibold text-sm">{reg.email}</div>
-                            <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
-                              {Object.entries(reg.formData).slice(0, 3).map(([k, v]) => (
-                                <span key={k}>{k}: <strong>{String(v)}</strong></span>
-                              ))}
-                            </div>
+                            <button
+                              onClick={() => setActiveProfileReg(reg)}
+                              className="text-[10px] text-indigo-900 font-black underline hover:text-indigo-800 mt-1 block"
+                            >
+                              View Full Profile & Files ↗
+                            </button>
                           </TableCell>
                           <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
                           <TableCell>
@@ -753,16 +756,14 @@ export default function SubmissionsPage() {
                           </TableCell>
                           <TableCell>
                             {studentFlags.length > 0 ? (
-                              <div className="space-y-1">
-                                {studentFlags.map((c) => (
-                                  <div key={c.id} className="flex items-start gap-1 bg-red-50 text-red-700 text-[10px] p-1.5 rounded border border-red-200 max-w-[200px]">
-                                    <ShieldAlertIcon className="w-3.5 h-3.5 shrink-0" />
-                                    <span className="leading-tight font-medium">
-                                      <strong>{c.coordinatorEmail}:</strong> {c.concernText}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs bg-red-50 border-red-300 text-red-700 hover:bg-red-100 flex items-center gap-1.5 font-semibold"
+                                onClick={() => setActiveConcernEmail(reg.email)}
+                              >
+                                <ShieldAlertIcon className="w-3.5 h-3.5" /> View Flags ({studentFlags.length})
+                              </Button>
                             ) : (
                               <span className="text-[10px] text-muted-foreground italic">No concerns</span>
                             )}
@@ -1168,6 +1169,117 @@ export default function SubmissionsPage() {
             </Button>
           </div>
         </form>
+      {activeConcernEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white border-2 border-black rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-black">
+            <button
+              onClick={() => setActiveConcernEmail(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-black font-black"
+            >
+              ✕
+            </button>
+            <h3 className="font-bold text-lg text-red-700 flex items-center gap-1.5 uppercase">
+              <ShieldAlertIcon className="w-5 h-5" /> Coordinator Flags
+            </h3>
+            <p className="text-xs text-gray-500 font-bold border-b pb-2">Student: {activeConcernEmail}</p>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {concerns
+                .filter((c) => c.studentEmail.toLowerCase() === activeConcernEmail.toLowerCase())
+                .map((c) => (
+                  <div key={c.id} className="bg-red-50 p-3 rounded border border-red-200 text-xs">
+                    <p className="font-semibold text-red-900 mb-1">{c.concernText}</p>
+                    <p className="text-[10px] text-gray-400">Flagged by: {c.coordinatorEmail}</p>
+                  </div>
+                ))}
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setActiveConcernEmail(null)} className="text-xs">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeProfileReg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left">
+            <button
+              onClick={() => setActiveProfileReg(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-black font-black"
+            >
+              ✕
+            </button>
+            <h3 className="font-bold text-lg text-indigo-950 uppercase border-b pb-2">
+              👤 Student Profile Review
+            </h3>
+            
+            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 text-sm">
+              <div>
+                <span className="font-bold text-xs text-gray-500 uppercase block">Email Address</span>
+                <span className="font-semibold text-gray-850">{activeProfileReg.email}</span>
+              </div>
+              
+              <div>
+                <span className="font-bold text-xs text-gray-500 uppercase block">Gender</span>
+                <span className="font-semibold text-gray-850 capitalize">{activeProfileReg.gender}</span>
+              </div>
+
+              {activeProfileReg.formData["Aadhaar Number"] && (
+                <div className="bg-amber-50 p-3 rounded border border-amber-200">
+                  <span className="font-bold text-xs text-amber-950 uppercase block">Aadhaar Verification Details</span>
+                  <div className="mt-1.5 space-y-1 text-xs">
+                    <p>Aadhaar Number: <strong>{activeProfileReg.formData["Aadhaar Number"]}</strong></p>
+                    {activeProfileReg.formData["Aadhaar Card Copy"] && (
+                      <p className="mt-1">
+                        Aadhaar Copy:{" "}
+                        <a
+                          href={activeProfileReg.formData["Aadhaar Card Copy"]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-amber-900 font-bold underline hover:text-amber-800"
+                        >
+                          View Uploaded Document ↗
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <span className="font-bold text-xs text-gray-500 uppercase block">Registration Form Answers</span>
+                <div className="grid grid-cols-1 gap-2.5 bg-gray-50 p-3 rounded border">
+                  {Object.entries(activeProfileReg.formData)
+                    .filter(([k]) => k !== "Aadhaar Number" && k !== "Aadhaar Card Copy")
+                    .map(([key, val]) => (
+                      <div key={key} className="border-b pb-1.5 last:border-0 last:pb-0">
+                        <span className="text-xs font-bold text-gray-600 block">{key}</span>
+                        {typeof val === "string" && (val.startsWith("http://") || val.startsWith("https://")) ? (
+                          <a
+                            href={val}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-900 font-bold underline text-xs hover:text-indigo-800"
+                          >
+                            View File Link ↗
+                          </a>
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-850">{String(val)}</span>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setActiveProfileReg(null)} className="text-xs">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
     </main>
