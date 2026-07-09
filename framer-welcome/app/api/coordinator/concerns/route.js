@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -7,7 +8,9 @@ import {
   query,
   where,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  deleteDoc
 } from "firebase/firestore";
 
 export async function GET(request) {
@@ -83,6 +86,28 @@ export async function POST(request) {
     return NextResponse.json({ success: true, id: docRef.id }, { status: 201 });
   } catch (error) {
     console.error("POST Concerns Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Concern ID is required" }, { status: 400 });
+    }
+
+    await deleteDoc(doc(db, "coordinator_concerns", id));
+    return NextResponse.json({ success: true, message: "Concern deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE Concern Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

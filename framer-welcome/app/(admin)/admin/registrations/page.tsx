@@ -171,6 +171,43 @@ export default function SubmissionsPage() {
     }
   }, [selectedTripId, trips]);
 
+  // Lock background scroll when modals are open
+  useEffect(() => {
+    if (activeProfileReg || activeConcernEmail) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [activeProfileReg, activeConcernEmail]);
+
+  const handleDeleteConcern = async (concernId: string) => {
+    if (!confirm("Are you sure you want to delete this concern flag?")) return;
+    try {
+      const res = await fetch(`/api/coordinator/concerns?id=${concernId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("Concern flag deleted successfully!");
+        fetchTripData();
+        const remaining = concerns.filter(
+          (c) => c.id !== concernId && c.studentEmail.toLowerCase() === activeConcernEmail?.toLowerCase()
+        );
+        if (remaining.length === 0) {
+          setActiveConcernEmail(null);
+        }
+      } else {
+        toast.error("Failed to delete concern flag.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    }
+  };
+
   // Update quick controls
   const handleSaveControls = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1263,13 +1300,24 @@ export default function SubmissionsPage() {
               <ShieldAlertIcon className="w-5 h-5" /> Coordinator Flags
             </h3>
             <p className="text-xs text-gray-500 font-bold border-b pb-2">Student: {activeConcernEmail}</p>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
               {concerns
                 .filter((c) => c.studentEmail.toLowerCase() === activeConcernEmail.toLowerCase())
                 .map((c) => (
-                  <div key={c.id} className="bg-red-50 p-3 rounded border border-red-200 text-xs">
-                    <p className="font-semibold text-red-900 mb-1">{c.concernText}</p>
-                    <p className="text-[10px] text-gray-400">Flagged by: {c.coordinatorEmail}</p>
+                  <div key={c.id} className="bg-red-50 p-3 rounded border border-red-200 text-xs flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <p className="font-semibold text-red-900 mb-1">{c.concernText}</p>
+                      <p className="text-[10px] text-gray-400">Flagged by: {c.coordinatorEmail}</p>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteConcern(c.id)}
+                      className="text-red-600 hover:text-red-700 h-6 w-6 p-0 shrink-0"
+                      title="Delete concern flag"
+                    >
+                      <Trash2Icon className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 ))}
             </div>
@@ -1295,7 +1343,7 @@ export default function SubmissionsPage() {
               👤 Student Profile Review
             </h3>
             
-            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 text-sm">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1 text-sm">
               <div>
                 <span className="font-bold text-xs text-gray-500 uppercase block">Email Address</span>
                 <span className="font-semibold text-gray-850">{activeProfileReg.email}</span>
