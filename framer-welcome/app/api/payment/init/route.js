@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { realtimeDb, isFirebaseEnabled } from "@/lib/firebase";
+import { db, realtimeDb, isFirebaseEnabled } from "@/lib/firebase";
 import { ref, runTransaction } from "firebase/database";
+import { doc as fsDoc, getDoc as fsGetDoc } from "firebase/firestore";
 
 let razorpay = null;
 
@@ -30,12 +31,40 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { tripId, amount, currency = "INR" } = body;
+    const { tripId, currency = "INR" } = body;
 
-    if (!tripId || !amount) {
+    if (!tripId) {
       return NextResponse.json(
-        { error: "Trip ID and amount are required" },
+        { error: "Trip ID is required" },
         { status: 400 },
+      );
+    }
+
+    // 1. Fetch trip metadata from Firestore to read fee, custom key id, and secret key!
+    const fsTripRef = fsDoc(db, "trips", tripId);
+    const fsTripSnap = await fsGetDoc(fsTripRef);
+    if (!fsTripSnap.exists()) {
+      return NextResponse.json({ error: "Trip details not found in database" }, { status: 404 });
+    }
+    const fsTripData = fsTripSnap.data();
+    const tripFee = fsTripData.fee !== undefined ? Number(fsTripData.fee) : 500;
+
+    // 2. Select dynamic or global Razorpay client
+    let activeRazorpay = razorpay;
+    let activeKeyId = process.env.RAZORPAY_KEY_ID;
+
+    if (fsTripData.razorpayKeyId && fsTripData.razorpayKeySecret) {
+      activeRazorpay = new Razorpay({
+        key_id: fsTripData.razorpayKeyId,
+        key_secret: fsTripData.razorpayKeySecret,
+      });
+      activeKeyId = fsTripData.razorpayKeyId;
+    }
+
+    if (!activeRazorpay) {
+      return NextResponse.json(
+        { error: "Payment system is not configured for this trip. Please try again later." },
+        { status: 503 }
       );
     }
 
@@ -112,19 +141,19 @@ export async function POST(req) {
       const snapshot = transactionResult.snapshot.val();
 
       const options = {
-        amount: amount * 100,
+        amount: tripFee * 100,
         currency: currency,
         receipt: `receipt_${Date.now()}`,
       };
 
       try {
-        const order = await razorpay.orders.create(options);
+        const order = await activeRazorpay.orders.create(options);
         return NextResponse.json({
           success: true,
           orderId: order.id,
           amount: order.amount,
           currency: order.currency,
-          key: process.env.RAZORPAY_KEY_ID,
+          key: activeKeyId,
           sessionId: newSessionId,
         });
       } catch (rpError) {

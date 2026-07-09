@@ -35,6 +35,9 @@ interface Trip {
   isCompleted?: boolean;
   description?: string;
   form?: { fields: any[] };
+  fee?: number;
+  razorpayKeyId?: string;
+  hasRazorpaySecret?: boolean;
 }
 
 interface Registration {
@@ -91,6 +94,9 @@ export default function SubmissionsPage() {
   const [editCoordinators, setEditCoordinators] = useState<any[]>([]);
   const [editSeats, setEditSeats] = useState(30);
   const [editFields, setEditFields] = useState<any[]>([]);
+  const [editFee, setEditFee] = useState(500);
+  const [editRazorpayId, setEditRazorpayId] = useState("");
+  const [editRazorpaySecret, setEditRazorpaySecret] = useState("");
 
   // Create Event Form state
   const [createName, setCreateName] = useState("");
@@ -104,6 +110,9 @@ export default function SubmissionsPage() {
     { id: "2", name: "Roll Number", type: "short_text", sortOrder: 1 },
     { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
   ]);
+  const [createFee, setCreateFee] = useState(500);
+  const [createRazorpayId, setCreateRazorpayId] = useState("");
+  const [createRazorpaySecret, setCreateRazorpaySecret] = useState("");
 
   // Fetch trips list
   useEffect(() => {
@@ -372,6 +381,9 @@ export default function SubmissionsPage() {
           })).filter((c) => c.name && c.email),
           totalSeats: Number(editSeats),
           formFields: editFields,
+          fee: Number(editFee),
+          razorpayKeyId: editRazorpayId,
+          razorpayKeySecret: editRazorpaySecret,
         }),
       });
 
@@ -469,6 +481,9 @@ export default function SubmissionsPage() {
           releasedSeats: 0,
           releasedSeatsType: "all",
           formFields: createFields,
+          fee: Number(createFee),
+          razorpayKeyId: createRazorpayId,
+          razorpayKeySecret: createRazorpaySecret,
         }),
       });
 
@@ -551,6 +566,9 @@ export default function SubmissionsPage() {
 
               setEditSeats(selectedTrip.totalSeats || 30);
               setEditFields(selectedTrip.form?.fields || []);
+              setEditFee(selectedTrip.fee !== undefined ? selectedTrip.fee : 500);
+              setEditRazorpayId(selectedTrip.razorpayKeyId || "");
+              setEditRazorpaySecret(selectedTrip.hasRazorpaySecret ? "********" : "");
             }
             setActiveTab("edit-event");
           }}
@@ -840,6 +858,37 @@ export default function SubmissionsPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-dashed">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
+              <Input
+                type="number"
+                required
+                min={0}
+                value={editFee}
+                onChange={(e) => setEditFee(Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key ID (Optional)</label>
+              <Input
+                type="text"
+                value={editRazorpayId}
+                onChange={(e) => setEditRazorpayId(e.target.value)}
+                placeholder="e.g. rzp_test_..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key Secret (Optional)</label>
+              <Input
+                type="text"
+                value={editRazorpaySecret}
+                onChange={(e) => setEditRazorpaySecret(e.target.value)}
+                placeholder={selectedTrip?.hasRazorpaySecret ? "******** (Configured)" : "Enter Secret Key"}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-bold text-muted-foreground uppercase">Description</label>
             <textarea
@@ -1014,6 +1063,37 @@ export default function SubmissionsPage() {
                 min={1}
                 value={createSeats}
                 onChange={(e) => setCreateSeats(Number(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-dashed">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
+              <Input
+                type="number"
+                required
+                min={0}
+                value={createFee}
+                onChange={(e) => setCreateFee(Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key ID (Optional)</label>
+              <Input
+                type="text"
+                value={createRazorpayId}
+                onChange={(e) => setCreateRazorpayId(e.target.value)}
+                placeholder="rzp_test_..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key Secret (Optional)</label>
+              <Input
+                type="text"
+                value={createRazorpaySecret}
+                onChange={(e) => setCreateRazorpaySecret(e.target.value)}
+                placeholder="Enter Secret Key"
               />
             </div>
           </div>

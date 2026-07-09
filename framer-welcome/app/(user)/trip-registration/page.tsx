@@ -174,7 +174,6 @@ export default function SecureForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tripId: selectedTripId,
-          amount: 500, // Fixed trip registration fee (INR 500)
         }),
       });
 
@@ -366,7 +365,7 @@ export default function SecureForm() {
                         </p>
                         <div className="border border-indigo-200 rounded-lg p-4 bg-white text-center">
                           <p className="text-sm text-gray-500 font-bold">Amount to Pay</p>
-                          <p className="text-3xl font-black text-indigo-950">₹ 500.00</p>
+                          <p className="text-3xl font-black text-indigo-950">₹ {selectedTrip?.fee !== undefined ? Number(selectedTrip.fee).toFixed(2) : "500.00"}</p>
                         </div>
 
                         <button

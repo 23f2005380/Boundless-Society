@@ -68,6 +68,9 @@ const tripSchema = yup.object().shape({
     .required("Total seats is required")
     .positive("Total seats must be greater than 0")
     .integer("Total seats must be a whole number"),
+  fee: yup.number().min(0).default(500),
+  razorpayKeyId: yup.string().trim().optional(),
+  razorpayKeySecret: yup.string().trim().optional(),
   femaleReservedSeats: yup
     .number()
     .typeError("Female reserved seats must be a number")
@@ -119,15 +122,29 @@ export async function POST(request) {
       stripUnknown: true,
     });
 
-    const validCoordinators = (validatedData.coordinators || []).filter(
-      (c) => c && c.trim() !== ""
-    );
+    const validCoordinators = (validatedData.coordinators || []).map((c) => {
+      if (typeof c === "object" && c !== null) {
+        return {
+          name: String(c.name || "").trim(),
+          email: String(c.email || "").trim(),
+        };
+      }
+      return String(c).trim();
+    }).filter((c) => {
+      if (typeof c === "object" && c !== null) {
+        return c.name && c.email;
+      }
+      return c !== "";
+    });
 
     const tripData = {
       name: validatedData.name,
       description: validatedData.description || "",
       coordinators: validCoordinators,
       totalSeats: validatedData.totalSeats,
+      fee: validatedData.fee !== undefined ? Number(validatedData.fee) : 500,
+      razorpayKeyId: validatedData.razorpayKeyId || "",
+      razorpayKeySecret: validatedData.razorpayKeySecret || "",
       femaleReservedSeats: validatedData.femaleReservedSeats,
       releasedSeats: validatedData.releasedSeats,
       releasedSeatsType: validatedData.releasedSeatsType,
@@ -226,6 +243,9 @@ export async function GET() {
         finalRosterSaved: data.finalRosterSaved,
         form: data.form,
         images: data.images || [],
+        fee: data.fee !== undefined ? Number(data.fee) : 500,
+        razorpayKeyId: data.razorpayKeyId || "",
+        hasRazorpaySecret: !!data.razorpayKeySecret,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
@@ -275,7 +295,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { tripId, name, description, coordinators, totalSeats, formFields } = body;
+    const { tripId, name, description, coordinators, totalSeats, formFields, fee, razorpayKeyId, razorpayKeySecret } = body;
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
@@ -300,6 +320,11 @@ export async function PUT(request) {
       });
     }
     if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
+    if (fee !== undefined) updateData.fee = Number(fee);
+    if (razorpayKeyId !== undefined) updateData.razorpayKeyId = razorpayKeyId;
+    if (razorpayKeySecret !== undefined && razorpayKeySecret !== "********") {
+      updateData.razorpayKeySecret = razorpayKeySecret;
+    }
     
     if (formFields !== undefined) {
       updateData.form = {

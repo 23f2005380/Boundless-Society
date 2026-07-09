@@ -79,8 +79,19 @@ export async function POST(req) {
       );
     }
 
-    // 1. Verify Razorpay Signature
-    const secret = process.env.RAZORPAY_KEY_SECRET;
+    // 1. Fetch trip metadata from Firestore to read custom Key Secret if any
+    const tripDocRef = doc(db, "trips", tripId);
+    const tripSnap = await getDoc(tripDocRef);
+    if (!tripSnap.exists()) {
+      return NextResponse.json({ error: "Trip details not found" }, { status: 404 });
+    }
+    const tripData = tripSnap.data();
+
+    // 2. Verify Razorpay Signature
+    const secret = (tripData.razorpayKeySecret && tripData.razorpayKeySecret.trim() !== "")
+      ? tripData.razorpayKeySecret
+      : process.env.RAZORPAY_KEY_SECRET;
+
     const generated_signature = crypto
       .createHmac("sha256", secret)
       .update(orderId + "|" + paymentId)
