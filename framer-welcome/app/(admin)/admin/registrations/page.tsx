@@ -1405,8 +1405,8 @@ export default function SubmissionsPage() {
         </form>
       )}
       {activeConcernEmail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border-2 border-black rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-black">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center">
+          <div className="bg-white border-2 border-black rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-black text-left my-8">
             <button
               onClick={() => setActiveConcernEmail(null)}
               className="absolute top-3 right-3 text-gray-500 hover:text-black font-black"
@@ -1417,7 +1417,7 @@ export default function SubmissionsPage() {
               <ShieldAlertIcon className="w-5 h-5" /> Coordinator Flags
             </h3>
             <p className="text-xs text-gray-500 font-bold border-b pb-2">Student: {activeConcernEmail}</p>
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="space-y-3">
               {concerns
                 .filter((c) => c.studentEmail.toLowerCase() === activeConcernEmail.toLowerCase())
                 .map((c) => (
@@ -1438,7 +1438,7 @@ export default function SubmissionsPage() {
                   </div>
                 ))}
             </div>
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 border-t">
               <Button onClick={() => setActiveConcernEmail(null)} className="text-xs">
                 Close
               </Button>
@@ -1448,19 +1448,19 @@ export default function SubmissionsPage() {
       )}
 
       {activeProfileReg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center">
+          <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left my-8">
             <button
               onClick={() => setActiveProfileReg(null)}
               className="absolute top-3 right-3 text-gray-500 hover:text-black font-black z-10"
             >
               ✕
             </button>
-            <h3 className="font-bold text-lg text-indigo-950 uppercase border-b pb-2 shrink-0">
+            <h3 className="font-bold text-lg text-indigo-950 uppercase border-b pb-2">
               👤 Student Profile Review
             </h3>
             
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-sm">
+            <div className="space-y-4 text-sm">
               <div>
                 <span className="font-bold text-xs text-gray-500 uppercase block">Email Address</span>
                 <span className="font-semibold text-gray-850">{activeProfileReg.email}</span>
@@ -1553,7 +1553,7 @@ export default function SubmissionsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t shrink-0">
+            <div className="flex justify-end pt-2 border-t">
               <Button onClick={() => setActiveProfileReg(null)} className="text-xs">
                 Close
               </Button>
