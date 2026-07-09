@@ -126,14 +126,7 @@ export async function POST(req) {
 
     const gender = regData.gender || "unknown";
 
-    // 3. Update Trip stats in Firestore
-    const tripRef = doc(db, "trips", tripId);
-    const tripSnap = await getDoc(tripRef);
-    if (!tripSnap.exists()) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
-    }
-    const tripData = tripSnap.data();
-
+    // 3. Update Trip stats in Firestore (reusing tripDocRef and tripData from above)
     const currentTotalJoined = Number(tripData.totalJoined || 0);
     const currentFemaleJoined = Number(tripData.femaleJoined || 0);
     const totalSeats = Number(tripData.totalSeats || 30);
@@ -152,7 +145,7 @@ export async function POST(req) {
       tripUpdate.paymentOpen = false;
     }
 
-    await updateDoc(tripRef, tripUpdate);
+    await updateDoc(tripDocRef, tripUpdate);
 
     // 4. Update user-registrations status to "paid"
     await updateDoc(regRef, {
