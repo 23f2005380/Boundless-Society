@@ -122,6 +122,11 @@ export default function CoordinatorDashboard() {
   // Fetch registrations & concerns for selected trip
   const fetchTripData = async () => {
     if (!selectedTripId) return;
+    const isAssigned = trips.some((t) => t.id === selectedTripId);
+    if (!isAssigned && trips.length > 0) {
+      console.warn("Unauthorized: Not assigned to this trip.");
+      return;
+    }
     setLoading(true);
     try {
       const regRes = await fetch(`/api/admin/registrations?tripId=${selectedTripId}`);
@@ -148,6 +153,11 @@ export default function CoordinatorDashboard() {
   }, [isAuthenticated, selectedTripId]);
 
   const handleStatusChange = async (regId: string, nextStatus: string) => {
+    const isAssigned = trips.some((t) => t.id === selectedTripId);
+    if (!isAssigned) {
+      alert("Unauthorized: You do not coordinate this event.");
+      return;
+    }
     try {
       const res = await fetch("/api/admin/registrations", {
         method: "POST",
@@ -169,6 +179,11 @@ export default function CoordinatorDashboard() {
   const handleRaiseConcern = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReg || !concernText.trim() || !user?.email) return;
+    const isAssigned = trips.some((t) => t.id === selectedTripId);
+    if (!isAssigned) {
+      alert("Unauthorized: You do not coordinate this event.");
+      return;
+    }
     setSubmittingConcern(true);
 
     try {
