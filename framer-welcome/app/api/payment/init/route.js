@@ -63,14 +63,18 @@ export async function POST(req) {
 
     const tripRef = ref(realtimeDb, `trips/${tripId}`);
 
-    // Check if trip exists first
-    const { get } = await import("firebase/database");
-    const snapshot = await get(tripRef);
+    // Check if trip exists first in RTDB, initialize if missing
+    const { get, set } = await import("firebase/database");
+    let snapshot = await get(tripRef);
     if (!snapshot.exists()) {
-      return NextResponse.json(
-        { error: `Trip not found at path trips/${tripId}` },
-        { status: 404 },
-      );
+      const initialRTData = {
+        TotalSeates: Number(fsTripData.totalSeats || 30),
+        PaymentDone: Number(fsTripData.totalJoined || 0),
+        ActivePaymentSession: 0,
+        sessions: {}
+      };
+      await set(tripRef, initialRTData);
+      snapshot = await get(tripRef);
     }
 
     let debugInfo = {};

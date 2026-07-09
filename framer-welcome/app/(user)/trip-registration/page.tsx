@@ -24,6 +24,7 @@ interface Trip {
   predefinedGirlsThreshold: number;
   femaleJoined: number;
   totalJoined: number;
+  fee?: number;
 }
 
 export default function SecureForm() {
