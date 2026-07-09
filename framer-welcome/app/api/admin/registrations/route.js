@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { adminAuth } from "@/lib/firebase-admin";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -63,6 +65,49 @@ async function archiveEventRoster(tripId) {
   }
 }
 
+async function checkAuth(req, tripId) {
+  try {
+    const session = await getServerSession();
+    if (session) return true;
+
+    const { searchParams } = new URL(req.url);
+    let token = searchParams.get("token");
+
+    if (!token && req.method !== "GET" && req.method !== "HEAD") {
+      try {
+        const clone = req.clone();
+        const body = await clone.json();
+        token = body.token;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!token) return false;
+
+    const decoded = await adminAuth.verifyIdToken(token);
+    const email = decoded.email;
+    if (!email) return false;
+
+    // Check if user coordinates this trip
+    const tripSnap = await getDoc(doc(db, "trips", tripId));
+    if (!tripSnap.exists()) return false;
+    const tripData = tripSnap.data();
+
+    const isCoordinated = (tripData.coordinators || []).some((c) => {
+      if (typeof c === "object" && c !== null) {
+        return c.email?.toLowerCase() === email.toLowerCase();
+      }
+      return String(c).toLowerCase() === email.toLowerCase();
+    });
+
+    return isCoordinated;
+  } catch (err) {
+    console.error("Auth check failed:", err);
+    return false;
+  }
+}
+
 /* GET → Retrieve all registrations for a trip */
 export async function GET(req) {
   try {
@@ -71,6 +116,11 @@ export async function GET(req) {
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    const authorized = await checkAuth(req, tripId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
     const q = query(
@@ -109,7 +159,8 @@ export async function GET(req) {
 /* POST → Update individual registration status (e.g. approve to pay, reject) */
 export async function POST(req) {
   try {
-    const body = await req.json();
+    const clone = req.clone();
+    const body = await clone.json();
     const { registrationId, status } = body;
 
     if (!registrationId || !status) {
@@ -120,6 +171,17 @@ export async function POST(req) {
     }
 
     const regRef = doc(db, "user-registrations", registrationId);
+    const regSnap = await getDoc(regRef);
+    if (!regSnap.exists()) {
+      return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+    }
+    const tripId = regSnap.data().tripId;
+
+    const authorized = await checkAuth(req, tripId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
     await updateDoc(regRef, {
       status,
       updatedAt: serverTimestamp(),
@@ -135,7 +197,8 @@ export async function POST(req) {
 /* PUT → Update event-level configuration (switches, seats, quota) */
 export async function PUT(req) {
   try {
-    const body = await req.json();
+    const clone = req.clone();
+    const body = await clone.json();
     const {
       tripId,
       registrationOpen,
@@ -147,6 +210,11 @@ export async function PUT(req) {
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    const authorized = await checkAuth(req, tripId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
     const tripRef = doc(db, "trips", tripId);

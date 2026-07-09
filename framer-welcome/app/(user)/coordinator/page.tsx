@@ -129,7 +129,8 @@ export default function CoordinatorDashboard() {
     }
     setLoading(true);
     try {
-      const regRes = await fetch(`/api/admin/registrations?tripId=${selectedTripId}`);
+      const token = await user?.getIdToken();
+      const regRes = await fetch(`/api/admin/registrations?tripId=${selectedTripId}&token=${token}`);
       const concernsRes = await fetch(`/api/coordinator/concerns?tripId=${selectedTripId}`);
       
       if (regRes.ok && concernsRes.ok) {
@@ -159,10 +160,11 @@ export default function CoordinatorDashboard() {
       return;
     }
     try {
+      const token = await user?.getIdToken();
       const res = await fetch("/api/admin/registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ registrationId: regId, status: nextStatus }),
+        body: JSON.stringify({ registrationId: regId, status: nextStatus, token }),
       });
       if (res.ok) {
         alert(`Status updated to ${nextStatus}`);

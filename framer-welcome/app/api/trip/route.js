@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import * as yup from "yup";
 import { db, isFirebaseEnabled } from "@/lib/firebase";
 import {
@@ -108,6 +109,11 @@ const tripSchema = yup.object().shape({
 
 export async function POST(request) {
   try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!isFirebaseEnabled || !db) {
       return NextResponse.json(
         { error: "Firebase is not configured. Please try again later." },
@@ -263,6 +269,11 @@ export async function GET() {
 
 export async function DELETE(request) {
   try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!isFirebaseEnabled || !db) {
       return NextResponse.json(
         { error: "Firebase is not configured. Please try again later." },
@@ -287,6 +298,11 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!isFirebaseEnabled || !db) {
       return NextResponse.json(
         { error: "Firebase is not configured. Please try again later." },
