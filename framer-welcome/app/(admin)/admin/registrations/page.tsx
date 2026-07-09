@@ -824,40 +824,44 @@ export default function SubmissionsPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-1.5">
-                              {reg.status === "registered" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
-                                  onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
-                                >
-                                  <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
-                                </Button>
-                              )}
+                            {!selectedTrip?.isCompleted ? (
+                              <div className="flex justify-end gap-1.5">
+                                {reg.status === "registered" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                    onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
+                                  >
+                                    <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
+                                  </Button>
+                                )}
 
-                              {reg.status !== "paid" && reg.status !== "rejected" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs px-2.5 py-1 bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
-                                  onClick={() => handleStatusChange(reg.id, "rejected")}
-                                >
-                                  <XCircleIcon className="w-3.5 h-3.5 mr-1" /> Decline
-                                </Button>
-                              )}
+                                {reg.status !== "paid" && reg.status !== "rejected" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs px-2.5 py-1 bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
+                                    onClick={() => handleStatusChange(reg.id, "rejected")}
+                                  >
+                                    <XCircleIcon className="w-3.5 h-3.5 mr-1" /> Decline
+                                  </Button>
+                                )}
 
-                              {reg.status === "rejected" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs px-2.5 py-1 bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
-                                  onClick={() => handleStatusChange(reg.id, "registered")}
-                                >
-                                  Restore
-                                </Button>
-                              )}
-                            </div>
+                                {reg.status === "rejected" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs px-2.5 py-1 bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                                    onClick={() => handleStatusChange(reg.id, "registered")}
+                                  >
+                                    Restore
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic font-semibold">No Actions (Archived)</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       );

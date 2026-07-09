@@ -16,6 +16,7 @@ interface Trip {
   id: string;
   name: string;
   coordinators: string[];
+  isCompleted?: boolean;
 }
 
 interface Registration {
@@ -365,21 +366,27 @@ export default function CoordinatorDashboard() {
                     <p className="text-xs text-gray-500 font-semibold">{selectedReg.email}</p>
                   </div>
                   <div className="flex gap-2">
-                    {selectedReg.status === "registered" && (
-                      <button
-                        onClick={() => handleStatusChange(selectedReg.id, "approved_to_pay")}
-                        className="bg-green-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1.5"
-                      >
-                        <UserCheckIcon className="w-3.5 h-3.5" /> Approve Payment Link
-                      </button>
-                    )}
-                    {selectedReg.status === "approved_to_pay" && (
-                      <button
-                        onClick={() => handleStatusChange(selectedReg.id, "registered")}
-                        className="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-amber-700"
-                      >
-                        Deactivate Payment Link
-                      </button>
+                    {!selectedTrip?.isCompleted ? (
+                      <>
+                        {selectedReg.status === "registered" && (
+                          <button
+                            onClick={() => handleStatusChange(selectedReg.id, "approved_to_pay")}
+                            className="bg-green-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1.5"
+                          >
+                            <UserCheckIcon className="w-3.5 h-3.5" /> Approve Payment Link
+                          </button>
+                        )}
+                        {selectedReg.status === "approved_to_pay" && (
+                          <button
+                            onClick={() => handleStatusChange(selectedReg.id, "registered")}
+                            className="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-amber-700"
+                          >
+                            Deactivate Payment Link
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-red-700 font-bold bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">Event Completed (Read-Only)</span>
                     )}
                   </div>
                 </div>
