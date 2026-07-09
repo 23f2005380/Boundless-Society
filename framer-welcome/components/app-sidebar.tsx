@@ -62,6 +62,11 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
+      title: "Registrations",
+      url: "/admin/registrations",
+      icon: ClipboardListIcon,
+    },
+    {
       title: "Gallery",
       url: "/admin/gallery",
       icon: CameraIcon, 

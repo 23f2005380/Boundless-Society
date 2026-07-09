@@ -4,43 +4,57 @@ import { useEffect, useState, useRef } from "react";
 import { app, auth } from "@/lib/firebase";
 import {
     getFirestore,
-    collection,
-    getDocs,
-    query,
-    orderBy,
-    limit,
+    doc,
+    getDoc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
-export default function UserRegistrationForm({ user, setUser }) {
+export default function UserRegistrationForm({ user, setUser, tripId, autofillData, onSuccess }) {
     const dbRef = useRef(null);
     const [dbReady, setDbReady] = useState(false);
+    
     useEffect(() => {
         dbRef.current = getFirestore(app);
         setDbReady(true);
     }, []);
+
     const [fields, setFields] = useState([]);
     const [formValues, setFormValues] = useState({});
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!dbRef.current) return;
+        if (!dbRef.current || !tripId) return;
         const fetchForm = async () => {
-            const q = query(collection(dbRef.current, "trips"), orderBy("createdAt", "desc"), limit(1));
-            const snapshot = await getDocs(q);
+            try {
+                const docRef = doc(dbRef.current, "trips", tripId);
+                const snapshot = await getDoc(docRef);
 
-            if (!snapshot.empty) {
-                const doc = snapshot.docs[0];
-                const data = doc.data();
-                const formFields = data?.form?.fields || [];
-                const sorted = [...formFields].sort((a, b) => a.sortOrder - b.sortOrder);
-                setFields(sorted);
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    const formFields = data?.form?.fields || [];
+                    const sorted = [...formFields].sort((a, b) => a.sortOrder - b.sortOrder);
+                    setFields(sorted);
+
+                    // Initialize formValues from autofillData
+                    if (autofillData) {
+                        const prefilled = {};
+                        sorted.forEach((field) => {
+                            if (autofillData[field.name] !== undefined) {
+                                prefilled[field.name] = autofillData[field.name];
+                            }
+                        });
+                        setFormValues(prefilled);
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading trip form fields:", err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchForm();
-    }, []);
+    }, [dbReady, tripId, autofillData]);
 
     const handleChange = (fieldName, value) => {
         setFormValues((prev) => ({ ...prev, [fieldName]: value }));
@@ -66,7 +80,7 @@ export default function UserRegistrationForm({ user, setUser }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!user) return;
+        if (!user || !tripId) return;
         setSubmitting(true);
 
         try {
@@ -74,7 +88,9 @@ export default function UserRegistrationForm({ user, setUser }) {
             const imageEntry = [...formData.entries()].find(([, value]) => value instanceof File && value.size > 0);
             const imageFieldName = imageEntry?.[0];
             const imageFile = imageEntry?.[1];
-            const formDataObj = Object.fromEntries(formData.entries());
+            
+            // Reconstruct form fields using state or inputs
+            const formDataObj = { ...formValues };
 
             if (imageFile) {
                 const base64Image = await convertToBase64(imageFile);
@@ -101,22 +117,23 @@ export default function UserRegistrationForm({ user, setUser }) {
                 }
                 const imageUrl = data.images[0].secure_url || data.images[0];
                 formDataObj[imageFieldName] = imageUrl;
-                console.log(formDataObj)
             }
+
             const token = await user.getIdToken();
             const res = await fetch("/api/user-registration", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, formData: formDataObj }),
+                body: JSON.stringify({ token, tripId, formData: formDataObj }),
             });
 
             const data = await res.json();
             if (!res.ok) {
-                alert(data.error);
-                await signOut(auth);
+                alert(data.error || "Submission failed");
                 return;
             }
-            alert("Form submitted successfully!");
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error) {
             console.error("Submission error:", error);
             alert("Something went wrong. Please try again.");
@@ -125,22 +142,23 @@ export default function UserRegistrationForm({ user, setUser }) {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="text-center py-4 text-[#6d432b] font-bold">Loading Form Fields...</div>;
 
     return (
         <div className="w-full p-6">
             <form onSubmit={handleSubmit} className="flex flex-col space-y-6 items-center">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-center text-[#6d432b]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-center text-[#6d432b] w-full">
                     <div className="text-start">
                         <label className="text-lg font-medium px-2">Email</label>
                         <input
                             value={user.email}
                             disabled
-                            className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent"
+                            className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none cursor-not-allowed"
                         />
                     </div>
 
                     {fields.map((field) => {
+                        const currentVal = formValues[field.name] || "";
                         switch (field.type) {
                             case "short_text":
                                 return (
@@ -149,6 +167,8 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <input
                                             name={field.name}
                                             type="text"
+                                            value={currentVal}
+                                            required
                                             onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none"
                                         />
@@ -161,6 +181,8 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <textarea
                                             name={field.name}
                                             rows="1"
+                                            value={currentVal}
+                                            required
                                             onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none resize-none"
                                         />
@@ -173,6 +195,8 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <input
                                             name={field.name}
                                             type="date"
+                                            value={currentVal}
+                                            required
                                             onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none"
                                         />
@@ -184,11 +208,12 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <div className="grid grid-cols-2 items-center text-center mt-2">
                                             {field.options?.map((option) => (
-                                                <label key={option} className="flex items-center space-x-2 mb-1">
+                                                <label key={option} className="flex items-center space-x-2 mb-1 cursor-pointer">
                                                     <input
                                                         type="radio"
                                                         name={field.name}
                                                         value={option}
+                                                        required
                                                         checked={formValues[field.name] === option}
                                                         onChange={(e) => handleChange(field.name, e.target.value)}
                                                     />
@@ -204,6 +229,8 @@ export default function UserRegistrationForm({ user, setUser }) {
                                         <label className="text-lg font-medium px-2">{field.name}</label>
                                         <select
                                             name={field.name}
+                                            value={currentVal}
+                                            required
                                             onChange={(e) => handleChange(field.name, e.target.value)}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none appearance-none"
                                         >
@@ -222,6 +249,7 @@ export default function UserRegistrationForm({ user, setUser }) {
                                             type="file"
                                             accept="image/png, image/jpg, image/jpeg"
                                             name={field.name}
+                                            required={!currentVal}
                                             onChange={(e) => handleChange(field.name, e.target.files[0])}
                                             className="w-full mt-1 p-2 border-b-2 border-l-2 border-amber-900 rounded bg-transparent outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-900 file:text-white hover:file:bg-amber-800 cursor-pointer"
                                         />
@@ -233,20 +261,23 @@ export default function UserRegistrationForm({ user, setUser }) {
                     })}
                 </div>
 
-                <button type="submit" disabled={submitting} className="relative group">
-                    <div className="absolute inset-0 bg-[#4d2a18] rounded-full translate-y-1" />
-                    <div className="relative bg-[#6d432b] text-white px-20 py-3 rounded-full font-bold transition-transform group-active:translate-y-1">
-                        {submitting ? "Submitting..." : "Submit"}
-                    </div>
-                </button>
-            </form>
+                <div className="flex gap-4 mt-6">
+                    <button type="submit" disabled={submitting} className="relative group">
+                        <div className="absolute inset-0 bg-[#4d2a18] rounded-full translate-y-1" />
+                        <div className="relative bg-[#6d432b] text-white px-20 py-3 rounded-full font-bold transition-transform group-active:translate-y-1">
+                            {submitting ? "Submitting..." : "Submit"}
+                        </div>
+                    </button>
 
-            <button
-                onClick={handleLogout}
-                className="text-white bg-red-500 px-20 py-3 rounded-full mt-2 transition"
-            >
-                Logout
-            </button>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="text-white bg-red-600 px-10 py-3 rounded-full font-bold transition hover:bg-red-700"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }
