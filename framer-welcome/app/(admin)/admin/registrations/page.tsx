@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 interface Trip {
   id: string;
   name: string;
-  coordinators: string[];
+  coordinators: any[];
   registrationOpen?: boolean;
   paymentOpen?: boolean;
   totalSeats?: number;
@@ -86,14 +86,16 @@ export default function SubmissionsPage() {
   // Edit Event Form state
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
-  const [editCoordinators, setEditCoordinators] = useState("");
+  const [editCoordinators, setEditCoordinators] = useState<any[]>([]);
   const [editSeats, setEditSeats] = useState(30);
   const [editFields, setEditFields] = useState<any[]>([]);
 
   // Create Event Form state
   const [createName, setCreateName] = useState("");
   const [createDesc, setCreateDesc] = useState("");
-  const [createCoordinators, setCreateCoordinators] = useState("");
+  const [createCoordinators, setCreateCoordinators] = useState<any[]>([
+    { id: "c1", name: "", email: "" }
+  ]);
   const [createSeats, setCreateSeats] = useState(30);
   const [createFields, setCreateFields] = useState<any[]>([
     { id: "1", name: "Full Name", type: "short_text", sortOrder: 0 },
@@ -332,6 +334,24 @@ export default function SubmissionsPage() {
     setEditFields(copy.map((f, idx) => ({ ...f, sortOrder: idx })));
   };
 
+  // Edit Coordinators Builder
+  const addEditCoordinator = () => {
+    setEditCoordinators([
+      ...editCoordinators,
+      { id: Math.random().toString(36).substr(2, 9), name: "", email: "" }
+    ]);
+  };
+
+  const updateEditCoordinator = (id: string, key: string, value: string) => {
+    setEditCoordinators(
+      editCoordinators.map((c) => (c.id === id ? { ...c, [key]: value } : c))
+    );
+  };
+
+  const removeEditCoordinator = (id: string) => {
+    setEditCoordinators(editCoordinators.filter((c) => c.id !== id));
+  };
+
   const handleSaveEventDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTripId) return;
@@ -344,7 +364,10 @@ export default function SubmissionsPage() {
           tripId: selectedTripId,
           name: editName,
           description: editDesc,
-          coordinators: editCoordinators.split(",").map((email) => email.trim()).filter(Boolean),
+          coordinators: editCoordinators.map((c) => ({
+            name: c.name.trim(),
+            email: c.email.trim(),
+          })).filter((c) => c.name && c.email),
           totalSeats: Number(editSeats),
           formFields: editFields,
         }),
@@ -353,7 +376,6 @@ export default function SubmissionsPage() {
       if (res.ok) {
         toast.success("Event details and registration form saved successfully!");
         
-        // Reload trips
         const tripRes = await fetch("/api/trip");
         if (tripRes.ok) {
           const tripData = await tripRes.json();
@@ -408,6 +430,24 @@ export default function SubmissionsPage() {
     setCreateFields(copy.map((f, idx) => ({ ...f, sortOrder: idx })));
   };
 
+  // Create Coordinators Builder
+  const addCreateCoordinator = () => {
+    setCreateCoordinators([
+      ...createCoordinators,
+      { id: Math.random().toString(36).substr(2, 9), name: "", email: "" }
+    ]);
+  };
+
+  const updateCreateCoordinator = (id: string, key: string, value: string) => {
+    setCreateCoordinators(
+      createCoordinators.map((c) => (c.id === id ? { ...c, [key]: value } : c))
+    );
+  };
+
+  const removeCreateCoordinator = (id: string) => {
+    setCreateCoordinators(createCoordinators.filter((c) => c.id !== id));
+  };
+
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -418,7 +458,10 @@ export default function SubmissionsPage() {
         body: JSON.stringify({
           name: createName,
           description: createDesc,
-          coordinators: createCoordinators.split(",").map((email) => email.trim()).filter(Boolean),
+          coordinators: createCoordinators.map((c) => ({
+            name: c.name.trim(),
+            email: c.email.trim(),
+          })).filter((c) => c.name && c.email),
           totalSeats: Number(createSeats),
           femaleReservedSeats: 0,
           releasedSeats: 0,
@@ -430,7 +473,6 @@ export default function SubmissionsPage() {
       if (res.ok) {
         toast.success("New event created successfully!");
         
-        // Reload trips
         const tripRes = await fetch("/api/trip");
         if (tripRes.ok) {
           const tripData = await tripRes.json();
@@ -495,7 +537,16 @@ export default function SubmissionsPage() {
             if (selectedTrip) {
               setEditName(selectedTrip.name);
               setEditDesc(selectedTrip.description || "");
-              setEditCoordinators(selectedTrip.coordinators?.join(", ") || "");
+              
+              // Map coordinators (strings to objects backward compatible)
+              const coords = (selectedTrip.coordinators || []).map((c: any, idx: number) => {
+                if (typeof c === "object" && c !== null) {
+                  return { id: c.id || String(idx), name: c.name || "", email: c.email || "" };
+                }
+                return { id: String(idx), name: "", email: String(c) };
+              });
+              setEditCoordinators(coords);
+
               setEditSeats(selectedTrip.totalSeats || 30);
               setEditFields(selectedTrip.form?.fields || []);
             }
@@ -516,7 +567,7 @@ export default function SubmissionsPage() {
           onClick={() => {
             setCreateName("");
             setCreateDesc("");
-            setCreateCoordinators("");
+            setCreateCoordinators([{ id: "c1", name: "", email: "" }]);
             setCreateSeats(30);
             setCreateFields([
               { id: "1", name: "Full Name", type: "short_text", sortOrder: 0 },
@@ -799,14 +850,49 @@ export default function SubmissionsPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators (comma-separated emails)</label>
-            <Input
-              required
-              value={editCoordinators}
-              onChange={(e) => setEditCoordinators(e.target.value)}
-              placeholder="e.g. student1@study.iitm.ac.in, student2@study.iitm.ac.in"
-            />
+          {/* Edit Coordinators Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators</label>
+              <Button type="button" size="sm" onClick={addEditCoordinator} className="bg-indigo-900 text-white hover:bg-indigo-800">
+                <PlusIcon className="w-4 h-4 mr-1" /> Add Coordinator
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {editCoordinators.map((c) => (
+                <div key={c.id} className="flex gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Name"
+                      required
+                      value={c.name}
+                      onChange={(e) => updateEditCoordinator(c.id, "name", e.target.value)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Email"
+                      type="email"
+                      required
+                      value={c.email}
+                      onChange={(e) => updateEditCoordinator(c.id, "email", e.target.value)}
+                    />
+                  </div>
+                  {editCoordinators.length > 1 && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeEditCoordinator(c.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Form Fields Section */}
@@ -942,14 +1028,49 @@ export default function SubmissionsPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators (comma-separated emails)</label>
-            <Input
-              required
-              value={createCoordinators}
-              onChange={(e) => setCreateCoordinators(e.target.value)}
-              placeholder="e.g. coordinator1@study.iitm.ac.in, coordinator2@study.iitm.ac.in"
-            />
+          {/* Create Coordinators Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators</label>
+              <Button type="button" size="sm" onClick={addCreateCoordinator} className="bg-indigo-900 text-white hover:bg-indigo-800">
+                <PlusIcon className="w-4 h-4 mr-1" /> Add Coordinator
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {createCoordinators.map((c) => (
+                <div key={c.id} className="flex gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Name"
+                      required
+                      value={c.name}
+                      onChange={(e) => updateCreateCoordinator(c.id, "name", e.target.value)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Email"
+                      type="email"
+                      required
+                      value={c.email}
+                      onChange={(e) => updateCreateCoordinator(c.id, "email", e.target.value)}
+                    />
+                  </div>
+                  {createCoordinators.length > 1 && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeCreateCoordinator(c.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Form Fields Section */}

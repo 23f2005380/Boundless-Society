@@ -62,7 +62,12 @@ export default function CoordinatorDashboard() {
         
         // Find trips coordinated by this email
         const coordinated = allTrips.filter((t) => 
-          t.coordinators?.map(c => c.toLowerCase()).includes(coordinatorEmail.toLowerCase())
+          t.coordinators?.some((c: any) => {
+            if (typeof c === "object" && c !== null) {
+              return c.email?.toLowerCase() === coordinatorEmail.toLowerCase();
+            }
+            return String(c).toLowerCase() === coordinatorEmail.toLowerCase();
+          })
         );
 
         if (coordinated.length === 0) {

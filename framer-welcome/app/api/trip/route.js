@@ -46,11 +46,21 @@ const tripSchema = yup.object().shape({
   description: yup.string().trim(),
   coordinators: yup
     .array()
-    .of(yup.string().trim())
+    .of(
+      yup.lazy((val) => {
+        if (typeof val === "object" && val !== null) {
+          return yup.object().shape({
+            name: yup.string().required("Coordinator name is required").trim(),
+            email: yup.string().email("Invalid email").required("Coordinator email is required").trim(),
+          });
+        }
+        return yup.string().trim();
+      })
+    )
     .test(
       "at-least-one",
       "At least one coordinator is required",
-      (value) => value && value.some((c) => c && c.trim() !== "")
+      (value) => value && value.length > 0
     ),
   totalSeats: yup
     .number()
@@ -278,7 +288,17 @@ export async function PUT(request) {
 
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (coordinators !== undefined) updateData.coordinators = coordinators;
+    if (coordinators !== undefined) {
+      updateData.coordinators = coordinators.map((c) => {
+        if (typeof c === "object" && c !== null) {
+          return {
+            name: String(c.name || "").trim(),
+            email: String(c.email || "").trim(),
+          };
+        }
+        return String(c).trim();
+      });
+    }
     if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
     
     if (formFields !== undefined) {
