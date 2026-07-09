@@ -95,6 +95,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
         setSubmitting(true);
 
         try {
+            const token = await user.getIdToken();
             const formData = new FormData(e.currentTarget);
             const formDataObj = { ...formValues };
 
@@ -130,6 +131,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                     body: JSON.stringify({
                         images: [base64Image],
                         folder: "trip_registrations",
+                        token,
                     }),
                 });
                 const data = await uploadRes.json();
@@ -140,7 +142,6 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                 formDataObj[fieldName] = imageUrl;
             }
 
-            const token = await user.getIdToken();
             const res = await fetch("/api/user-registration", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

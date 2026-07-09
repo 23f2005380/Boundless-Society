@@ -106,6 +106,18 @@ export async function POST(request) {
       return Response.json({ error: "Registration for this trip is closed" }, { status: 400 });
     }
 
+    // Prevent duplicate registrations
+    const dupQuery = query(
+      collection(db, "user-registrations"),
+      where("tripId", "==", tripId),
+      where("email", "==", email),
+      limit(1)
+    );
+    const dupSnap = await getDocs(dupQuery);
+    if (!dupSnap.empty) {
+      return Response.json({ error: "You are already registered for this trip." }, { status: 400 });
+    }
+
     // Automatically detect gender from formData keys (e.g. key containing "gender" or "sex")
     const genderKey = Object.keys(formData).find(
       (k) => k.toLowerCase().includes("gender") || k.toLowerCase() === "sex"

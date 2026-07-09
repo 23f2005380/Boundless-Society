@@ -1,10 +1,32 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { adminAuth } from "@/lib/firebase-admin";
 import { uploadImage } from "@/lib/cloudinary";
 
 export async function POST(req) {
   try {
+    // 1. Dual Auth Gating (NextAuth session for admin, Firebase ID token for students)
+    const session = await getServerSession();
+    let authorized = !!session;
+
     const body = await req.json();
-    const { images, folder } = body;
+    const { images, folder, token } = body;
+
+    if (!authorized && token) {
+      try {
+        await adminAuth.verifyIdToken(token);
+        authorized = true;
+      } catch (err) {
+        console.error("Firebase upload authentication failed:", err);
+      }
+    }
+
+    if (!authorized) {
+      return NextResponse.json(
+        { error: "Unauthorized: Access is denied." },
+        { status: 401 }
+      );
+    }
 
     // ---- Validation ----
     if (!images || !Array.isArray(images) || images.length === 0) {
