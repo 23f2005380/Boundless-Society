@@ -165,6 +165,37 @@ export default function SubmissionsPage() {
     }
   };
 
+  const handleDeleteTrip = async () => {
+    if (!selectedTripId) return;
+    if (!confirm("Are you sure you want to delete this event completely? This action cannot be undone.")) return;
+    
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/trip?id=${selectedTripId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Event deleted successfully!");
+        const remaining = trips.filter((t) => t.id !== selectedTripId);
+        setTrips(remaining);
+        if (remaining.length > 0) {
+          setSelectedTripId(remaining[0].id);
+        } else {
+          setSelectedTripId("");
+          setSelectedTrip(null);
+          setRegistrations([]);
+        }
+      } else {
+        toast.error("Failed to delete the event.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Change individual registration status
   const handleStatusChange = async (regId: string, nextStatus: string) => {
     try {
@@ -281,6 +312,19 @@ export default function SubmissionsPage() {
               <SaveIcon className="w-3.5 h-3.5" /> {submitting ? "Saving..." : "Save Event Controls"}
             </Button>
           </form>
+
+          {selectedTrip && (
+            <div className="pt-2">
+              <Button
+                variant="destructive"
+                className="w-full text-xs"
+                disabled={submitting}
+                onClick={handleDeleteTrip}
+              >
+                Delete Event Completely
+              </Button>
+            </div>
+          )}
 
           {/* Roster Auto-Save Status Badge */}
           {selectedTrip && (

@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Loader2Icon, ShieldAlertIcon, FileTextIcon, UserCheckIcon, ArrowLeftIcon } from "lucide-react";
+import { Loader2Icon, ShieldAlertIcon, FileTextIcon, UserCheckIcon, LogOutIcon } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  User,
+} from "firebase/auth";
 
 interface Trip {
   id: string;
@@ -29,9 +37,10 @@ interface Concern {
 }
 
 export default function CoordinatorDashboard() {
-  const [email, setEmail] = useState("");
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
   
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTripId, setSelectedTripId] = useState("");
@@ -42,15 +51,9 @@ export default function CoordinatorDashboard() {
   const [concernText, setConcernText] = useState("");
   const [submittingConcern, setSubmittingConcern] = useState(false);
 
-  // Authenticate coordinator by matching email against active trip coordinators
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !email.includes("@")) {
-      alert("Please enter a valid student email ID.");
-      return;
-    }
-    setLoading(true);
-
+  // Authenticate coordinator by checking email against trip coordinators list
+  const verifyCoordinator = async (coordinatorEmail: string) => {
+    setAuthLoading(true);
     try {
       const res = await fetch("/api/trip");
       if (res.ok) {
@@ -59,12 +62,14 @@ export default function CoordinatorDashboard() {
         
         // Find trips coordinated by this email
         const coordinated = allTrips.filter((t) => 
-          t.coordinators?.map(c => c.toLowerCase()).includes(email.toLowerCase())
+          t.coordinators?.map(c => c.toLowerCase()).includes(coordinatorEmail.toLowerCase())
         );
 
         if (coordinated.length === 0) {
-          alert(`Email ${email} is not listed as a coordinator for any active trip.`);
-          setLoading(false);
+          alert(`Email ${coordinatorEmail} is not listed as a coordinator for any active trip.`);
+          await signOut(auth);
+          setIsAuthenticated(false);
+          setUser(null);
           return;
         }
 
@@ -73,14 +78,41 @@ export default function CoordinatorDashboard() {
         setIsAuthenticated(true);
       } else {
         alert("Failed to connect to trip database.");
+        await signOut(auth);
       }
     } catch (e) {
       console.error(e);
-      alert("An error occurred during authentication.");
+      alert("An error occurred during verification.");
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
+
+  // Google Sign-In
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+    }
+  };
+
+  // Firebase auth state subscriber
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser && firebaseUser.email) {
+        setUser(firebaseUser);
+        await verifyCoordinator(firebaseUser.email);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch registrations & concerns for selected trip
   const fetchTripData = async () => {
@@ -131,7 +163,7 @@ export default function CoordinatorDashboard() {
 
   const handleRaiseConcern = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedReg || !concernText.trim()) return;
+    if (!selectedReg || !concernText.trim() || !user?.email) return;
     setSubmittingConcern(true);
 
     try {
@@ -141,7 +173,7 @@ export default function CoordinatorDashboard() {
         body: JSON.stringify({
           tripId: selectedTripId,
           studentEmail: selectedReg.email,
-          coordinatorEmail: email,
+          coordinatorEmail: user.email,
           concernText: concernText,
         }),
       });
@@ -161,14 +193,26 @@ export default function CoordinatorDashboard() {
     }
   };
 
-  // Sign out / Back to login
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setTrips([]);
-    setRegistrations([]);
-    setConcerns([]);
-    setSelectedReg(null);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsAuthenticated(false);
+      setTrips([]);
+      setRegistrations([]);
+      setConcerns([]);
+      setSelectedReg(null);
+    } catch (e) {
+      console.error(e);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+        <Loader2Icon className="animate-spin text-amber-900 w-10 h-10" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -184,28 +228,20 @@ export default function CoordinatorDashboard() {
               Coordinator Login
             </h1>
             <p className="text-sm text-amber-950 mb-6 font-semibold">
-              Enter your student ID / coordinator email to access your trips.
+              Sign in with your Google account to verify your trip coordinator permissions.
             </p>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <input
-                type="email"
-                required
-                placeholder="coordinator@study.iitm.ac.in"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 border-2 border-amber-900 rounded bg-transparent font-bold outline-none text-[#6d432b]"
-              />
+            <div className="space-y-4">
               <button
-                type="submit"
-                disabled={loading}
+                onClick={handleGoogleLogin}
+                disabled={authLoading}
                 className="w-full relative group"
               >
                 <div className="absolute inset-0 bg-[#4d2a18] rounded-full translate-y-1" />
-                <div className="relative bg-[#6d432b] text-white py-2 rounded-full font-bold transition-transform group-active:translate-y-1">
-                  {loading ? "Verifying..." : "Access Dashboard"}
+                <div className="relative bg-[#6d432b] text-white py-2.5 rounded-full font-bold transition-transform group-active:translate-y-1">
+                  {authLoading ? "Verifying Coordinator ID..." : "Sign in with Google"}
                 </div>
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -223,12 +259,12 @@ export default function CoordinatorDashboard() {
             <h1 className="text-xl font-black text-[#6d432b] uppercase">Coordinator Control Room</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-bold text-[#6d432b]">{email}</span>
+            <span className="text-sm font-bold text-[#6d432b]">{user?.email}</span>
             <button
               onClick={handleLogout}
-              className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-lg border-2 border-black text-xs hover:bg-red-700"
+              className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-lg border-2 border-black text-xs hover:bg-red-700 flex items-center gap-1"
             >
-              Log Out
+              <LogOutIcon className="w-3.5 h-3.5" /> Log Out
             </button>
           </div>
         </div>

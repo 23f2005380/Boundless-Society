@@ -8,6 +8,8 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  doc,
+  deleteDoc,
 } from "firebase/firestore";
 
 const formFieldSchema = yup.object().shape({
@@ -220,5 +222,29 @@ export async function GET() {
       { error: "Failed to fetch trips. Please try again." },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    await deleteDoc(doc(db, "trips", id));
+    return NextResponse.json({ success: true, message: "Trip deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE Trip Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
