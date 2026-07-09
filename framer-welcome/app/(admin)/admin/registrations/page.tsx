@@ -867,25 +867,15 @@ export default function SubmissionsPage() {
                           </TableCell>
                           <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
                           
-                          {/* Aadhaar Status & Verification */}
+                          {/* Aadhaar Status */}
                           <TableCell>
-                            <div className="flex flex-col items-start gap-1">
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
-                                reg.aadhaarVerified 
-                                  ? "bg-green-100 text-green-700 border-green-200" 
-                                  : "bg-red-100 text-red-700 border-red-200"
-                              }`}>
-                                {reg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
-                              </span>
-                              {!reg.aadhaarVerified && (
-                                <button
-                                  onClick={() => handleVerifyAadhaar(reg.id)}
-                                  className="text-[9px] px-2 py-0.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded border border-indigo-950 font-black uppercase tracking-wider"
-                                >
-                                  Verify
-                                </button>
-                              )}
-                            </div>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
+                              reg.aadhaarVerified 
+                                ? "bg-green-100 text-green-700 border-green-200" 
+                                : "bg-red-100 text-red-700 border-red-200"
+                            }`}>
+                              {reg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                            </span>
                           </TableCell>
 
                           {/* Documents Access */}
@@ -1510,16 +1500,6 @@ export default function SubmissionsPage() {
                       >
                         🪪 View Aadhaar Copy ↗
                       </a>
-                    )}
-                    
-                    {!activeProfileReg.aadhaarVerified && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleVerifyAadhaar(activeProfileReg.id)}
-                        className="bg-indigo-900 text-white hover:bg-indigo-800 font-bold px-3 py-1.5 rounded text-[11px]"
-                      >
-                        Verify Aadhaar Card
-                      </Button>
                     )}
                   </div>
                 </div>
