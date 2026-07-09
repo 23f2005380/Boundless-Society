@@ -273,21 +273,10 @@ export default function SecureForm() {
               Trip Registration
             </h1>
 
-            {/* Trip Selector Dropdown */}
-            {trips.length > 0 && (
-              <div className="mb-6 w-full max-w-xs">
-                <label className="block text-[#6d432b] font-bold mb-2">Select Trip / Event</label>
-                <select
-                  value={selectedTripId}
-                  onChange={(e) => setSelectedTripId(e.target.value)}
-                  className="w-full p-2 border-2 border-amber-900 rounded bg-amber-100 text-[#6d432b] font-bold outline-none"
-                >
-                  {trips.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
+            {/* Selected Trip / Event Read-Only Display */}
+            {selectedTrip && (
+              <div className="mb-6 px-4 py-2 border-2 border-amber-900 rounded bg-amber-100 text-[#6d432b] font-black text-sm uppercase tracking-wide">
+                Event: {selectedTrip.name}
               </div>
             )}
 
