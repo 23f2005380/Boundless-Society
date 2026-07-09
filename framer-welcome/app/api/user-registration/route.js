@@ -57,13 +57,16 @@ export async function GET(request) {
     let autofillData = null;
     const pastQuery = query(
       collection(db, "user-registrations"),
-      where("email", "==", email),
-      orderBy("submittedAt", "desc"),
-      limit(1)
+      where("email", "==", email)
     );
     const pastSnap = await getDocs(pastQuery);
     if (!pastSnap.empty) {
-      autofillData = pastSnap.docs[0].data().formData || null;
+      const sortedDocs = [...pastSnap.docs].sort((a, b) => {
+        const timeA = a.data().submittedAt?.toDate?.()?.getTime() || 0;
+        const timeB = b.data().submittedAt?.toDate?.()?.getTime() || 0;
+        return timeB - timeA;
+      });
+      autofillData = sortedDocs[0].data().formData || null;
     }
 
     return Response.json({ registration, autofillData }, { status: 200 });
