@@ -937,7 +937,9 @@ export default function SubmissionsPage() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                    disabled={!reg.aadhaarVerified}
+                                    title={!reg.aadhaarVerified ? "Aadhaar must be verified first" : "Approve Payment"}
+                                    className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
                                   >
                                     <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
@@ -1500,6 +1502,16 @@ export default function SubmissionsPage() {
                       >
                         🪪 View Aadhaar Copy ↗
                       </a>
+                    )}
+                    
+                    {!activeProfileReg.aadhaarVerified && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleVerifyAadhaar(activeProfileReg.id)}
+                        className="bg-indigo-900 text-white hover:bg-indigo-800 font-bold px-3 py-1.5 rounded text-[11px]"
+                      >
+                        Verify Aadhaar Card
+                      </Button>
                     )}
                   </div>
                 </div>
