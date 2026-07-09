@@ -42,21 +42,13 @@ export async function POST(req) {
     const fsTripData = fsTripSnap.data();
     const tripFee = fsTripData.fee !== undefined ? Number(fsTripData.fee) : 500;
 
-    // 2. Select dynamic or global Razorpay client
-    let activeRazorpay = razorpay;
-    let activeKeyId = process.env.RAZORPAY_KEY_ID;
-
-    if (fsTripData.razorpayKeyId && fsTripData.razorpayKeySecret) {
-      activeRazorpay = new Razorpay({
-        key_id: fsTripData.razorpayKeyId,
-        key_secret: fsTripData.razorpayKeySecret,
-      });
-      activeKeyId = fsTripData.razorpayKeyId;
-    }
+    // 2. Select global Razorpay client from environment variables
+    const activeRazorpay = razorpay;
+    const activeKeyId = process.env.RAZORPAY_KEY_ID;
 
     if (!activeRazorpay) {
       return NextResponse.json(
-        { error: "Payment system is not configured for this trip. Please try again later." },
+        { error: "Payment system is not configured. Please try again later." },
         { status: 503 }
       );
     }

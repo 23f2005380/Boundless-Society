@@ -9,7 +9,7 @@ export async function POST(req) {
     // ---- Validation ----
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
-        { error: "No image provided" },
+        { error: "No file provided" },
         { status: 400 }
       );
     }
@@ -19,10 +19,10 @@ export async function POST(req) {
     if (
       !image ||
       typeof image !== "string" ||
-      !image.startsWith("data:image")
+      (!image.startsWith("data:image") && !image.startsWith("data:application/pdf"))
     ) {
       return NextResponse.json(
-        { error: "Invalid image format" },
+        { error: "Invalid file format. Please provide an image or PDF." },
         { status: 400 }
       );
     }

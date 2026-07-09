@@ -161,11 +161,11 @@ export async function POST(req) {
   try {
     const clone = req.clone();
     const body = await clone.json();
-    const { registrationId, status } = body;
+    const { registrationId, status, aadhaarVerified } = body;
 
-    if (!registrationId || !status) {
+    if (!registrationId) {
       return NextResponse.json(
-        { error: "Missing registrationId or status" },
+        { error: "Missing registrationId" },
         { status: 400 }
       );
     }
@@ -182,12 +182,15 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    await updateDoc(regRef, {
-      status,
+    const updatePayload = {
       updatedAt: serverTimestamp(),
-    });
+    };
+    if (status !== undefined) updatePayload.status = status;
+    if (aadhaarVerified !== undefined) updatePayload.aadhaarVerified = aadhaarVerified;
 
-    return NextResponse.json({ success: true, message: `Registration status updated to ${status}` });
+    await updateDoc(regRef, updatePayload);
+
+    return NextResponse.json({ success: true, message: "Registration updated successfully" });
   } catch (error) {
     console.error("POST Admin Registration Status Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

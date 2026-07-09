@@ -79,22 +79,20 @@ export async function POST(req) {
       );
     }
 
-    // 1. Fetch trip metadata from Firestore to read custom Key Secret if any
+    // 1. Fetch trip metadata from Firestore to read event stats
     const tripDocRef = doc(db, "trips", tripId);
     const tripSnap = await getDoc(tripDocRef);
     if (!tripSnap.exists()) {
-      return NextResponse.json({ error: "Trip details not found" }, { status: 404 });
+      return NextResponse.json({ error: "Trip details not found in database" }, { status: 404 });
     }
     const tripData = tripSnap.data();
 
-    // 2. Verify Razorpay Signature
-    const secret = (tripData.razorpayKeySecret && tripData.razorpayKeySecret.trim() !== "")
-      ? tripData.razorpayKeySecret
-      : process.env.RAZORPAY_KEY_SECRET;
+    // 2. Verify Razorpay Signature using environment secret key
+    const secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!secret) {
       return NextResponse.json(
-        { error: "Payment verification credentials are not configured for this trip." },
+        { error: "Payment verification credentials are not configured on the server." },
         { status: 503 }
       );
     }

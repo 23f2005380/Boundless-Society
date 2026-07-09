@@ -27,6 +27,8 @@ interface Registration {
   gender: string;
   submittedAt: string;
   formData: Record<string, string>;
+  aadhaarVerified?: boolean;
+  consentFormFileUrl?: string;
 }
 
 interface Concern {
@@ -393,13 +395,63 @@ export default function CoordinatorDashboard() {
                   </div>
                 </div>
 
+                {/* Aadhaar & Consent Documents Review */}
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
+                  <h3 className="font-black text-sm text-amber-950 uppercase flex items-center gap-1.5">
+                    🪪 Identity & Consent Review
+                  </h3>
+                  <div className="text-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-500 font-bold uppercase text-[10px]">Aadhaar Gating Status</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                          selectedReg.aadhaarVerified 
+                            ? "bg-green-100 text-green-700 border-green-200" 
+                            : "bg-red-100 text-red-700 border-red-200"
+                        }`}>
+                          {selectedReg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                        </span>
+                        {selectedReg.formData?.["Aadhaar Card Copy"] && (
+                          <a
+                            href={selectedReg.formData["Aadhaar Card Copy"]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow"
+                          >
+                            Access Aadhaar Copy ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 font-bold uppercase text-[10px]">Signed Consent Form</p>
+                      <div className="mt-1">
+                        {selectedReg.formData?.["Completed Consent Form"] ? (
+                          <a
+                            href={selectedReg.formData["Completed Consent Form"]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow inline-flex items-center gap-1"
+                          >
+                            Access Consent Form ↗
+                          </a>
+                        ) : (
+                          <span className="text-red-700 font-semibold text-[11px]">Not uploaded</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Form Data Fields */}
                 <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                   <h3 className="font-black text-sm text-gray-700 uppercase mb-3 flex items-center gap-1.5">
                     <FileTextIcon className="w-4 h-4 text-gray-500" /> Registration Answers
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {Object.entries(selectedReg.formData || {}).map(([key, val]) => (
+                    {Object.entries(selectedReg.formData || {})
+                      .filter(([key]) => key !== "Aadhaar Number" && key !== "Aadhaar Card Copy" && key !== "Completed Consent Form")
+                      .map(([key, val]) => (
                       <div key={key} className="border-b border-gray-100 pb-2">
                         <p className="text-xs text-gray-400 font-black uppercase">{key}</p>
                         <p className="text-sm font-semibold text-gray-800">{String(val)}</p>

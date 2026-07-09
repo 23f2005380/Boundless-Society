@@ -70,8 +70,7 @@ const tripSchema = yup.object().shape({
     .positive("Total seats must be greater than 0")
     .integer("Total seats must be a whole number"),
   fee: yup.number().min(0).default(500),
-  razorpayKeyId: yup.string().trim().optional(),
-  razorpayKeySecret: yup.string().trim().optional(),
+  consentFormTemplateUrl: yup.string().trim().optional(),
   femaleReservedSeats: yup
     .number()
     .typeError("Female reserved seats must be a number")
@@ -149,8 +148,7 @@ export async function POST(request) {
       coordinators: validCoordinators,
       totalSeats: validatedData.totalSeats,
       fee: validatedData.fee !== undefined ? Number(validatedData.fee) : 500,
-      razorpayKeyId: validatedData.razorpayKeyId || "",
-      razorpayKeySecret: validatedData.razorpayKeySecret || "",
+      consentFormTemplateUrl: validatedData.consentFormTemplateUrl || "",
       femaleReservedSeats: validatedData.femaleReservedSeats,
       releasedSeats: validatedData.releasedSeats,
       releasedSeatsType: validatedData.releasedSeatsType,
@@ -311,7 +309,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { tripId, name, description, coordinators, totalSeats, formFields, fee, razorpayKeyId, razorpayKeySecret } = body;
+    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl } = body;
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
@@ -337,10 +335,7 @@ export async function PUT(request) {
     }
     if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
     if (fee !== undefined) updateData.fee = Number(fee);
-    if (razorpayKeyId !== undefined) updateData.razorpayKeyId = razorpayKeyId;
-    if (razorpayKeySecret !== undefined && razorpayKeySecret !== "********") {
-      updateData.razorpayKeySecret = razorpayKeySecret;
-    }
+    if (consentFormTemplateUrl !== undefined) updateData.consentFormTemplateUrl = consentFormTemplateUrl;
     
     if (formFields !== undefined) {
       updateData.form = {

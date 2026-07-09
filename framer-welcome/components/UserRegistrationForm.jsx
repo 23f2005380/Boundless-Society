@@ -26,6 +26,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
     // Consent Form State
     const [showConsent, setShowConsent] = useState(false);
+    const [consentFormTemplateUrl, setConsentFormTemplateUrl] = useState("");
 
     // Aadhaar State (for first time users only)
     const isFirstTime = !autofillData || Object.keys(autofillData).length === 0;
@@ -41,6 +42,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
+                    setConsentFormTemplateUrl(data?.consentFormTemplateUrl || "");
                     const formFields = data?.form?.fields || [];
                     const sorted = [...formFields].sort((a, b) => a.sortOrder - b.sortOrder);
                     setFields(sorted);
@@ -116,9 +118,9 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                 if (
                     !base64Image ||
                     typeof base64Image !== "string" ||
-                    !base64Image.startsWith("data:image")
+                    (!base64Image.startsWith("data:image") && !base64Image.startsWith("data:application/pdf"))
                 ) {
-                    throw new Error(`Invalid file format for ${fieldName}`);
+                    throw new Error(`Invalid file format for ${fieldName}. Please upload an image or a PDF.`);
                 }
                 const uploadRes = await fetch("/api/uploadImage", {
                     method: "POST",
@@ -318,6 +320,38 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                         }
                     })}
                 </div>
+
+                {/* Consent Form Download & Signed Upload Section */}
+                {consentFormTemplateUrl && (
+                  <div className="w-full bg-amber-50 p-5 border-2 border-dashed border-[#6d432b] rounded-xl space-y-4 mb-4 text-left">
+                    <h4 className="font-black text-sm uppercase tracking-wider flex items-center gap-1 text-[#6d432b]">
+                      📝 Trip Safety Consent Form
+                    </h4>
+                    <p className="text-xs text-amber-950 font-semibold">
+                      Please access the template document below, fill out and sign the details, and upload the signed copy for verification.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <a
+                        href={consentFormTemplateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#6d432b] hover:bg-[#4d2a18] text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-md inline-flex items-center gap-1 shrink-0"
+                      >
+                        ⬇ Download Consent Form Template
+                      </a>
+                      <div className="flex-1 w-full text-start">
+                        <label className="text-xs font-bold text-amber-950 block mb-1">Upload Signed Copy (PDF or Image)</label>
+                        <input
+                          type="file"
+                          accept=".pdf,image/*"
+                          name="Completed Consent Form"
+                          required
+                          className="w-full text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#6d432b] file:text-white hover:file:bg-[#4d2a18] file:cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Consent Acknowledgment Checkbox */}
                 <div className="flex flex-col items-center space-y-2 mt-4">

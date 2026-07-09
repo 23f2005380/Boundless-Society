@@ -36,8 +36,7 @@ interface Trip {
   description?: string;
   form?: { fields: any[] };
   fee?: number;
-  razorpayKeyId?: string;
-  hasRazorpaySecret?: boolean;
+  consentFormTemplateUrl?: string;
 }
 
 interface Registration {
@@ -48,6 +47,8 @@ interface Registration {
   gender: string;
   submittedAt: string;
   formData: Record<string, string>;
+  aadhaarVerified?: boolean;
+  consentFormFileUrl?: string;
 }
 
 interface Concern {
@@ -95,8 +96,7 @@ export default function SubmissionsPage() {
   const [editSeats, setEditSeats] = useState(30);
   const [editFields, setEditFields] = useState<any[]>([]);
   const [editFee, setEditFee] = useState(500);
-  const [editRazorpayId, setEditRazorpayId] = useState("");
-  const [editRazorpaySecret, setEditRazorpaySecret] = useState("");
+  const [editConsentTemplate, setEditConsentTemplate] = useState("");
 
   // Create Event Form state
   const [createName, setCreateName] = useState("");
@@ -111,8 +111,7 @@ export default function SubmissionsPage() {
     { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
   ]);
   const [createFee, setCreateFee] = useState(500);
-  const [createRazorpayId, setCreateRazorpayId] = useState("");
-  const [createRazorpaySecret, setCreateRazorpaySecret] = useState("");
+  const [createConsentTemplate, setCreateConsentTemplate] = useState("");
 
   // Fetch trips list
   useEffect(() => {
@@ -205,6 +204,73 @@ export default function SubmissionsPage() {
     } catch (e) {
       console.error(e);
       toast.error("An error occurred.");
+    }
+  };
+
+  const handleVerifyAadhaar = async (regId: string) => {
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registrationId: regId, aadhaarVerified: true }),
+      });
+
+      if (res.ok) {
+        toast.success("Aadhaar verified successfully!");
+        fetchTripData();
+        if (activeProfileReg && activeProfileReg.id === regId) {
+          setActiveProfileReg({
+            ...activeProfileReg,
+            aadhaarVerified: true,
+          });
+        }
+      } else {
+        toast.error("Failed to verify Aadhaar.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    }
+  };
+
+  const handleConsentTemplateChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const fileObj = e.target.files?.[0];
+    if (!fileObj) return;
+
+    try {
+      const base64File = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileObj);
+      });
+
+      toast.loading("Uploading consent form template...", { id: "upload-template" });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "consent_templates",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      if (isEdit) {
+        setEditConsentTemplate(fileUrl);
+      } else {
+        setCreateConsentTemplate(fileUrl);
+      }
+      toast.success("Consent form template uploaded successfully!", { id: "upload-template" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload template.", { id: "upload-template" });
     }
   };
 
@@ -419,8 +485,7 @@ export default function SubmissionsPage() {
           totalSeats: Number(editSeats),
           formFields: editFields,
           fee: Number(editFee),
-          razorpayKeyId: editRazorpayId,
-          razorpayKeySecret: editRazorpaySecret,
+          consentFormTemplateUrl: editConsentTemplate,
         }),
       });
 
@@ -519,8 +584,7 @@ export default function SubmissionsPage() {
           releasedSeatsType: "all",
           formFields: createFields,
           fee: Number(createFee),
-          razorpayKeyId: createRazorpayId,
-          razorpayKeySecret: createRazorpaySecret,
+          consentFormTemplateUrl: createConsentTemplate,
         }),
       });
 
@@ -604,8 +668,7 @@ export default function SubmissionsPage() {
               setEditSeats(selectedTrip.totalSeats || 30);
               setEditFields(selectedTrip.form?.fields || []);
               setEditFee(selectedTrip.fee !== undefined ? selectedTrip.fee : 500);
-              setEditRazorpayId(selectedTrip.razorpayKeyId || "");
-              setEditRazorpaySecret(selectedTrip.hasRazorpaySecret ? "********" : "");
+              setEditConsentTemplate(selectedTrip.consentFormTemplateUrl || "");
             }
             setActiveTab("edit-event");
           }}
@@ -781,6 +844,8 @@ export default function SubmissionsPage() {
                     <TableRow>
                       <TableHead>Email</TableHead>
                       <TableHead>Gender</TableHead>
+                      <TableHead>Aadhaar Status</TableHead>
+                      <TableHead>Documents</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Coordinators Flag</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -801,6 +866,58 @@ export default function SubmissionsPage() {
                             </button>
                           </TableCell>
                           <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
+                          
+                          {/* Aadhaar Status & Verification */}
+                          <TableCell>
+                            <div className="flex flex-col items-start gap-1">
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
+                                reg.aadhaarVerified 
+                                  ? "bg-green-100 text-green-700 border-green-200" 
+                                  : "bg-red-100 text-red-700 border-red-200"
+                              }`}>
+                                {reg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                              </span>
+                              {!reg.aadhaarVerified && (
+                                <button
+                                  onClick={() => handleVerifyAadhaar(reg.id)}
+                                  className="text-[9px] px-2 py-0.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded border border-indigo-950 font-black uppercase tracking-wider"
+                                >
+                                  Verify
+                                </button>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          {/* Documents Access */}
+                          <TableCell>
+                            <div className="flex flex-col gap-1 text-[10px]">
+                              {reg.formData?.["Aadhaar Card Copy"] ? (
+                                <a
+                                  href={reg.formData["Aadhaar Card Copy"]}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
+                                >
+                                  🪪 Aadhaar Copy ↗
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground italic text-[9px]">No Aadhaar Copy</span>
+                              )}
+                              {reg.formData?.["Completed Consent Form"] ? (
+                                <a
+                                  href={reg.formData["Completed Consent Form"]}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
+                                >
+                                  📝 Signed Consent ↗
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground italic text-[9px]">No Consent Form</span>
+                              )}
+                            </div>
+                          </TableCell>
+
                           <TableCell>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
                               reg.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
@@ -899,7 +1016,7 @@ export default function SubmissionsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-dashed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
               <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
               <Input
@@ -911,22 +1028,25 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key ID (Optional)</label>
-              <Input
-                type="text"
-                value={editRazorpayId}
-                onChange={(e) => setEditRazorpayId(e.target.value)}
-                placeholder="e.g. rzp_test_..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key Secret (Optional)</label>
-              <Input
-                type="text"
-                value={editRazorpaySecret}
-                onChange={(e) => setEditRazorpaySecret(e.target.value)}
-                placeholder={selectedTrip?.hasRazorpaySecret ? "******** (Configured)" : "Enter Secret Key"}
-              />
+              <label className="text-sm font-bold text-muted-foreground uppercase">Consent Form Template (PDF/Doc)</label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => handleConsentTemplateChange(e, true)}
+                  className="cursor-pointer"
+                />
+                {editConsentTemplate && (
+                  <a
+                    href={editConsentTemplate}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold text-indigo-900 underline shrink-0"
+                  >
+                    View File ↗
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1108,7 +1228,7 @@ export default function SubmissionsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-dashed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
               <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
               <Input
@@ -1120,22 +1240,25 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key ID (Optional)</label>
-              <Input
-                type="text"
-                value={createRazorpayId}
-                onChange={(e) => setCreateRazorpayId(e.target.value)}
-                placeholder="rzp_test_..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Razorpay Key Secret (Optional)</label>
-              <Input
-                type="text"
-                value={createRazorpaySecret}
-                onChange={(e) => setCreateRazorpaySecret(e.target.value)}
-                placeholder="Enter Secret Key"
-              />
+              <label className="text-sm font-bold text-muted-foreground uppercase">Consent Form Template (PDF/Doc)</label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => handleConsentTemplateChange(e, false)}
+                  className="cursor-pointer"
+                />
+                {createConsentTemplate && (
+                  <a
+                    href={createConsentTemplate}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold text-indigo-900 underline shrink-0"
+                  >
+                    View File ↗
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1336,18 +1459,18 @@ export default function SubmissionsPage() {
 
       {activeProfileReg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left">
+          <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left max-h-[90vh] flex flex-col">
             <button
               onClick={() => setActiveProfileReg(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-black font-black"
+              className="absolute top-3 right-3 text-gray-500 hover:text-black font-black z-10"
             >
               ✕
             </button>
-            <h3 className="font-bold text-lg text-indigo-950 uppercase border-b pb-2">
+            <h3 className="font-bold text-lg text-indigo-950 uppercase border-b pb-2 shrink-0">
               👤 Student Profile Review
             </h3>
             
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1 text-sm">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-sm">
               <div>
                 <span className="font-bold text-xs text-gray-500 uppercase block">Email Address</span>
                 <span className="font-semibold text-gray-850">{activeProfileReg.email}</span>
@@ -1358,33 +1481,77 @@ export default function SubmissionsPage() {
                 <span className="font-semibold text-gray-850 capitalize">{activeProfileReg.gender}</span>
               </div>
 
-              {activeProfileReg.formData["Aadhaar Number"] && (
-                <div className="bg-amber-50 p-3 rounded border border-amber-200">
-                  <span className="font-bold text-xs text-amber-950 uppercase block">Aadhaar Verification Details</span>
-                  <div className="mt-1.5 space-y-1 text-xs">
-                    <p>Aadhaar Number: <strong>{activeProfileReg.formData["Aadhaar Number"]}</strong></p>
+              {/* Aadhaar Verification Details */}
+              <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-2.5">
+                <span className="font-bold text-xs text-amber-950 uppercase block">Aadhaar Gating Status</span>
+                <div className="text-xs space-y-2">
+                  <p className="flex justify-between items-center">
+                    <span>Aadhaar Number:</span>
+                    <strong className="text-sm font-semibold">{activeProfileReg.formData["Aadhaar Number"] || "N/A"}</strong>
+                  </p>
+                  <p className="flex justify-between items-center">
+                    <span>Verification Status:</span>
+                    <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                      activeProfileReg.aadhaarVerified 
+                        ? "bg-green-100 text-green-700 border-green-200" 
+                        : "bg-red-100 text-red-700 border-red-200"
+                    }`}>
+                      {activeProfileReg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                    </span>
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {activeProfileReg.formData["Aadhaar Card Copy"] && (
-                      <p className="mt-1">
-                        Aadhaar Copy:{" "}
-                        <a
-                          href={activeProfileReg.formData["Aadhaar Card Copy"]}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-amber-900 font-bold underline hover:text-amber-800"
-                        >
-                          View Uploaded Document ↗
-                        </a>
-                      </p>
+                      <a
+                        href={activeProfileReg.formData["Aadhaar Card Copy"]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
+                      >
+                        🪪 View Aadhaar Copy ↗
+                      </a>
+                    )}
+                    
+                    {!activeProfileReg.aadhaarVerified && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleVerifyAadhaar(activeProfileReg.id)}
+                        className="bg-indigo-900 text-white hover:bg-indigo-800 font-bold px-3 py-1.5 rounded text-[11px]"
+                      >
+                        Verify Aadhaar Card
+                      </Button>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Consent Form Verification Details */}
+              <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-2">
+                <span className="font-bold text-xs text-indigo-950 uppercase block">Consent Acknowledgment</span>
+                <div className="text-xs">
+                  {activeProfileReg.formData["Completed Consent Form"] ? (
+                    <div className="space-y-2">
+                      <p className="text-green-700 font-semibold">✓ Completed signed consent form uploaded.</p>
+                      <a
+                        href={activeProfileReg.formData["Completed Consent Form"]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
+                      >
+                        📝 View Signed Consent Copy ↗
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-red-700 font-semibold">✗ Signed consent form has not been uploaded yet.</p>
+                  )}
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <span className="font-bold text-xs text-gray-500 uppercase block">Registration Form Answers</span>
                 <div className="grid grid-cols-1 gap-2.5 bg-gray-50 p-3 rounded border">
                   {Object.entries(activeProfileReg.formData)
-                    .filter(([k]) => k !== "Aadhaar Number" && k !== "Aadhaar Card Copy")
+                    .filter(([k]) => k !== "Aadhaar Number" && k !== "Aadhaar Card Copy" && k !== "Completed Consent Form")
                     .map(([key, val]) => (
                       <div key={key} className="border-b pb-1.5 last:border-0 last:pb-0">
                         <span className="text-xs font-bold text-gray-600 block">{key}</span>
@@ -1406,7 +1573,7 @@ export default function SubmissionsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 border-t shrink-0">
               <Button onClick={() => setActiveProfileReg(null)} className="text-xs">
                 Close
               </Button>
