@@ -75,8 +75,7 @@ export async function GET(req) {
 
     const q = query(
       collection(db, "user-registrations"),
-      where("tripId", "==", tripId),
-      orderBy("submittedAt", "desc")
+      where("tripId", "==", tripId)
     );
     const snapshot = await getDocs(q);
     const registrations = snapshot.docs.map((doc) => {
@@ -91,6 +90,13 @@ export async function GET(req) {
         paymentVerifiedAt: data.paymentVerifiedAt?.toDate?.()?.toISOString() || null,
         formData: data.formData || {},
       };
+    });
+
+    // Sort in-memory by submittedAt desc
+    registrations.sort((a, b) => {
+      const timeA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const timeB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return timeB - timeA;
     });
 
     return NextResponse.json({ registrations }, { status: 200 });

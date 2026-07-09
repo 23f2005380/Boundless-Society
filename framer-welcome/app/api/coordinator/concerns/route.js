@@ -23,23 +23,20 @@ export async function GET(request) {
       q = query(
         concernsRef,
         where("tripId", "==", tripId),
-        where("studentEmail", "==", studentEmail),
-        orderBy("createdAt", "desc")
+        where("studentEmail", "==", studentEmail)
       );
     } else if (studentEmail) {
       q = query(
         concernsRef,
-        where("studentEmail", "==", studentEmail),
-        orderBy("createdAt", "desc")
+        where("studentEmail", "==", studentEmail)
       );
     } else if (tripId) {
       q = query(
         concernsRef,
-        where("tripId", "==", tripId),
-        orderBy("createdAt", "desc")
+        where("tripId", "==", tripId)
       );
     } else {
-      q = query(concernsRef, orderBy("createdAt", "desc"));
+      q = query(concernsRef);
     }
 
     const snapshot = await getDocs(q);
@@ -48,6 +45,13 @@ export async function GET(request) {
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null,
     }));
+
+    // Sort in-memory by createdAt desc
+    concerns.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
 
     return NextResponse.json({ concerns }, { status: 200 });
   } catch (error) {
