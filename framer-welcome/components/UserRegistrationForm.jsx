@@ -388,18 +388,18 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
             {/* Consent Form Modal Viewer */}
             {showConsent && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 text-black">
-                <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-left">
+              <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 flex items-center justify-center text-black" data-lenis-prevent>
+                <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-left my-8">
                   <button
                     onClick={() => setShowConsent(false)}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-black font-black"
+                    className="absolute top-3 right-3 text-gray-500 hover:text-black font-black z-10"
                   >
                     ✕
                   </button>
                   <h3 className="font-bold text-lg text-amber-950 uppercase border-b pb-2">
                     📝 Boundless Society Consent Form
                   </h3>
-                  <div className="text-xs space-y-3 leading-relaxed max-h-[300px] overflow-y-auto pr-1">
+                  <div className="text-xs space-y-3 leading-relaxed">
                     <p className="font-bold">UNDERTAKING & CONSENT BY THE PARTICIPANT</p>
                     <p>
                       1. I hereby confirm my participation in the upcoming trip organized by the Boundless Society. I acknowledge that I am participating of my own free will.
@@ -414,7 +414,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                       4. I understand that the society will take all reasonable safety precautions but shall not be held liable for any unforeseen losses, damages, or injuries.
                     </p>
                   </div>
-                  <div className="flex justify-end pt-2">
+                  <div className="flex justify-end pt-2 border-t">
                     <button
                       onClick={() => setShowConsent(false)}
                       className="bg-amber-900 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-amber-800 transition"

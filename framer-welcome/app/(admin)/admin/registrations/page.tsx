@@ -1405,7 +1405,7 @@ export default function SubmissionsPage() {
         </form>
       )}
       {activeConcernEmail && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center" data-lenis-prevent>
           <div className="bg-white border-2 border-black rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-black text-left my-8">
             <button
               onClick={() => setActiveConcernEmail(null)}
@@ -1448,7 +1448,7 @@ export default function SubmissionsPage() {
       )}
 
       {activeProfileReg && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 flex items-center justify-center" data-lenis-prevent>
           <div className="bg-white border-2 border-black rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative text-black text-left my-8">
             <button
               onClick={() => setActiveProfileReg(null)}
