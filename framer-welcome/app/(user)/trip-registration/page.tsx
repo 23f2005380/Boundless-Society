@@ -55,15 +55,17 @@ export default function SecureForm() {
         const res = await fetch("/api/trip");
         if (res.ok) {
           const data = await res.json();
-          setTrips(data.trips || []);
-          if (data.trips && data.trips.length > 0) {
+          const allTrips = data.trips || [];
+          const activeTrips = allTrips.filter((t: any) => !t.isCompleted && !t.finalRosterSaved);
+          setTrips(activeTrips);
+          if (activeTrips.length > 0) {
             // Default to first active trip or url param
             const params = new URLSearchParams(window.location.search);
             const urlTripId = params.get("tripId");
-            if (urlTripId && data.trips.some((t: any) => t.id === urlTripId)) {
+            if (urlTripId && activeTrips.some((t: any) => t.id === urlTripId)) {
               setSelectedTripId(urlTripId);
             } else {
-              setSelectedTripId(data.trips[0].id);
+              setSelectedTripId(activeTrips[0].id);
             }
           }
         }

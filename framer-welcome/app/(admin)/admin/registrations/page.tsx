@@ -196,6 +196,46 @@ export default function SubmissionsPage() {
     }
   };
 
+  const handleCompleteEvent = async () => {
+    if (!selectedTripId) return;
+    if (!confirm("Are you sure you want to mark this event as completed? This will archive the roster, close registration & payment, and remove user access to register.")) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripId: selectedTripId,
+          isCompleted: true,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Event marked as completed & archived!");
+        const updatedTrips = trips.map((t) => {
+          if (t.id === selectedTripId) {
+            return {
+              ...t,
+              isCompleted: true,
+              finalRosterSaved: true,
+              registrationOpen: false,
+              paymentOpen: false,
+            };
+          }
+          return t;
+        });
+        setTrips(updatedTrips);
+      } else {
+        toast.error("Failed to complete event.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Change individual registration status
   const handleStatusChange = async (regId: string, nextStatus: string) => {
     try {
@@ -328,15 +368,27 @@ export default function SubmissionsPage() {
 
           {/* Roster Auto-Save Status Badge */}
           {selectedTrip && (
-            <div className="pt-4 border-t-2 border-dashed border-border flex justify-between items-center text-xs">
-              <span className="font-semibold text-muted-foreground">Roster Compilation:</span>
-              <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
-                selectedTrip.finalRosterSaved 
-                  ? "bg-indigo-100 text-indigo-700 border-indigo-200" 
-                  : "bg-yellow-100 text-yellow-700 border-yellow-200"
-              }`}>
-                {selectedTrip.finalRosterSaved ? "Archived ✅" : "Active / Live"}
-              </span>
+            <div className="space-y-3 pt-4 border-t-2 border-dashed border-border">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-muted-foreground">Roster Compilation:</span>
+                <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                  selectedTrip.isCompleted || selectedTrip.finalRosterSaved 
+                    ? "bg-indigo-100 text-indigo-700 border-indigo-200" 
+                    : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                }`}>
+                  {selectedTrip.isCompleted || selectedTrip.finalRosterSaved ? "Completed / Archived ✅" : "Active / Live"}
+                </span>
+              </div>
+
+              {(!selectedTrip.isCompleted && !selectedTrip.finalRosterSaved) && (
+                <Button
+                  onClick={handleCompleteEvent}
+                  disabled={submitting}
+                  className="w-full text-xs bg-indigo-900 hover:bg-indigo-800 text-white flex items-center justify-center gap-1.5 shadow"
+                >
+                  Complete & Archive Event
+                </Button>
+              )}
             </div>
           )}
         </div>

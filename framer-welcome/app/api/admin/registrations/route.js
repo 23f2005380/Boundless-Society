@@ -135,7 +135,8 @@ export async function PUT(req) {
       registrationOpen,
       paymentOpen,
       totalSeats,
-      predefinedGirlsThreshold
+      predefinedGirlsThreshold,
+      isCompleted
     } = body;
 
     if (!tripId) {
@@ -151,11 +152,18 @@ export async function PUT(req) {
     if (predefinedGirlsThreshold !== undefined) {
       updateData.predefinedGirlsThreshold = Number(predefinedGirlsThreshold);
     }
+    if (isCompleted !== undefined) {
+      updateData.isCompleted = isCompleted;
+      if (isCompleted === true) {
+        updateData.registrationOpen = false;
+        updateData.paymentOpen = false;
+      }
+    }
 
     await updateDoc(tripRef, updateData);
 
-    // If registrations or payments were toggled to CLOSED, trigger roster archive
-    if (registrationOpen === false || paymentOpen === false) {
+    // If registrations or payments were toggled to CLOSED, or marked completed, trigger roster archive
+    if (registrationOpen === false || paymentOpen === false || isCompleted === true) {
       await archiveEventRoster(tripId);
     }
 
