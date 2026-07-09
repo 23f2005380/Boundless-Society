@@ -7,13 +7,19 @@ import {
   SettingsIcon, 
   UsersIcon, 
   ShieldAlertIcon, 
-  ToggleLeftIcon, 
   CheckCircle2Icon, 
   XCircleIcon,
-  SaveIcon
+  SaveIcon,
+  PlusIcon,
+  Trash2Icon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  EditIcon,
+  PlusCircleIcon
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Trip {
   id: string;
@@ -27,6 +33,8 @@ interface Trip {
   totalJoined?: number;
   finalRosterSaved?: boolean;
   isCompleted?: boolean;
+  description?: string;
+  form?: { fields: any[] };
 }
 
 interface Registration {
@@ -46,6 +54,16 @@ interface Concern {
   coordinatorEmail: string;
 }
 
+const FIELD_TYPES = [
+  { value: "short_text", label: "Short Text" },
+  { value: "long_text", label: "Long Text" },
+  { value: "radio", label: "Radio Options" },
+  { value: "select", label: "Select List" },
+  { value: "date", label: "Date" },
+  { value: "file", label: "File Upload" },
+  { value: "email", label: "Email" },
+];
+
 export default function SubmissionsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTripId, setSelectedTripId] = useState("");
@@ -56,11 +74,32 @@ export default function SubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form Controls
+  // Tabs Navigation
+  const [activeTab, setActiveTab] = useState("registrations"); // "registrations" | "edit-event" | "create-event"
+
+  // Quick Controls Form
   const [regOpen, setRegOpen] = useState(true);
   const [payOpen, setPayOpen] = useState(true);
   const [seats, setSeats] = useState(30);
   const [girlsQuota, setGirlsQuota] = useState(10);
+
+  // Edit Event Form state
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editCoordinators, setEditCoordinators] = useState("");
+  const [editSeats, setEditSeats] = useState(30);
+  const [editFields, setEditFields] = useState<any[]>([]);
+
+  // Create Event Form state
+  const [createName, setCreateName] = useState("");
+  const [createDesc, setCreateDesc] = useState("");
+  const [createCoordinators, setCreateCoordinators] = useState("");
+  const [createSeats, setCreateSeats] = useState(30);
+  const [createFields, setCreateFields] = useState<any[]>([
+    { id: "1", name: "Full Name", type: "short_text", sortOrder: 0 },
+    { id: "2", name: "Roll Number", type: "short_text", sortOrder: 1 },
+    { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
+  ]);
 
   // Fetch trips list
   useEffect(() => {
@@ -119,7 +158,7 @@ export default function SubmissionsPage() {
     }
   }, [selectedTripId, trips]);
 
-  // Update trip controls
+  // Update quick controls
   const handleSaveControls = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTripId) return;
@@ -140,8 +179,6 @@ export default function SubmissionsPage() {
 
       if (res.ok) {
         toast.success("Event controls updated successfully!");
-        
-        // Refresh local trips state
         const updatedTrips = trips.map((t) => {
           if (t.id === selectedTripId) {
             return {
@@ -166,37 +203,7 @@ export default function SubmissionsPage() {
     }
   };
 
-  const handleDeleteTrip = async () => {
-    if (!selectedTripId) return;
-    if (!confirm("Are you sure you want to delete this event completely? This action cannot be undone.")) return;
-    
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/trip?id=${selectedTripId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        toast.success("Event deleted successfully!");
-        const remaining = trips.filter((t) => t.id !== selectedTripId);
-        setTrips(remaining);
-        if (remaining.length > 0) {
-          setSelectedTripId(remaining[0].id);
-        } else {
-          setSelectedTripId("");
-          setSelectedTrip(null);
-          setRegistrations([]);
-        }
-      } else {
-        toast.error("Failed to delete the event.");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("An error occurred.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  // Complete and Archive Event
   const handleCompleteEvent = async () => {
     if (!selectedTripId) return;
     if (!confirm("Are you sure you want to mark this event as completed? This will archive the roster, close registration & payment, and remove user access to register.")) return;
@@ -237,6 +244,38 @@ export default function SubmissionsPage() {
     }
   };
 
+  // Delete Trip Handler
+  const handleDeleteTrip = async () => {
+    if (!selectedTripId) return;
+    if (!confirm("Are you sure you want to delete this event completely? This action cannot be undone.")) return;
+    
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/trip?id=${selectedTripId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Event deleted successfully!");
+        const remaining = trips.filter((t) => t.id !== selectedTripId);
+        setTrips(remaining);
+        if (remaining.length > 0) {
+          setSelectedTripId(remaining[0].id);
+        } else {
+          setSelectedTripId("");
+          setSelectedTrip(null);
+          setRegistrations([]);
+        }
+      } else {
+        toast.error("Failed to delete the event.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Change individual registration status
   const handleStatusChange = async (regId: string, nextStatus: string) => {
     try {
@@ -257,6 +296,162 @@ export default function SubmissionsPage() {
     }
   };
 
+  // ----------------------------------------------------
+  // Edit Form Fields Builders
+  // ----------------------------------------------------
+  const addEditField = () => {
+    setEditFields([
+      ...editFields,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name: "",
+        type: "short_text",
+        options: [],
+        sortOrder: editFields.length,
+      },
+    ]);
+  };
+
+  const updateEditField = (id: string, key: string, value: any) => {
+    setEditFields(
+      editFields.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+    );
+  };
+
+  const removeEditField = (id: string) => {
+    setEditFields(editFields.filter((f) => f.id !== id));
+  };
+
+  const moveEditField = (index: number, direction: "up" | "down") => {
+    const nextIndex = direction === "up" ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= editFields.length) return;
+    const copy = [...editFields];
+    const temp = copy[index];
+    copy[index] = copy[nextIndex];
+    copy[nextIndex] = temp;
+    setEditFields(copy.map((f, idx) => ({ ...f, sortOrder: idx })));
+  };
+
+  const handleSaveEventDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTripId) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/trip", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripId: selectedTripId,
+          name: editName,
+          description: editDesc,
+          coordinators: editCoordinators.split(",").map((email) => email.trim()).filter(Boolean),
+          totalSeats: Number(editSeats),
+          formFields: editFields,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Event details and registration form saved successfully!");
+        
+        // Reload trips
+        const tripRes = await fetch("/api/trip");
+        if (tripRes.ok) {
+          const tripData = await tripRes.json();
+          setTrips(tripData.trips || []);
+        }
+        setActiveTab("registrations");
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Failed to save changes.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // Create Form Fields Builders
+  // ----------------------------------------------------
+  const addCreateField = () => {
+    setCreateFields([
+      ...createFields,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name: "",
+        type: "short_text",
+        options: [],
+        sortOrder: createFields.length,
+      },
+    ]);
+  };
+
+  const updateCreateField = (id: string, key: string, value: any) => {
+    setCreateFields(
+      createFields.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+    );
+  };
+
+  const removeCreateField = (id: string) => {
+    setCreateFields(createFields.filter((f) => f.id !== id));
+  };
+
+  const moveCreateField = (index: number, direction: "up" | "down") => {
+    const nextIndex = direction === "up" ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= createFields.length) return;
+    const copy = [...createFields];
+    const temp = copy[index];
+    copy[index] = copy[nextIndex];
+    copy[nextIndex] = temp;
+    setCreateFields(copy.map((f, idx) => ({ ...f, sortOrder: idx })));
+  };
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/trip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createName,
+          description: createDesc,
+          coordinators: createCoordinators.split(",").map((email) => email.trim()).filter(Boolean),
+          totalSeats: Number(createSeats),
+          femaleReservedSeats: 0,
+          releasedSeats: 0,
+          releasedSeatsType: "all",
+          formFields: createFields,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("New event created successfully!");
+        
+        // Reload trips
+        const tripRes = await fetch("/api/trip");
+        if (tripRes.ok) {
+          const tripData = await tripRes.json();
+          setTrips(tripData.trips || []);
+          if (tripData.trips && tripData.trips.length > 0) {
+            setSelectedTripId(tripData.trips[0].id);
+          }
+        }
+        setActiveTab("registrations");
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Failed to create event.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <main className="p-6 bg-card text-card-foreground rounded-xl border border-border shadow-sm m-4 space-y-6">
       
@@ -268,7 +463,7 @@ export default function SubmissionsPage() {
         </div>
 
         {/* Trip Dropdown Selector */}
-        {trips.length > 0 && (
+        {trips.length > 0 && activeTab !== "create-event" && (
           <div className="w-64">
             <select
               value={selectedTripId}
@@ -283,234 +478,577 @@ export default function SubmissionsPage() {
         )}
       </div>
 
-      {/* Main Grid: Left side Controls, Right side list */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Side: Event Controls settings */}
-        <div className="bg-muted/40 p-4 rounded-xl border border-border space-y-4 h-fit">
-          <h2 className="font-bold text-sm flex items-center gap-1.5 uppercase text-muted-foreground">
-            <SettingsIcon className="w-4 h-4" /> Trip Settings
-          </h2>
-          
-          <form onSubmit={handleSaveControls} className="space-y-4">
-            {/* Registrations Open switch */}
-            <div className="flex justify-between items-center border-b pb-2">
-              <span className="text-xs font-bold">Registration Status</span>
-              <button
-                type="button"
-                onClick={() => setRegOpen(!regOpen)}
-                className={`text-xs font-black px-3 py-1 rounded border transition ${
-                  regOpen ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"
-                }`}
-              >
-                {regOpen ? "OPEN" : "CLOSED"}
-              </button>
-            </div>
+      {/* Tab Navigation */}
+      <div className="flex gap-4 border-b border-border pb-px">
+        <button
+          onClick={() => setActiveTab("registrations")}
+          className={`pb-2 text-sm font-bold border-b-2 transition flex items-center gap-1.5 ${
+            activeTab === "registrations" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <UsersIcon className="w-4 h-4" /> Registrations & Controls
+        </button>
+        <button
+          onClick={() => {
+            if (selectedTrip) {
+              setEditName(selectedTrip.name);
+              setEditDesc(selectedTrip.description || "");
+              setEditCoordinators(selectedTrip.coordinators?.join(", ") || "");
+              setEditSeats(selectedTrip.totalSeats || 30);
+              setEditFields(selectedTrip.form?.fields || []);
+            }
+            setActiveTab("edit-event");
+          }}
+          disabled={!selectedTripId}
+          className={`pb-2 text-sm font-bold border-b-2 transition flex items-center gap-1.5 ${
+            !selectedTripId ? "opacity-50 cursor-not-allowed" : ""
+          } ${
+            activeTab === "edit-event" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <EditIcon className="w-4 h-4" /> Edit Selected Event & Form
+        </button>
+        <button
+          onClick={() => {
+            setCreateName("");
+            setCreateDesc("");
+            setCreateCoordinators("");
+            setCreateSeats(30);
+            setCreateFields([
+              { id: "1", name: "Full Name", type: "short_text", sortOrder: 0 },
+              { id: "2", name: "Roll Number", type: "short_text", sortOrder: 1 },
+              { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
+            ]);
+            setActiveTab("create-event");
+          }}
+          className={`pb-2 text-sm font-bold border-b-2 transition flex items-center gap-1.5 ${
+            activeTab === "create-event" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <PlusCircleIcon className="w-4 h-4" /> Create New Event
+        </button>
+      </div>
 
-            {/* Payments Open switch */}
-            <div className="flex justify-between items-center border-b pb-2">
-              <span className="text-xs font-bold">Payment Gating</span>
-              <button
-                type="button"
-                onClick={() => setPayOpen(!payOpen)}
-                className={`text-xs font-black px-3 py-1 rounded border transition ${
-                  payOpen ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"
-                }`}
-              >
-                {payOpen ? "PAYMENTS ENABLED" : "PAYMENTS CLOSED"}
-              </button>
-            </div>
-
-            {/* Total Seats input */}
-            <div>
-              <label className="block text-xs font-bold mb-1.5">Total Seats Cap</label>
-              <input
-                type="number"
-                min={1}
-                value={seats}
-                onChange={(e) => setSeats(Number(e.target.value))}
-                className="w-full p-2 border rounded bg-background text-sm"
-              />
-            </div>
-
-            {/* Girls Priority Threshold input */}
-            <div>
-              <label className="block text-xs font-bold mb-1.5">Girls Priority Threshold</label>
-              <input
-                type="number"
-                min={0}
-                value={girlsQuota}
-                onChange={(e) => setGirlsQuota(Number(e.target.value))}
-                className="w-full p-2 border rounded bg-background text-sm"
-                placeholder="Number of girls who must pay before boys pay"
-              />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Payment locks for boys until this number of girls have paid.
-              </p>
-            </div>
-
-            <Button type="submit" disabled={submitting} className="w-full text-xs py-2 bg-primary text-primary-foreground hover:bg-primary/95 flex items-center justify-center gap-1.5 shadow">
-              <SaveIcon className="w-3.5 h-3.5" /> {submitting ? "Saving..." : "Save Event Controls"}
-            </Button>
-          </form>
-
-          {selectedTrip && (
-            <div className="pt-2">
-              <Button
-                variant="destructive"
-                className="w-full text-xs"
-                disabled={submitting}
-                onClick={handleDeleteTrip}
-              >
-                Delete Event Completely
-              </Button>
-            </div>
-          )}
-
-          {/* Roster Auto-Save Status Badge */}
-          {selectedTrip && (
-            <div className="space-y-3 pt-4 border-t-2 border-dashed border-border">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-muted-foreground">Roster Compilation:</span>
-                <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
-                  selectedTrip.isCompleted || selectedTrip.finalRosterSaved 
-                    ? "bg-indigo-100 text-indigo-700 border-indigo-200" 
-                    : "bg-yellow-100 text-yellow-700 border-yellow-200"
-                }`}>
-                  {selectedTrip.isCompleted || selectedTrip.finalRosterSaved ? "Completed / Archived ✅" : "Active / Live"}
-                </span>
+      {/* Tab Contents */}
+      {activeTab === "registrations" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Side: Event Controls settings */}
+          <div className="bg-muted/40 p-4 rounded-xl border border-border space-y-4 h-fit">
+            <h2 className="font-bold text-sm flex items-center gap-1.5 uppercase text-muted-foreground">
+              <SettingsIcon className="w-4 h-4" /> Trip Settings
+            </h2>
+            
+            <form onSubmit={handleSaveControls} className="space-y-4">
+              {/* Registrations Open switch */}
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-xs font-bold">Registration Status</span>
+                <button
+                  type="button"
+                  onClick={() => setRegOpen(!regOpen)}
+                  className={`text-xs font-black px-3 py-1 rounded border transition ${
+                    regOpen ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"
+                  }`}
+                >
+                  {regOpen ? "OPEN" : "CLOSED"}
+                </button>
               </div>
 
-              {(!selectedTrip.isCompleted && !selectedTrip.finalRosterSaved) && (
-                <Button
-                  onClick={handleCompleteEvent}
-                  disabled={submitting}
-                  className="w-full text-xs bg-indigo-900 hover:bg-indigo-800 text-white flex items-center justify-center gap-1.5 shadow"
+              {/* Payments Open switch */}
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-xs font-bold">Payment Gating</span>
+                <button
+                  type="button"
+                  onClick={() => setPayOpen(!payOpen)}
+                  className={`text-xs font-black px-3 py-1 rounded border transition ${
+                    payOpen ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"
+                  }`}
                 >
-                  Complete & Archive Event
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+                  {payOpen ? "PAYMENTS ENABLED" : "PAYMENTS CLOSED"}
+                </button>
+              </div>
 
-        {/* Right Side: Registrations Table */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="font-bold text-base flex items-center gap-1.5 text-muted-foreground">
-              <UsersIcon className="w-4 h-4" /> Registration Entries ({registrations.length})
-            </h2>
-            <div className="flex gap-4 text-xs font-bold text-muted-foreground">
-              <span>Paid (Seats Count): {selectedTrip?.totalJoined || 0} / {selectedTrip?.totalSeats || 0}</span>
-              <span>Paid Girls: {selectedTrip?.femaleJoined || 0}</span>
+              {/* Total Seats input */}
+              <div>
+                <label className="block text-xs font-bold mb-1.5">Total Seats Cap</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={seats}
+                  onChange={(e) => setSeats(Number(e.target.value))}
+                  className="w-full p-2 border rounded bg-background text-sm"
+                />
+              </div>
+
+              {/* Girls Priority Threshold input */}
+              <div>
+                <label className="block text-xs font-bold mb-1.5">Girls Priority Threshold</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={girlsQuota}
+                  onChange={(e) => setGirlsQuota(Number(e.target.value))}
+                  className="w-full p-2 border rounded bg-background text-sm"
+                  placeholder="Number of girls who must pay before boys pay"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Payment locks for boys until this number of girls have paid.
+                </p>
+              </div>
+
+              <Button type="submit" disabled={submitting} className="w-full text-xs py-2 bg-primary text-primary-foreground hover:bg-primary/95 flex items-center justify-center gap-1.5 shadow">
+                <SaveIcon className="w-3.5 h-3.5" /> {submitting ? "Saving..." : "Save Event Controls"}
+              </Button>
+            </form>
+
+            {selectedTrip && (
+              <div className="pt-2">
+                <Button
+                  variant="destructive"
+                  className="w-full text-xs"
+                  disabled={submitting}
+                  onClick={handleDeleteTrip}
+                >
+                  Delete Event Completely
+                </Button>
+              </div>
+            )}
+
+            {/* Roster Auto-Save Status Badge */}
+            {selectedTrip && (
+              <div className="space-y-3 pt-4 border-t-2 border-dashed border-border">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-muted-foreground">Roster Compilation:</span>
+                  <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                    selectedTrip.isCompleted || selectedTrip.finalRosterSaved 
+                      ? "bg-indigo-100 text-indigo-700 border-indigo-200" 
+                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                  }`}>
+                    {selectedTrip.isCompleted || selectedTrip.finalRosterSaved ? "Completed / Archived ✅" : "Active / Live"}
+                  </span>
+                </div>
+
+                {(!selectedTrip.isCompleted && !selectedTrip.finalRosterSaved) && (
+                  <Button
+                    onClick={handleCompleteEvent}
+                    disabled={submitting}
+                    className="w-full text-xs bg-indigo-900 hover:bg-indigo-800 text-white flex items-center justify-center gap-1.5 shadow"
+                  >
+                    Complete & Archive Event
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Side: Registrations Table */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="font-bold text-base flex items-center gap-1.5 text-muted-foreground">
+                <UsersIcon className="w-4 h-4" /> Registration Entries ({registrations.length})
+              </h2>
+              <div className="flex gap-4 text-xs font-bold text-muted-foreground">
+                <span>Paid (Seats Count): {selectedTrip?.totalJoined || 0} / {selectedTrip?.totalSeats || 0}</span>
+                <span>Paid Girls: {selectedTrip?.femaleJoined || 0}</span>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center h-48 text-muted-foreground text-sm font-semibold">
+                <Loader2Icon className="animate-spin mr-2" /> Fetching submissions...
+              </div>
+            ) : registrations.length === 0 ? (
+              <div className="flex items-center justify-center h-48 border border-dashed rounded-xl text-muted-foreground text-sm font-semibold bg-muted/10">
+                No registration submissions found for this trip.
+              </div>
+            ) : (
+              <div className="border border-border rounded-xl overflow-hidden shadow-sm">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Coordinators Flag</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {registrations.map((reg) => {
+                      const studentFlags = concerns.filter((c) => c.studentEmail === reg.email);
+                      return (
+                        <TableRow key={reg.id} className="hover:bg-muted/50 transition">
+                          <TableCell>
+                            <div className="font-semibold text-sm">{reg.email}</div>
+                            <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
+                              {Object.entries(reg.formData).slice(0, 3).map(([k, v]) => (
+                                <span key={k}>{k}: <strong>{String(v)}</strong></span>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
+                          <TableCell>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
+                              reg.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
+                              reg.status === "approved_to_pay" ? "bg-indigo-100 text-indigo-700 border-indigo-200" :
+                              reg.status === "rejected" ? "bg-red-100 text-red-700 border-red-200" :
+                              "bg-yellow-100 text-yellow-700 border-yellow-200"
+                            }`}>{reg.status}</span>
+                          </TableCell>
+                          <TableCell>
+                            {studentFlags.length > 0 ? (
+                              <div className="space-y-1">
+                                {studentFlags.map((c) => (
+                                  <div key={c.id} className="flex items-start gap-1 bg-red-50 text-red-700 text-[10px] p-1.5 rounded border border-red-200 max-w-[200px]">
+                                    <ShieldAlertIcon className="w-3.5 h-3.5 shrink-0" />
+                                    <span className="leading-tight font-medium">
+                                      <strong>{c.coordinatorEmail}:</strong> {c.concernText}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground italic">No concerns</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1.5">
+                              {reg.status === "registered" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                  onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
+                                >
+                                  <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
+                                </Button>
+                              )}
+
+                              {reg.status !== "paid" && reg.status !== "rejected" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs px-2.5 py-1 bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
+                                  onClick={() => handleStatusChange(reg.id, "rejected")}
+                                >
+                                  <XCircleIcon className="w-3.5 h-3.5 mr-1" /> Decline
+                                </Button>
+                              )}
+
+                              {reg.status === "rejected" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs px-2.5 py-1 bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                                  onClick={() => handleStatusChange(reg.id, "registered")}
+                                >
+                                  Restore
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Selected Event Tab */}
+      {activeTab === "edit-event" && selectedTripId && (
+        <form onSubmit={handleSaveEventDetails} className="space-y-6 max-w-4xl bg-muted/20 p-6 rounded-xl border border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Event Name</label>
+              <Input
+                required
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="e.g. Coorg Exploration 2026"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Seating Capacity</label>
+              <Input
+                type="number"
+                required
+                min={1}
+                value={editSeats}
+                onChange={(e) => setEditSeats(Number(e.target.value))}
+              />
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center h-48 text-muted-foreground text-sm font-semibold">
-              <Loader2Icon className="animate-spin mr-2" /> Fetching submissions...
-            </div>
-          ) : registrations.length === 0 ? (
-            <div className="flex items-center justify-center h-48 border border-dashed rounded-xl text-muted-foreground text-sm font-semibold bg-muted/10">
-              No registration submissions found for this trip.
-            </div>
-          ) : (
-            <div className="border border-border rounded-xl overflow-hidden shadow-sm">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Gender</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Coordinators Flag</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {registrations.map((reg) => {
-                    const studentFlags = concerns.filter((c) => c.studentEmail === reg.email);
-                    return (
-                      <TableRow key={reg.id} className="hover:bg-muted/50 transition">
-                        <TableCell>
-                          <div className="font-semibold text-sm">{reg.email}</div>
-                          {/* Toggle list of formData keys (Name, Roll, Phone) for review */}
-                          <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
-                            {Object.entries(reg.formData).slice(0, 3).map(([k, v]) => (
-                              <span key={k}>{k}: <strong>{String(v)}</strong></span>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
-                        <TableCell>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
-                            reg.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
-                            reg.status === "approved_to_pay" ? "bg-indigo-100 text-indigo-700 border-indigo-200" :
-                            reg.status === "rejected" ? "bg-red-100 text-red-700 border-red-200" :
-                            "bg-yellow-100 text-yellow-700 border-yellow-200"
-                          }`}>{reg.status}</span>
-                        </TableCell>
-                        <TableCell>
-                          {studentFlags.length > 0 ? (
-                            <div className="space-y-1">
-                              {studentFlags.map((c) => (
-                                <div key={c.id} className="flex items-start gap-1 bg-red-50 text-red-700 text-[10px] p-1.5 rounded border border-red-200 max-w-[200px]">
-                                  <ShieldAlertIcon className="w-3.5 h-3.5 shrink-0" />
-                                  <span className="leading-tight font-medium">
-                                    <strong>{c.coordinatorEmail}:</strong> {c.concernText}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground italic">No concerns</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1.5">
-                            {reg.status === "registered" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
-                                onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
-                              >
-                                <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
-                              </Button>
-                            )}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-muted-foreground uppercase">Description</label>
+            <textarea
+              rows={3}
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="Enter trip highlights and itineraries..."
+              className="w-full p-2.5 text-sm border rounded bg-background focus:outline-none"
+            />
+          </div>
 
-                            {reg.status !== "paid" && reg.status !== "rejected" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs px-2.5 py-1 bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
-                                onClick={() => handleStatusChange(reg.id, "rejected")}
-                              >
-                                <XCircleIcon className="w-3.5 h-3.5 mr-1" /> Decline
-                              </Button>
-                            )}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators (comma-separated emails)</label>
+            <Input
+              required
+              value={editCoordinators}
+              onChange={(e) => setEditCoordinators(e.target.value)}
+              placeholder="e.g. student1@study.iitm.ac.in, student2@study.iitm.ac.in"
+            />
+          </div>
 
-                            {reg.status === "rejected" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs px-2.5 py-1 bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
-                                onClick={() => handleStatusChange(reg.id, "registered")}
-                              >
-                                Restore
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+          {/* Form Fields Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-md text-[#6d432b] uppercase">Custom Registration Fields</h3>
+              <Button type="button" size="sm" onClick={addEditField} className="bg-indigo-900 text-white hover:bg-indigo-800">
+                <PlusIcon className="w-4 h-4 mr-1" /> Add Question Field
+              </Button>
             </div>
-          )}
-        </div>
 
-      </div>
+            <div className="space-y-3">
+              {editFields.map((field, idx) => (
+                <div key={field.id} className="flex flex-col sm:flex-row gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
+                  
+                  {/* Field Name */}
+                  <div className="flex-1 w-full">
+                    <Input
+                      placeholder="Question Name (e.g. Roll Number)"
+                      required
+                      value={field.name}
+                      onChange={(e) => updateEditField(field.id, "name", e.target.value)}
+                    />
+                  </div>
+
+                  {/* Field Type selector */}
+                  <div className="w-full sm:w-44">
+                    <select
+                      value={field.type}
+                      onChange={(e) => updateEditField(field.id, "type", e.target.value)}
+                      className="w-full p-2 text-sm border rounded bg-background"
+                    >
+                      {FIELD_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Options Input (Only for radio/select types) */}
+                  {(field.type === "radio" || field.type === "select") && (
+                    <div className="w-full sm:w-60">
+                      <Input
+                        placeholder="Options (comma-separated)"
+                        required
+                        value={Array.isArray(field.options) ? field.options.join(", ") : ""}
+                        onChange={(e) => updateEditField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
+                      />
+                    </div>
+                  )}
+
+                  {/* Move & Delete buttons */}
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      disabled={idx === 0}
+                      onClick={() => moveEditField(idx, "up")}
+                      className="w-8 h-8"
+                    >
+                      <ArrowUpIcon className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      disabled={idx === editFields.length - 1}
+                      onClick={() => moveEditField(idx, "down")}
+                      className="w-8 h-8"
+                    >
+                      <ArrowDownIcon className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeEditField(field.id)}
+                      className="w-8 h-8 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 flex gap-4">
+            <Button type="submit" disabled={submitting} className="bg-primary text-primary-foreground hover:bg-primary/95 px-8">
+              {submitting ? "Saving..." : "Save Event Details & Form Fields"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setActiveTab("registrations")}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* Create New Event Tab */}
+      {activeTab === "create-event" && (
+        <form onSubmit={handleCreateEvent} className="space-y-6 max-w-4xl bg-muted/20 p-6 rounded-xl border border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Event Name</label>
+              <Input
+                required
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                placeholder="e.g. Himachal Trek 2026"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase">Seating Capacity</label>
+              <Input
+                type="number"
+                required
+                min={1}
+                value={createSeats}
+                onChange={(e) => setCreateSeats(Number(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-muted-foreground uppercase">Description</label>
+            <textarea
+              rows={3}
+              value={createDesc}
+              onChange={(e) => setCreateDesc(e.target.value)}
+              placeholder="Enter trip highlights, itinerary plans..."
+              className="w-full p-2.5 text-sm border rounded bg-background focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-muted-foreground uppercase">Trip Coordinators (comma-separated emails)</label>
+            <Input
+              required
+              value={createCoordinators}
+              onChange={(e) => setCreateCoordinators(e.target.value)}
+              placeholder="e.g. coordinator1@study.iitm.ac.in, coordinator2@study.iitm.ac.in"
+            />
+          </div>
+
+          {/* Form Fields Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-md text-[#6d432b] uppercase">Custom Registration Fields</h3>
+              <Button type="button" size="sm" onClick={addCreateField} className="bg-indigo-900 text-white hover:bg-indigo-800">
+                <PlusIcon className="w-4 h-4 mr-1" /> Add Question Field
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {createFields.map((field, idx) => (
+                <div key={field.id} className="flex flex-col sm:flex-row gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
+                  
+                  {/* Field Name */}
+                  <div className="flex-1 w-full">
+                    <Input
+                      placeholder="Question Name (e.g. Roll Number)"
+                      required
+                      value={field.name}
+                      onChange={(e) => updateCreateField(field.id, "name", e.target.value)}
+                    />
+                  </div>
+
+                  {/* Field Type selector */}
+                  <div className="w-full sm:w-44">
+                    <select
+                      value={field.type}
+                      onChange={(e) => updateCreateField(field.id, "type", e.target.value)}
+                      className="w-full p-2 text-sm border rounded bg-background"
+                    >
+                      {FIELD_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Options Input (Only for radio/select types) */}
+                  {(field.type === "radio" || field.type === "select") && (
+                    <div className="w-full sm:w-60">
+                      <Input
+                        placeholder="Options (comma-separated)"
+                        required
+                        value={Array.isArray(field.options) ? field.options.join(", ") : ""}
+                        onChange={(e) => updateCreateField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
+                      />
+                    </div>
+                  )}
+
+                  {/* Move & Delete buttons */}
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      disabled={idx === 0}
+                      onClick={() => moveCreateField(idx, "up")}
+                      className="w-8 h-8"
+                    >
+                      <ArrowUpIcon className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      disabled={idx === createFields.length - 1}
+                      onClick={() => moveCreateField(idx, "down")}
+                      className="w-8 h-8"
+                    >
+                      <ArrowDownIcon className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeCreateField(field.id)}
+                      className="w-8 h-8 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 flex gap-4">
+            <Button type="submit" disabled={submitting} className="bg-primary text-primary-foreground hover:bg-primary/95 px-8">
+              {submitting ? "Creating..." : "Create & Initialize Event"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setActiveTab("registrations")}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      )}
+
     </main>
   );
 }

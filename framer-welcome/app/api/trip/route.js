@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   doc,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 const formFieldSchema = yup.object().shape({
@@ -250,6 +251,59 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true, message: "Trip deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("DELETE Trip Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request) {
+  try {
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    const body = await request.json();
+    const { tripId, name, description, coordinators, totalSeats, formFields } = body;
+
+    if (!tripId) {
+      return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    const tripRef = doc(db, "trips", tripId);
+    const updateData = {
+      updatedAt: serverTimestamp(),
+    };
+
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (coordinators !== undefined) updateData.coordinators = coordinators;
+    if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
+    
+    if (formFields !== undefined) {
+      updateData.form = {
+        fields: formFields.map((field, idx) => {
+          const fieldData = {
+            id: field.id || crypto.randomUUID(),
+            name: field.name,
+            type: field.type,
+            sortOrder: field.sortOrder !== undefined ? field.sortOrder : idx,
+          };
+          if (field.type === "radio" || field.type === "select") {
+            fieldData.options = (field.options || []).filter(
+              (opt: string) => opt && opt.trim() !== ""
+            );
+          }
+          return fieldData;
+        })
+      };
+    }
+
+    await updateDoc(tripRef, updateData);
+    return NextResponse.json({ success: true, message: "Trip details updated successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("PUT Trip Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
