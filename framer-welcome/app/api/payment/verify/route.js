@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db, realtimeDb, isFirebaseEnabled } from "@/lib/firebase";
 import { ref, runTransaction as runRealtimeTransaction } from "firebase/database";
+import { adminAuth } from "@/lib/firebase-admin";
 import {
   doc,
   getDoc,
@@ -70,13 +71,33 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { orderId, paymentId, signature, sessionId, tripId, registrationId } = body;
+    const { orderId, paymentId, signature, sessionId, tripId, registrationId, token } = body;
 
-    if (!orderId || !paymentId || !signature || !tripId || !registrationId) {
+    if (!orderId || !paymentId || !signature || !tripId || !registrationId || !token) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields (orderId, paymentId, signature, tripId, registrationId, token)" },
         { status: 400 }
       );
+    }
+
+    // A. Verify Firebase ID Token
+    let decodedToken;
+    try {
+      decodedToken = await adminAuth.verifyIdToken(token);
+    } catch (err) {
+      return NextResponse.json({ error: "Invalid or expired user session." }, { status: 401 });
+    }
+    const email = decodedToken.email;
+
+    // B. Fetch registration to assert ownership
+    const regDocRef = doc(db, "user-registrations", registrationId);
+    const regSnap = await getDoc(regDocRef);
+    if (!regSnap.exists()) {
+      return NextResponse.json({ error: "Registration details not found." }, { status: 404 });
+    }
+    const regData = regSnap.data();
+    if (regData.email?.toLowerCase() !== email?.toLowerCase()) {
+      return NextResponse.json({ error: "Access denied: registration ownership mismatch." }, { status: 403 });
     }
 
     // 1. Fetch trip metadata from Firestore to read event stats
@@ -109,14 +130,6 @@ export async function POST(req) {
       );
     }
 
-    // 2. Fetch Registration details to check gender and current status
-    const regRef = doc(db, "user-registrations", registrationId);
-    const regSnap = await getDoc(regRef);
-    if (!regSnap.exists()) {
-      return NextResponse.json({ error: "Registration not found" }, { status: 404 });
-    }
-    const regData = regSnap.data();
-
     // Prevent double verification / double seat taking
     if (regData.status === "paid") {
       return NextResponse.json({ success: true, message: "Already verified" }, { status: 200 });
@@ -146,7 +159,7 @@ export async function POST(req) {
     await updateDoc(tripDocRef, tripUpdate);
 
     // 4. Update user-registrations status to "paid"
-    await updateDoc(regRef, {
+    await updateDoc(regDocRef, {
       status: "paid",
       razorpayOrderId: orderId,
       razorpayPaymentId: paymentId,

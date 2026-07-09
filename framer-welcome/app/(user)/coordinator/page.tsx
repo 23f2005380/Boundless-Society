@@ -136,7 +136,7 @@ export default function CoordinatorDashboard() {
     try {
       const token = await user?.getIdToken();
       const regRes = await fetch(`/api/admin/registrations?tripId=${selectedTripId}&token=${token}`);
-      const concernsRes = await fetch(`/api/coordinator/concerns?tripId=${selectedTripId}`);
+      const concernsRes = await fetch(`/api/coordinator/concerns?tripId=${selectedTripId}&token=${token}`);
       
       if (regRes.ok && concernsRes.ok) {
         const regData = await regRes.json();
@@ -194,6 +194,7 @@ export default function CoordinatorDashboard() {
     setSubmittingConcern(true);
 
     try {
+      const token = await user.getIdToken();
       const res = await fetch("/api/coordinator/concerns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,6 +203,7 @@ export default function CoordinatorDashboard() {
           studentEmail: selectedReg.email,
           coordinatorEmail: user.email,
           concernText: concernText,
+          token,
         }),
       });
 

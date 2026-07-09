@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/firebase";
+import { adminAuth } from "@/lib/firebase-admin";
 import {
   collection,
   addDoc,
@@ -10,14 +11,66 @@ import {
   orderBy,
   serverTimestamp,
   doc,
-  deleteDoc
+  deleteDoc,
+  getDoc
 } from "firebase/firestore";
+
+async function checkAuth(req, tripId) {
+  try {
+    const session = await getServerSession();
+    if (session) return true;
+
+    const { searchParams } = new URL(req.url);
+    let token = searchParams.get("token");
+
+    if (!token && req.method !== "GET" && req.method !== "HEAD") {
+      try {
+        const clone = req.clone();
+        const body = await clone.json();
+        token = body.token;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!token) return false;
+
+    const decoded = await adminAuth.verifyIdToken(token);
+    const email = decoded.email;
+    if (!email) return false;
+
+    if (!tripId) {
+      return true;
+    }
+
+    const tripSnap = await getDoc(doc(db, "trips", tripId));
+    if (!tripSnap.exists()) return false;
+    const tripData = tripSnap.data();
+
+    const isCoordinated = (tripData.coordinators || []).some((c) => {
+      if (typeof c === "object" && c !== null) {
+        return c.email?.toLowerCase() === email.toLowerCase();
+      }
+      return String(c).toLowerCase() === email.toLowerCase();
+    });
+
+    return isCoordinated;
+  } catch (err) {
+    console.error("Auth check failed:", err);
+    return false;
+  }
+}
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const tripId = searchParams.get("tripId");
     const studentEmail = searchParams.get("studentEmail");
+
+    const authorized = await checkAuth(request, tripId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
 
     let q;
     const concernsRef = collection(db, "coordinator_concerns");
@@ -65,7 +118,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const body = await request.clone().json();
     const { tripId, studentEmail, coordinatorEmail, concernText } = body;
 
     if (!tripId || !studentEmail || !concernText) {
@@ -73,6 +126,11 @@ export async function POST(request) {
         { error: "Missing required fields (tripId, studentEmail, concernText)" },
         { status: 400 }
       );
+    }
+
+    const authorized = await checkAuth(request, tripId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
     const docRef = await addDoc(collection(db, "coordinator_concerns"), {

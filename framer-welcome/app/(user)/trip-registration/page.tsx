@@ -175,6 +175,7 @@ export default function SecureForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tripId: selectedTripId,
+          token,
         }),
       });
 
@@ -205,6 +206,7 @@ export default function SecureForm() {
                 sessionId: initData.sessionId,
                 tripId: selectedTripId,
                 registrationId: registration.id,
+                token,
               }),
             });
 
