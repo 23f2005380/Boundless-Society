@@ -292,7 +292,7 @@ export async function PUT(request) {
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(
-              (opt: string) => opt && opt.trim() !== ""
+              (opt) => opt && opt.trim() !== ""
             );
           }
           return fieldData;
