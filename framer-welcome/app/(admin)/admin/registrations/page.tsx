@@ -233,6 +233,14 @@ export default function SubmissionsPage() {
     }
   };
 
+  const handleCopyRegistrationLink = () => {
+    if (!selectedTripId) return;
+    const origin = window.location.origin;
+    const link = `${origin}/trip-registration?tripId=${selectedTripId}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Event registration link copied to clipboard! 📋");
+  };
+
   const handleConsentTemplateChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
     const fileObj = e.target.files?.[0];
     if (!fileObj) return;
@@ -622,18 +630,27 @@ export default function SubmissionsPage() {
           <p className="text-xs text-muted-foreground mt-1">Manage attendees, approval gating, and payment thresholds.</p>
         </div>
 
-        {/* Trip Dropdown Selector */}
+        {/* Trip Dropdown Selector & Link Copier */}
         {trips.length > 0 && activeTab !== "create-event" && (
-          <div className="w-64">
+          <div className="flex items-center gap-2">
             <select
               value={selectedTripId}
               onChange={(e) => setSelectedTripId(e.target.value)}
-              className="w-full p-2 border border-border rounded bg-background text-sm font-semibold"
+              className="w-64 p-2 border border-border rounded bg-background text-sm font-semibold outline-none"
             >
               {trips.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
+            <Button
+              onClick={handleCopyRegistrationLink}
+              variant="outline"
+              size="sm"
+              className="font-bold flex items-center gap-1.5 text-xs h-[38px] px-3"
+              title="Copy student registration link for this event"
+            >
+              🔗 Copy Link
+            </Button>
           </div>
         )}
       </div>
