@@ -23,13 +23,6 @@ export async function POST(req) {
       );
     }
 
-    if (!razorpay) {
-      return NextResponse.json(
-        { error: "Payment system is not configured. Please try again later." },
-        { status: 503 }
-      );
-    }
-
     const body = await req.json();
     const { tripId, currency = "INR" } = body;
 

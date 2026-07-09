@@ -92,6 +92,13 @@ export async function POST(req) {
       ? tripData.razorpayKeySecret
       : process.env.RAZORPAY_KEY_SECRET;
 
+    if (!secret) {
+      return NextResponse.json(
+        { error: "Payment verification credentials are not configured for this trip." },
+        { status: 503 }
+      );
+    }
+
     const generated_signature = crypto
       .createHmac("sha256", secret)
       .update(orderId + "|" + paymentId)
