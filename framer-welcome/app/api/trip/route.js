@@ -25,6 +25,7 @@ const formFieldSchema = yup.object().shape({
     )
     .required(),
   sortOrder: yup.number().required().min(0),
+  allowEditIfPrefilled: yup.boolean().optional().default(true),
   options: yup
     .array()
     .of(yup.string().trim())
@@ -161,6 +162,7 @@ export async function POST(request) {
             name: field.name,
             type: field.type,
             sortOrder: field.sortOrder,
+            allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(
@@ -346,6 +348,7 @@ export async function PUT(request) {
             name: field.name,
             type: field.type,
             sortOrder: field.sortOrder !== undefined ? field.sortOrder : idx,
+            allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(

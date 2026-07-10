@@ -39,6 +39,17 @@ interface Concern {
   createdAt: string;
 }
 
+const getDocumentUrl = (url: string) => {
+  if (!url) return "";
+  const parts = url.split("/");
+  const lastPart = parts[parts.length - 1];
+  let filename = lastPart;
+  if (!filename.includes(".")) {
+    filename += ".pdf";
+  }
+  return `/api/downloadProxy/${encodeURIComponent(filename)}?url=${encodeURIComponent(url)}`;
+};
+
 export default function CoordinatorDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -376,8 +387,10 @@ export default function CoordinatorDashboard() {
                       <>
                         {selectedReg.status === "registered" && (
                           <button
+                            disabled={!selectedReg.aadhaarVerified}
+                            title={!selectedReg.aadhaarVerified ? "Aadhaar must be verified first" : "Approve Payment"}
                             onClick={() => handleStatusChange(selectedReg.id, "approved_to_pay")}
-                            className="bg-green-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1.5"
+                            className="bg-green-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1.5 transition-all"
                           >
                             <UserCheckIcon className="w-3.5 h-3.5" /> Approve Payment Link
                           </button>
@@ -415,7 +428,7 @@ export default function CoordinatorDashboard() {
                         </span>
                         {selectedReg.formData?.["Aadhaar Card Copy"] && (
                           <a
-                            href={selectedReg.formData["Aadhaar Card Copy"]}
+                            href={getDocumentUrl(selectedReg.formData["Aadhaar Card Copy"])}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow"
@@ -430,7 +443,7 @@ export default function CoordinatorDashboard() {
                       <div className="mt-1">
                         {selectedReg.formData?.["Completed Consent Form"] ? (
                           <a
-                            href={selectedReg.formData["Completed Consent Form"]}
+                            href={getDocumentUrl(selectedReg.formData["Completed Consent Form"])}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow inline-flex items-center gap-1"
@@ -484,24 +497,30 @@ export default function CoordinatorDashboard() {
                 </div>
 
                 {/* Raise Concern Form */}
-                <form onSubmit={handleRaiseConcern} className="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
-                  <h3 className="font-black text-sm text-gray-700 uppercase">Raise Concern / Flag Student</h3>
-                  <textarea
-                    required
-                    rows={2}
-                    value={concernText}
-                    onChange={(e) => setConcernText(e.target.value)}
-                    placeholder="Write details about the concern (e.g. invalid document, previous behavior issues)..."
-                    className="w-full p-2 border border-gray-300 rounded text-sm font-medium outline-none focus:border-black resize-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={submittingConcern}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg"
-                  >
-                    {submittingConcern ? "Submitting Concern..." : "Flag Student Concern"}
-                  </button>
-                </form>
+                {!selectedTrip?.isCompleted ? (
+                  <form onSubmit={handleRaiseConcern} className="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                    <h3 className="font-black text-sm text-gray-700 uppercase">Raise Concern / Flag Student</h3>
+                    <textarea
+                      required
+                      rows={2}
+                      value={concernText}
+                      onChange={(e) => setConcernText(e.target.value)}
+                      placeholder="Write details about the concern (e.g. invalid document, previous behavior issues)..."
+                      className="w-full p-2 border border-gray-300 rounded text-sm font-medium outline-none focus:border-black resize-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={submittingConcern}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg"
+                    >
+                      {submittingConcern ? "Submitting Concern..." : "Flag Student Concern"}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-900/10 text-xs text-amber-900 font-bold text-center">
+                    Trip is completed. Cannot flag new student concerns.
+                  </div>
+                )}
 
               </div>
             ) : (

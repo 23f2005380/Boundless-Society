@@ -71,7 +71,9 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { orderId, paymentId, signature, sessionId, tripId, registrationId, token } = body;
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    const { orderId, paymentId, signature, sessionId, tripId, registrationId } = body;
 
     if (!orderId || !paymentId || !signature || !tripId || !registrationId || !token) {
       return NextResponse.json(
@@ -88,6 +90,10 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid or expired user session." }, { status: 401 });
     }
     const email = decodedToken.email;
+
+    if (!email || !email.endsWith("iitm.ac.in")) {
+      return NextResponse.json({ error: "Unauthorized domain. Only IITM emails are allowed." }, { status: 403 });
+    }
 
     // B. Fetch registration to assert ownership
     const regDocRef = doc(db, "user-registrations", registrationId);

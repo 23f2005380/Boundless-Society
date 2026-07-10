@@ -25,7 +25,9 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { tripId, token, currency = "INR" } = body;
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    const { tripId, currency = "INR" } = body;
 
     if (!tripId || !token) {
       return NextResponse.json(
@@ -42,6 +44,10 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid or expired user session." }, { status: 401 });
     }
     const email = decodedToken.email;
+
+    if (!email || !email.endsWith("iitm.ac.in")) {
+      return NextResponse.json({ error: "Unauthorized domain. Only IITM emails are allowed." }, { status: 403 });
+    }
 
     // B. Fetch trip metadata from Firestore to read fee and caps
     const fsTripRef = fsDoc(db, "trips", tripId);

@@ -17,7 +17,8 @@ import {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const token = searchParams.get("token");
+    const authHeader = request.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : searchParams.get("token");
     const tripId = searchParams.get("tripId");
 
     if (!token) {
@@ -32,6 +33,10 @@ export async function GET(request) {
     }
 
     const email = decodedToken.email;
+
+    if (!email || !email.endsWith("iitm.ac.in")) {
+      return Response.json({ error: "Unauthorized domain. Only IITM emails are allowed." }, { status: 403 });
+    }
 
     // 1. Fetch current registration status for this specific trip
     let registration = null;
@@ -80,7 +85,9 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { token, tripId, formData } = body;
+    const authHeader = request.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    const { tripId, formData } = body;
 
     if (!token || !tripId || !formData) {
       return Response.json({ error: "Missing required fields (token, tripId, formData)" }, { status: 400 });
@@ -95,6 +102,10 @@ export async function POST(request) {
 
     const uid = decodedToken.uid;
     const email = decodedToken.email;
+
+    if (!email || !email.endsWith("iitm.ac.in")) {
+      return Response.json({ error: "Unauthorized domain. Only IITM emails are allowed." }, { status: 403 });
+    }
 
     // Check if trip registration is open
     const tripSnap = await getDoc(doc(db, "trips", tripId));
@@ -118,6 +129,41 @@ export async function POST(request) {
       return Response.json({ error: "You are already registered for this trip." }, { status: 400 });
     }
 
+    // Fetch user's past registrations to enforce read-only prefilled data
+    const pastQuery = query(
+      collection(db, "user-registrations"),
+      where("email", "==", email)
+    );
+    const pastSnap = await getDocs(pastQuery);
+    let pastFormData = null;
+    if (!pastSnap.empty) {
+      const sortedDocs = [...pastSnap.docs].sort((a, b) => {
+        const timeA = a.data().submittedAt?.toDate?.()?.getTime() || 0;
+        const timeB = b.data().submittedAt?.toDate?.()?.getTime() || 0;
+        return timeB - timeA;
+      });
+      pastFormData = sortedDocs[0].data().formData || null;
+    }
+
+    if (pastFormData) {
+      // Force reuse of past Aadhaar if it exists (Aadhaar cannot be changed after first registration)
+      if (pastFormData["Aadhaar Number"]) {
+        formData["Aadhaar Number"] = pastFormData["Aadhaar Number"];
+      }
+      if (pastFormData["Aadhaar Card Copy"]) {
+        formData["Aadhaar Card Copy"] = pastFormData["Aadhaar Card Copy"];
+      }
+
+      // Enforce read-only logic on fields configured by the admin
+      if (tripData?.form?.fields) {
+        tripData.form.fields.forEach((field) => {
+          if (field.allowEditIfPrefilled === false && pastFormData[field.name] !== undefined) {
+            formData[field.name] = pastFormData[field.name];
+          }
+        });
+      }
+    }
+
     // Automatically detect gender from formData keys (e.g. key containing "gender" or "sex")
     const genderKey = Object.keys(formData).find(
       (k) => k.toLowerCase().includes("gender") || k.toLowerCase() === "sex"
@@ -130,6 +176,16 @@ export async function POST(request) {
       else gender = "other";
     }
 
+    // Check if user has a verified Aadhaar in past registrations
+    const pastRegsQuery = query(
+      collection(db, "user-registrations"),
+      where("email", "==", email),
+      where("aadhaarVerified", "==", true),
+      limit(1)
+    );
+    const pastRegsSnap = await getDocs(pastRegsQuery);
+    const isAadhaarVerified = !pastRegsSnap.empty;
+
     const docRef = await addDoc(collection(db, "user-registrations"), {
       uid,
       email,
@@ -138,6 +194,7 @@ export async function POST(request) {
       status: "registered", // initial stage
       gender,
       submittedAt: serverTimestamp(),
+      aadhaarVerified: isAadhaarVerified,
     });
 
     return Response.json(

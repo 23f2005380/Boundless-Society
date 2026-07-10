@@ -139,6 +139,7 @@ export async function GET(req) {
         submittedAt: data.submittedAt?.toDate?.()?.toISOString() || null,
         paymentVerifiedAt: data.paymentVerifiedAt?.toDate?.()?.toISOString() || null,
         formData: data.formData || {},
+        aadhaarVerified: data.aadhaarVerified || false,
       };
     });
 

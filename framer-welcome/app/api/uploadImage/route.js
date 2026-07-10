@@ -38,13 +38,16 @@ export async function POST(req) {
 
     const image = images[0];
 
+    const isDoc = image.startsWith("data:application/msword") || 
+                  image.startsWith("data:application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
     if (
       !image ||
       typeof image !== "string" ||
-      (!image.startsWith("data:image") && !image.startsWith("data:application/pdf"))
+      (!image.startsWith("data:image") && !image.startsWith("data:application/pdf") && !isDoc)
     ) {
       return NextResponse.json(
-        { error: "Invalid file format. Please provide an image or PDF." },
+        { error: "Invalid file format. Please provide an image, PDF, or Word document." },
         { status: 400 }
       );
     }

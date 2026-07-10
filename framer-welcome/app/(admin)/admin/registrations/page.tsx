@@ -68,6 +68,17 @@ const FIELD_TYPES = [
   { value: "email", label: "Email" },
 ];
 
+const getDocumentUrl = (url: string) => {
+  if (!url) return "";
+  const parts = url.split("/");
+  const lastPart = parts[parts.length - 1];
+  let filename = lastPart;
+  if (!filename.includes(".")) {
+    filename += ".pdf";
+  }
+  return `/api/downloadProxy/${encodeURIComponent(filename)}?url=${encodeURIComponent(url)}`;
+};
+
 export default function SubmissionsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTripId, setSelectedTripId] = useState("");
@@ -431,6 +442,7 @@ export default function SubmissionsPage() {
         name: "",
         type: "short_text",
         options: [],
+        allowEditIfPrefilled: true,
         sortOrder: editFields.length,
       },
     ]);
@@ -529,6 +541,7 @@ export default function SubmissionsPage() {
         name: "",
         type: "short_text",
         options: [],
+        allowEditIfPrefilled: true,
         sortOrder: createFields.length,
       },
     ]);
@@ -707,9 +720,9 @@ export default function SubmissionsPage() {
             setCreateCoordinators([{ id: "c1", name: "", email: "" }]);
             setCreateSeats(30);
             setCreateFields([
-              { id: "1", name: "Full Name", type: "short_text", sortOrder: 0 },
-              { id: "2", name: "Roll Number", type: "short_text", sortOrder: 1 },
-              { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
+              { id: "1", name: "Full Name", type: "short_text", allowEditIfPrefilled: false, sortOrder: 0 },
+              { id: "2", name: "Roll Number", type: "short_text", allowEditIfPrefilled: true, sortOrder: 1 },
+              { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], allowEditIfPrefilled: false, sortOrder: 2 },
             ]);
             setActiveTab("create-event");
           }}
@@ -900,7 +913,7 @@ export default function SubmissionsPage() {
                             <div className="flex flex-col gap-1 text-[10px]">
                               {reg.formData?.["Aadhaar Card Copy"] ? (
                                 <a
-                                  href={reg.formData["Aadhaar Card Copy"]}
+                                  href={getDocumentUrl(reg.formData["Aadhaar Card Copy"])}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
@@ -912,7 +925,7 @@ export default function SubmissionsPage() {
                               )}
                               {reg.formData?.["Completed Consent Form"] ? (
                                 <a
-                                  href={reg.formData["Completed Consent Form"]}
+                                  href={getDocumentUrl(reg.formData["Completed Consent Form"])}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
@@ -950,18 +963,17 @@ export default function SubmissionsPage() {
                           <TableCell className="text-right">
                             {!selectedTrip?.isCompleted ? (
                               <div className="flex justify-end gap-1.5">
-                                {reg.status === "registered" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={!reg.aadhaarVerified}
-                                    title={!reg.aadhaarVerified ? "Aadhaar must be verified first" : "Approve Payment"}
-                                    className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
-                                  >
-                                    <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
-                                  </Button>
-                                )}
+                                  {reg.status === "registered" && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      title="Approve Payment"
+                                      className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                      onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
+                                    >
+                                      <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
+                                    </Button>
+                                  )}
 
                                 {reg.status !== "paid" && reg.status !== "rejected" && (
                                   <Button
@@ -1047,7 +1059,7 @@ export default function SubmissionsPage() {
                 />
                 {editConsentTemplate && (
                   <a
-                    href={editConsentTemplate}
+                    href={getDocumentUrl(editConsentTemplate)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-indigo-900 underline shrink-0"
@@ -1163,6 +1175,20 @@ export default function SubmissionsPage() {
                     </div>
                   )}
 
+                  {/* Allow Edit Checkbox */}
+                  <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
+                    <input
+                      type="checkbox"
+                      id={`edit-allow-prefilled-${field.id}`}
+                      checked={field.allowEditIfPrefilled !== false}
+                      onChange={(e) => updateEditField(field.id, "allowEditIfPrefilled", e.target.checked)}
+                      className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
+                    />
+                    <label htmlFor={`edit-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
+                      Allow Edit
+                    </label>
+                  </div>
+
                   {/* Move & Delete buttons */}
                   <div className="flex gap-1 shrink-0">
                     <Button
@@ -1259,7 +1285,7 @@ export default function SubmissionsPage() {
                 />
                 {createConsentTemplate && (
                   <a
-                    href={createConsentTemplate}
+                    href={getDocumentUrl(createConsentTemplate)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-indigo-900 underline shrink-0"
@@ -1374,6 +1400,20 @@ export default function SubmissionsPage() {
                       />
                     </div>
                   )}
+
+                  {/* Allow Edit Checkbox */}
+                  <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
+                    <input
+                      type="checkbox"
+                      id={`create-allow-prefilled-${field.id}`}
+                      checked={field.allowEditIfPrefilled !== false}
+                      onChange={(e) => updateCreateField(field.id, "allowEditIfPrefilled", e.target.checked)}
+                      className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
+                    />
+                    <label htmlFor={`create-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
+                      Allow Edit
+                    </label>
+                  </div>
 
                   {/* Move & Delete buttons */}
                   <div className="flex gap-1 shrink-0">
@@ -1512,7 +1552,7 @@ export default function SubmissionsPage() {
                   <div className="flex flex-wrap gap-2 pt-1">
                     {activeProfileReg.formData["Aadhaar Card Copy"] && (
                       <a
-                        href={activeProfileReg.formData["Aadhaar Card Copy"]}
+                        href={getDocumentUrl(activeProfileReg.formData["Aadhaar Card Copy"])}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
@@ -1542,7 +1582,7 @@ export default function SubmissionsPage() {
                     <div className="space-y-2">
                       <p className="text-green-700 font-semibold">✓ Completed signed consent form uploaded.</p>
                       <a
-                        href={activeProfileReg.formData["Completed Consent Form"]}
+                        href={getDocumentUrl(activeProfileReg.formData["Completed Consent Form"])}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
@@ -1566,7 +1606,7 @@ export default function SubmissionsPage() {
                         <span className="text-xs font-bold text-gray-600 block">{key}</span>
                         {typeof val === "string" && (val.startsWith("http://") || val.startsWith("https://")) ? (
                           <a
-                            href={val}
+                            href={val.includes("res.cloudinary.com") ? `/api/downloadProxy/custom_file?url=${encodeURIComponent(val)}` : val}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-indigo-900 font-bold underline text-xs hover:text-indigo-800"

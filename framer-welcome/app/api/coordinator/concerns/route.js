@@ -133,6 +133,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
+    // Check if trip is completed
+    const tripSnap = await getDoc(doc(db, "trips", tripId));
+    if (tripSnap.exists() && tripSnap.data().isCompleted) {
+      return NextResponse.json(
+        { error: "Trip is completed. Cannot add concerns." },
+        { status: 400 }
+      );
+    }
+
     const docRef = await addDoc(collection(db, "coordinator_concerns"), {
       tripId,
       studentEmail,
