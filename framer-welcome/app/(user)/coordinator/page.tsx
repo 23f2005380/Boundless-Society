@@ -44,9 +44,6 @@ const getDocumentUrl = (url: string) => {
   const parts = url.split("/");
   const lastPart = parts[parts.length - 1];
   let filename = lastPart;
-  if (!filename.includes(".")) {
-    filename += ".pdf";
-  }
   return `/api/downloadProxy/${encodeURIComponent(filename)}?url=${encodeURIComponent(url)}`;
 };
 

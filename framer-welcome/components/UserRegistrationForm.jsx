@@ -424,7 +424,15 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                         type="file"
                         required
                         accept="image/*,.pdf"
-                        onChange={(e) => setAadhaarFile(e.target.files?.[0] || null)}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && file.size > 1024 * 1024) {
+                            alert("File size must be less than 1MB");
+                            e.target.value = "";
+                            return;
+                          }
+                          setAadhaarFile(file || null);
+                        }}
                         className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
                       />
                     </div>
@@ -571,7 +579,15 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                           accept="image/*,.pdf"
                           required={!currentVal}
                           disabled={isFieldDisabled(field.name)}
-                          onChange={(e) => handleChange(field.name, e.target.files?.[0] || null)}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file && file.size > 1024 * 1024) {
+                              alert("File size must be less than 1MB");
+                              e.target.value = "";
+                              return;
+                            }
+                            handleChange(field.name, file || null);
+                          }}
                           className={`w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors border-2 border-transparent rounded-xl p-1 ${
                             isFieldDisabled(field.name)
                               ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
@@ -636,7 +652,15 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                       type="file"
                       accept=".pdf,image/*"
                       required
-                      onChange={(e) => setConsentFile(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file && file.size > 1024 * 1024) {
+                          alert("File size must be less than 1MB");
+                          e.target.value = "";
+                          return;
+                        }
+                        setConsentFile(file || null);
+                      }}
                       className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
                     />
                   </div>
