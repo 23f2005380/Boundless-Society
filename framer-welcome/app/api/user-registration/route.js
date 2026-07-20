@@ -10,7 +10,8 @@ import {
   orderBy,
   limit,
   doc,
-  getDoc
+  getDoc,
+  updateDoc
 } from "firebase/firestore";
 
 /* GET → Check if registered & fetch autofill profile data */
@@ -203,6 +204,63 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("POST user-registration error:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/* PATCH → Update registration (e.g. re-upload documents) */
+export async function PATCH(request) {
+  try {
+    const body = await request.json();
+    const authHeader = request.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    const { tripId, formDataUpdates } = body;
+
+    if (!token || !tripId || !formDataUpdates) {
+      return Response.json({ error: "Missing required fields (token, tripId, formDataUpdates)" }, { status: 400 });
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = await adminAuth.verifyIdToken(token);
+    } catch (err) {
+      return Response.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    const email = decodedToken.email;
+    if (!email || !email.endsWith("iitm.ac.in")) {
+      return Response.json({ error: "Unauthorized domain. Only IITM emails are allowed." }, { status: 403 });
+    }
+
+    // Find the current registration
+    const currentQuery = query(
+      collection(db, "user-registrations"),
+      where("tripId", "==", tripId),
+      where("email", "==", email),
+      limit(1)
+    );
+    const currentSnap = await getDocs(currentQuery);
+    
+    if (currentSnap.empty) {
+      return Response.json({ error: "Registration not found." }, { status: 404 });
+    }
+
+    const regDoc = currentSnap.docs[0];
+    const existingData = regDoc.data();
+    
+    const newFormData = { ...existingData.formData, ...formDataUpdates };
+
+    await updateDoc(doc(db, "user-registrations", regDoc.id), {
+      formData: newFormData,
+      status: "registered", // send back to under review
+      issueText: "", // clear any issues
+      actionRequiredFields: [], // clear flagged fields
+      updatedAt: serverTimestamp(),
+    });
+
+    return Response.json({ success: true, message: "Registration updated successfully." }, { status: 200 });
+  } catch (error) {
+    console.error("PATCH user-registration error:", error);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

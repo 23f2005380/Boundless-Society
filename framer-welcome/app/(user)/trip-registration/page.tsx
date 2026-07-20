@@ -46,6 +46,11 @@ export default function SecureForm() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [paying, setPaying] = useState(false);
 
+  const [reuploadAadhaar, setReuploadAadhaar] = useState<File | null>(null);
+  const [reuploadConsent, setReuploadConsent] = useState<File | null>(null);
+  const [reuploading, setReuploading] = useState(false);
+  const [correctionValues, setCorrectionValues] = useState<Record<string, any>>({});
+
   // Load Razorpay Script dynamically
   useEffect(() => {
     const script = document.createElement("script");
@@ -261,6 +266,145 @@ export default function SecureForm() {
     }
   };
 
+  const handleReupload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Check if any corrections were made
+    const hasCorrections = Object.keys(correctionValues).length > 0;
+    
+    if (!hasCorrections) {
+      alert("Please provide the requested corrections before submitting.");
+      return;
+    }
+    
+    if (!user || !selectedTripId) return;
+
+    setReuploading(true);
+    try {
+      const token = await user.getIdToken();
+      const formDataUpdates: any = { ...correctionValues };
+
+      // Upload file fields if any
+      const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      };
+
+      const loadPdfJs = (): Promise<any> => {
+        return new Promise((resolve, reject) => {
+          if ((window as any).pdfjsLib) {
+            resolve((window as any).pdfjsLib);
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js";
+          script.onload = () => {
+            (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+            resolve((window as any).pdfjsLib);
+          };
+          script.onerror = () => reject(new Error("Failed to load PDF library"));
+          document.head.appendChild(script);
+        });
+      };
+
+      const convertPdfToJpg = async (file: File): Promise<string> => {
+        const pdfjsLib = await loadPdfJs();
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const numPages = pdf.numPages;
+        
+        const pagesData = [];
+        let totalHeight = 0;
+        let maxWidth = 0;
+
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          pagesData.push({ page, viewport });
+          totalHeight += viewport.height;
+          maxWidth = Math.max(maxWidth, viewport.width);
+        }
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Could not get canvas context");
+        canvas.height = totalHeight;
+        canvas.width = maxWidth;
+
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        let currentY = 0;
+        for (const { page, viewport } of pagesData) {
+          const renderCanvas = document.createElement("canvas");
+          renderCanvas.width = viewport.width;
+          renderCanvas.height = viewport.height;
+          const renderContext = renderCanvas.getContext("2d");
+          
+          await page.render({ canvasContext: renderContext, viewport }).promise;
+          
+          context.drawImage(renderCanvas, 0, currentY);
+          currentY += viewport.height;
+        }
+
+        return canvas.toDataURL("image/jpeg", 0.85);
+      };
+
+      const filePromises = Object.entries(correctionValues).map(async ([key, value]) => {
+        if (value instanceof File) {
+          let base64Image;
+          if (value.type === "application/pdf" || value.name?.toLowerCase().endsWith(".pdf")) {
+            try {
+              base64Image = await convertPdfToJpg(value);
+            } catch (pdfErr) {
+              console.error("PDF to JPG conversion failed, falling back to base64 pdf:", pdfErr);
+              base64Image = await convertToBase64(value);
+            }
+          } else {
+            base64Image = await convertToBase64(value);
+          }
+
+          const fileRes = await fetch("/api/uploadImage", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+              images: [base64Image],
+              folder: "trip_registrations",
+            })
+          });
+          if (!fileRes.ok) throw new Error(`${key} upload failed`);
+          const fileJson = await fileRes.json();
+          formDataUpdates[key] = fileJson.images[0].secure_url || fileJson.images[0];
+        }
+      });
+      await Promise.all(filePromises);
+
+      const patchRes = await fetch("/api/user-registration", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, tripId: selectedTripId, formDataUpdates })
+      });
+
+      if (!patchRes.ok) throw new Error("Failed to update registration");
+      
+      alert("Corrections submitted successfully!");
+      setCorrectionValues({});
+      fetchStatus();
+    } catch (error) {
+      console.error("Re-upload error:", error);
+      alert("Failed to submit corrections. Please try again.");
+    } finally {
+      setReuploading(false);
+    }
+  };
+
   const renderAadhaarStatus = () => {
     if (!registration || !registration.formData?.["Aadhaar Number"]) return null;
     return (
@@ -384,6 +528,104 @@ export default function SecureForm() {
                   Please check back later. Once approved, your Payment Link will activate here!
                 </p>
                 {renderAadhaarStatus()}
+                <button
+                  onClick={handleLogout}
+                  className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+
+            {registration.status === "action_required" && (
+              <div className="w-full bg-white rounded-[2rem] shadow-xl overflow-hidden border border-black/5 p-8 text-center" data-lenis-prevent>
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center shadow-inner mb-6 mx-auto">
+                  <span className="text-3xl text-amber-600">⚠️</span>
+                </div>
+                <h2 className="text-2xl font-oswald font-bold text-[#3E1126] uppercase mb-4">Action Required</h2>
+                <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-4">
+                  The organizers have requested additional action regarding your registration.
+                </p>
+                
+                {registration.issueText && (
+                  <div className="text-left text-sm text-amber-800 font-medium p-4 bg-amber-50 rounded-xl border-2 border-amber-200/50 mb-6">
+                    <span className="font-bold text-amber-900 block mb-1">Issue Reported:</span>
+                    {registration.issueText}
+                  </div>
+                )}
+
+                <form onSubmit={handleReupload} className="space-y-4 text-left bg-zinc-50 border-2 border-[#3E1126]/10 rounded-xl p-5">
+                  <h4 className="font-oswald font-bold text-sm uppercase tracking-wider text-[#3E1126] mb-3">Corrections Required</h4>
+                  
+                  {registration.actionRequiredFields?.map((fieldName: string) => {
+                    const isFileField = fieldName === "Aadhaar Card Copy" || fieldName === "Completed Consent Form" || 
+                      selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type === "file";
+                    const fieldType = selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type || "short_text";
+                    
+                    return (
+                      <div key={fieldName} className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{fieldName}</label>
+                        
+                        {isFileField ? (
+                          <input
+                            type="file"
+                            accept="image/*,.pdf,.docx"
+                            required
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file && file.size > 1024 * 1024) {
+                                alert("File size must be less than 1MB");
+                                e.target.value = '';
+                                return;
+                              }
+                              setCorrectionValues(prev => ({ ...prev, [fieldName]: file || null }));
+                            }}
+                            className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
+                          />
+                        ) : fieldType === "long_text" || fieldName === "Custom Reply" ? (
+                          <textarea
+                            required
+                            placeholder={fieldName === "Custom Reply" ? "Type your reply to the organizer's message..." : `Enter corrected ${fieldName.toLowerCase()}...`}
+                            value={correctionValues[fieldName] || ""}
+                            onChange={(e) => setCorrectionValues(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                            className="w-full border-2 border-zinc-200 rounded-xl p-3 text-sm focus:border-[#3E1126]/40 focus:outline-none min-h-[80px] resize-none"
+                          />
+                        ) : (
+                          <input
+                            type={fieldType === "date" ? "date" : fieldType === "email" ? "email" : "text"}
+                            required
+                            placeholder={`Enter corrected ${fieldName.toLowerCase()}...`}
+                            value={correctionValues[fieldName] || ""}
+                            onChange={(e) => setCorrectionValues(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                            className="w-full border-2 border-zinc-200 rounded-xl p-3 text-sm focus:border-[#3E1126]/40 focus:outline-none"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {(!registration.actionRequiredFields || registration.actionRequiredFields.length === 0) && (
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Your Reply</label>
+                      <textarea
+                        required
+                        placeholder="Type your reply to the organizer's message..."
+                        value={correctionValues["User Reply"] || ""}
+                        onChange={(e) => setCorrectionValues(prev => ({ ...prev, ["User Reply"]: e.target.value }))}
+                        className="w-full border-2 border-zinc-200 rounded-xl p-3 text-sm focus:border-[#3E1126]/40 focus:outline-none min-h-[80px] resize-none"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={reuploading}
+                    className="w-full mt-4 flex justify-center items-center gap-2 text-sm font-bold text-white bg-[#3E1126] px-6 py-3 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {reuploading ? "Submitting..." : "Submit Updates"}
+                  </button>
+                </form>
+
                 <button
                   onClick={handleLogout}
                   className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"

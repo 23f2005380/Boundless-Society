@@ -140,6 +140,8 @@ export async function GET(req) {
         paymentVerifiedAt: data.paymentVerifiedAt?.toDate?.()?.toISOString() || null,
         formData: data.formData || {},
         aadhaarVerified: data.aadhaarVerified || false,
+        issueText: data.issueText || "",
+        actionRequiredFields: data.actionRequiredFields || [],
       };
     });
 
@@ -162,7 +164,7 @@ export async function POST(req) {
   try {
     const clone = req.clone();
     const body = await clone.json();
-    const { registrationId, status, aadhaarVerified } = body;
+    const { registrationId, status, aadhaarVerified, issueText, actionRequiredFields } = body;
 
     if (!registrationId) {
       return NextResponse.json(
@@ -188,6 +190,8 @@ export async function POST(req) {
     };
     if (status !== undefined) updatePayload.status = status;
     if (aadhaarVerified !== undefined) updatePayload.aadhaarVerified = aadhaarVerified;
+    if (issueText !== undefined) updatePayload.issueText = issueText;
+    if (actionRequiredFields !== undefined) updatePayload.actionRequiredFields = actionRequiredFields;
 
     await updateDoc(regRef, updatePayload);
 

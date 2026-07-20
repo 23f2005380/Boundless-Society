@@ -15,7 +15,9 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   EditIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  FileWarning,
+  XIcon
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -87,6 +89,10 @@ export default function SubmissionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [activeConcernEmail, setActiveConcernEmail] = useState<string | null>(null);
   const [activeProfileReg, setActiveProfileReg] = useState<Registration | null>(null);
+
+  const [reuploadRegId, setReuploadRegId] = useState<string | null>(null);
+  const [reuploadIssueText, setReuploadIssueText] = useState("");
+  const [reuploadFields, setReuploadFields] = useState<string[]>([]);
 
   // Tabs Navigation
   const [activeTab, setActiveTab] = useState("registrations"); // "registrations" | "edit-event" | "create-event"
@@ -409,12 +415,12 @@ export default function SubmissionsPage() {
   };
 
   // Change individual registration status
-  const handleStatusChange = async (regId: string, nextStatus: string) => {
+  const handleStatusChange = async (regId: string, nextStatus: string, issueText?: string, actionRequiredFields?: string[]) => {
     try {
       const res = await fetch("/api/admin/registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ registrationId: regId, status: nextStatus }),
+        body: JSON.stringify({ registrationId: regId, status: nextStatus, issueText, actionRequiredFields }),
       });
 
       if (res.ok) {
@@ -991,6 +997,17 @@ export default function SubmissionsPage() {
                                     onClick={() => handleStatusChange(reg.id, "registered")}
                                   >
                                     Restore
+                                  </Button>
+                                )}
+
+                                {(reg.status === "registered" || reg.status === "rejected") && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs px-2.5 py-1 bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100"
+                                    onClick={() => setReuploadRegId(reg.id)}
+                                  >
+                                    <FileWarning className="w-3.5 h-3.5 mr-1" /> Re-upload
                                   </Button>
                                 )}
                               </div>
@@ -1622,6 +1639,74 @@ export default function SubmissionsPage() {
             <div className="flex justify-end pt-2 border-t shrink-0">
               <Button onClick={() => setActiveProfileReg(null)} className="text-xs">
                 Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Request Re-upload Modal */}
+      {reuploadRegId && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 flex items-center justify-center backdrop-blur-sm" data-lenis-prevent>
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => { setReuploadRegId(null); setReuploadIssueText(""); setReuploadFields([]); }}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-800 transition-colors"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+            <h3 className="font-oswald font-bold text-xl text-[#3E1126] uppercase mb-2">Request Re-Upload / Correction</h3>
+            <p className="text-sm text-zinc-600 mb-4">
+              Select which fields need to be corrected by the user, and optionally provide a message explaining why.
+            </p>
+
+            {/* Checkboxes for fields */}
+            <div className="mb-4 space-y-2 border-2 border-zinc-100 rounded-xl p-3 max-h-48 overflow-y-auto">
+              {[
+                ...(selectedTrip?.form?.fields?.map(f => f.name) || []),
+                "Aadhaar Card Copy",
+                ...(selectedTrip?.consentFormTemplateUrl ? ["Completed Consent Form"] : []),
+                "Custom Reply"
+              ].map(fieldName => (
+                <label key={fieldName} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    className="rounded text-[#3E1126] focus:ring-[#3E1126]"
+                    checked={reuploadFields.includes(fieldName)}
+                    onChange={(e) => {
+                      if (e.target.checked) setReuploadFields([...reuploadFields, fieldName]);
+                      else setReuploadFields(reuploadFields.filter(f => f !== fieldName));
+                    }}
+                  />
+                  {fieldName}
+                </label>
+              ))}
+            </div>
+
+            <textarea
+              className="w-full border-2 border-zinc-200 rounded-xl p-3 text-sm focus:border-[#3E1126]/40 focus:outline-none min-h-[100px] mb-4 resize-none"
+              placeholder="Describe the issue with their registration (optional if fields are selected)..."
+              value={reuploadIssueText}
+              onChange={(e) => setReuploadIssueText(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => { setReuploadRegId(null); setReuploadIssueText(""); setReuploadFields([]); }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                disabled={!reuploadIssueText.trim() && reuploadFields.length === 0}
+                onClick={() => {
+                  handleStatusChange(reuploadRegId, "action_required", reuploadIssueText.trim(), reuploadFields);
+                  setReuploadRegId(null);
+                  setReuploadIssueText("");
+                  setReuploadFields([]);
+                }}
+              >
+                Submit Request
               </Button>
             </div>
           </div>
