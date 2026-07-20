@@ -96,8 +96,19 @@ export default function Page() {
         
         <header className="text-center mb-8">
           <h1 className="page-title">WhatsApp Communities</h1>
-          <p className="page-subtitle">
+          <p className="page-subtitle" style={{ marginBottom: "0.75rem" }}>
             Join regional groups and official channels for updates and support.
+          </p>
+          <p className="text-sm md:text-base text-[#6b5f55] max-w-2xl mx-auto mb-6">
+            Please make sure you fill out the membership form of Boundless before joining any groups. If not, then{" "}
+            <a
+              href="https://forms.gle/3DKAWuaaeuLwyEhr6"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-bold text-[#4b0f1e] hover:text-[#7a1831] transition-colors"
+            >
+              click here
+            </a>.
           </p>
         </header>
 
