@@ -88,12 +88,12 @@ export default function Page() {
 
   return (
     <main className="bg-amber-50 relative overflow-hidden min-h-screen">
-     
+
       <div className="absolute inset-0 z-0 pointer-events-none background-pattern" />
 
-     
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-10 md:py-16">
-        
+
         <header className="text-center mb-8">
           <h1 className="page-title">WhatsApp Communities</h1>
           <p className="page-subtitle" style={{ marginBottom: "0.75rem" }}>
@@ -130,32 +130,32 @@ export default function Page() {
 
           {/*Search Bar */}
           <div className="flex justify-center mb-8">
-  <div className="relative w-full max-w-md">
+            <div className="relative w-full max-w-md">
 
-    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
-    </span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </span>
 
-    {/* Input */}
-    <input
-      type="text"
-      placeholder="Search state or city (e.g. Maharashtra, Nagpur)"
-      value={regionalSearch}
-      onChange={(e) => setRegionalSearch(e.target.value)}
-      className="
+              {/* Input */}
+              <input
+                type="text"
+                placeholder="Search state or city (e.g. Maharashtra, Nagpur)"
+                value={regionalSearch}
+                onChange={(e) => setRegionalSearch(e.target.value)}
+                className="
         w-full
         pl-12
         pr-5
@@ -170,9 +170,9 @@ export default function Page() {
         focus:ring-2
         focus:ring-black
       "
-    />
-  </div>
-</div>
+              />
+            </div>
+          </div>
 
 
           <GroupSection
