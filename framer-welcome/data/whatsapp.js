@@ -6,12 +6,6 @@ export const officialGroups = [
     link: "https://whatsapp.com/channel/0029Vb5L53OKWEKqPYtnZd0i",
     color: "#b6dbff",
   },
-  {
-    city: "Official Community",
-    img: "/images/city/image.png",
-    link: "https://chat.whatsapp.com/C0uqqQCTDbX1l476dxpKV4",
-    color: "#f5a9dc",
-  },
 {
   city: "G Space",
   img: "/images/city/image.png",
@@ -19,18 +13,6 @@ export const officialGroups = [
   color: "#ffe68c",
   linkType: "gspace", 
 },
-  {
-    city: "Leisure & Relax 1 (Full)",
-    img: "/images/city/image.png",
-    link: "https://chat.whatsapp.com/EpclLN5PMss8SEtHaW2yc4",
-    color: "#ffb78c",
-  },
-  {
-    city: "Leisure & Relax 2 (Full)",
-    img: "/images/city/image.png",
-    link: "https://chat.whatsapp.com/F5Ke0eEjzdE0jkH2xNkWlN",
-    color: "#c6f8c4",
-  },
   {
     city: "Leisure & Relax 3",
     img: "/images/city/image.png",
@@ -47,12 +29,6 @@ export const officialGroups = [
 
 // Boundless Girls Community
 export const girlsGroups = [
-  {
-    city: "Girls Community",
-    img: "/images/city/community.png",
-    link: "https://chat.whatsapp.com/Hvex415eLZ5EF4FuQWzUwC",
-    color: "#b6dbff",
-  },
   {
     city: "Girls Group",
     img: "/images/city/2.png",
