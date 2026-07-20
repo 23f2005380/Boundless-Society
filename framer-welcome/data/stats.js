@@ -1,5 +1,5 @@
 export const stats = [
-  { number:5200, label: "Members" },
+  { number:5300, label: "Members" },
   { number:1300, label: "Female Members" },
   { number:100, label: "Core Members" },
   { number:85, label: "Meetups" },
