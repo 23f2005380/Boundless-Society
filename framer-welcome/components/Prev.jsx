@@ -109,7 +109,7 @@ function Prev() {
       <Sheet open={!!selectedTrip} onOpenChange={(open) => !open && setSelectedTrip(null)}>
         <SheetContent
           side="bottom"
-            className="h-[90vh] sm:h-[85vh] w-full gap-0 p-0 flex flex-col overflow-hidden overscroll-contain rounded-t-[32px] border-none bg-amber-50/95 backdrop-blur-md text-gray-800 shadow-2xl transition duration-500 focus:outline-none"
+            className="h-[70vh] w-full gap-0 p-0 flex flex-col overflow-hidden overscroll-contain rounded-t-[32px] border-none bg-amber-50/95 backdrop-blur-md text-gray-800 shadow-2xl transition duration-500 focus:outline-none"
         >
           {selectedTrip && (
             <>
