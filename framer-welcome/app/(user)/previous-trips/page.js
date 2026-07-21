@@ -14,11 +14,37 @@ import {
   ExternalLink,
 } from "lucide-react";
 import GlimpsesGallery from "@/components/GlimpsesGallery";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const AMBER_COLORS = [
+  "#b45309", // amber-700
+  "#d97706", // amber-600
+  "#f59e0b", // amber-500
+  "#f97316", // orange-500
+  "#ea580c", // orange-600
+  "#fbbf24", // amber-400
+  "#c2410c", // orange-700
+  "#9a3412", // orange-800
+];
 
 function PrevTrips() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [chartMounted, setChartMounted] = useState(false);
+
+  useEffect(() => {
+    setChartMounted(true);
+  }, []);
+
+  const chartData = selectedTrip
+    ? (selectedTrip.graphData || [])
+        .map(item => ({
+          name: item.x || "Unnamed",
+          value: parseFloat(item.y) || 0
+        }))
+        .filter(item => item.value > 0)
+    : [];
 
 
 
@@ -177,7 +203,7 @@ function PrevTrips() {
                             <GlimpsesGallery trip={selectedTrip} />
                           </div>
 
-                          {(selectedTrip.summary || selectedTrip.feedback) && (
+                          {(selectedTrip.summary || selectedTrip.feedback || (chartMounted && chartData.length > 0)) && (
                             <div className="space-y-6">
                               {selectedTrip.summary && (
                                 <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-2xl p-6 sm:p-7 shadow-sm space-y-4">
@@ -201,6 +227,47 @@ function PrevTrips() {
                                     {selectedTrip.feedback.split("\n").map((para, idx) => (
                                       para.trim() && <p key={idx}>{para.trim()}</p>
                                     ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {chartMounted && chartData.length > 0 && (
+                                <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-2xl p-6 sm:p-7 shadow-sm space-y-4">
+                                  <h3 className="text-lg font-bold text-amber-900 border-b border-amber-50 pb-2">
+                                    Trip Statistics
+                                  </h3>
+                                  <div className="w-full h-[260px] flex justify-center items-center">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <PieChart>
+                                        <Pie
+                                          data={chartData}
+                                          cx="50%"
+                                          cy="50%"
+                                          labelLine={false}
+                                          outerRadius={75}
+                                          fill="#8884d8"
+                                          dataKey="value"
+                                        >
+                                          {chartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={AMBER_COLORS[index % AMBER_COLORS.length]} />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip
+                                          formatter={(value, name, props) => {
+                                            const percent = props?.payload?.percent;
+                                            const percentageStr = percent !== undefined ? ` (${(percent * 100).toFixed(1)}%)` : "";
+                                            return [`${value}${percentageStr}`, name];
+                                          }}
+                                          contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #f59e0b', borderRadius: '12px' }}
+                                        />
+                                        <Legend 
+                                          verticalAlign="bottom" 
+                                          height={36}
+                                          iconType="circle"
+                                          wrapperStyle={{ fontSize: '12px', color: '#78350f' }}
+                                        />
+                                      </PieChart>
+                                    </ResponsiveContainer>
                                   </div>
                                 </div>
                               )}
