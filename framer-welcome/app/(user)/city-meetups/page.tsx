@@ -27,6 +27,8 @@ interface Meetup {
   cityName: string
   color: string
   img: string
+  caption?: string
+  galleryLink?: string
   createdAt?: any
 }
 
@@ -241,9 +243,9 @@ export default function CityMeetupsPage() {
       acc[heading].push({
         city: meetup.cityName || "Unknown City",
         img: meetup.img,
-        caption: meetup.cityName || "",
+        caption: meetup.caption || meetup.cityName || "",
         color: meetup.color || "#FEFAE7",
-        galleryLink: "#",
+        galleryLink: meetup.galleryLink || "#",
       })
       return acc
     }, {})

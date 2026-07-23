@@ -1,11 +1,8 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X as XIcon, Instagram, Linkedin } from "lucide-react";
 import MemberAvatar from "./MemberAvatar";
-import { councilMembers, departmentHeads } from "@/data/newCouncil";
-import { founderDetails } from "@/data/founders";
-
-function useFadeInOnScroll() {
+function useFadeInOnScroll(deps: any[] = []) {
   const refs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     const observer = new window.IntersectionObserver(
@@ -22,29 +19,58 @@ function useFadeInOnScroll() {
       if (ref) observer.observe(ref);
     });
     return () => observer.disconnect();
-  }, []);
+  }, deps);
   return refs;
 }
 
 export default function New() {
+  const [termTitle, setTermTitle] = useState("");
+  const [council, setCouncil] = useState<any[]>([]);
+  const [deptHeads, setDeptHeads] = useState<any[]>([]);
+
   const headingRefs = useFadeInOnScroll();
-  const councilRefs = useFadeInOnScroll();
-  const deptGroupRefs = useFadeInOnScroll();
+  const councilRefs = useFadeInOnScroll([council]);
+  const deptGroupRefs = useFadeInOnScroll([deptHeads]);
+
+  useEffect(() => {
+    async function fetchTeam() {
+      try {
+        const res = await fetch("/api/team-members");
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.members || [];
+          
+          // Get all unique terms for council and dept heads
+          const terms = Array.from(
+            new Set(
+              list
+                .filter((m: any) => (m.type === "council" || m.type === "dept_head") && m.term)
+                .map((m: any) => m.term)
+            )
+          ) as string[];
+
+          if (terms.length > 0) {
+            // Sort terms descending (latest first)
+            terms.sort((a, b) => b.localeCompare(a));
+            const latestTerm = terms[0];
+
+            const currentCouncil = list.filter((m: any) => m.type === "council" && m.term === latestTerm);
+            const currentDept = list.filter((m: any) => m.type === "dept_head" && m.term === latestTerm);
+
+            setTermTitle(`COUNCIL (${latestTerm})`);
+            setCouncil(currentCouncil);
+            setDeptHeads(currentDept);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching current council:", error);
+      }
+    }
+    fetchTeam();
+  }, []);
+
   return (
     <section className="relative py-8 bg-[#FFF9ED] overflow-hidden">
-      {/* Background waves */}
-      {/* <div
-        className="absolute inset-0 w-full h-full z-0"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(255,249,237,0.7) 0%, rgba(155, 100, 60, 0.25) 100%), url(/waves.svg)`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 1,
-          pointerEvents: 'none',
-        }}
-      /> */}
-      {/* Foreground content */}
       <div className="relative z-10">
         <h2
           ref={(el) => {
@@ -59,41 +85,36 @@ export default function New() {
             color: "#6d1a2c",
           }}
         >
-          COUNCIL (2025-2026)
+          {termTitle}
         </h2>
-        <div className="flex flex-row flex-wrap justify-center gap-x-14 gap-y-5">
-          {councilMembers.map((member, i) => (
-            <div
-              key={i}
-              ref={(el) => {
-                councilRefs.current[i] = el;
-              }}
-              className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
-            >
-              <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
-                <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
-                <p className="text-lg text-gray-300 mb-2">{member.role}</p>
-                {/* <div className="flex space-x-2 mt-1">
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <XIcon className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Instagram className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Linkedin className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                </div> */}
+        
+        {council.length === 0 ? (
+          <p className="text-center text-muted-foreground">No council members found for this term.</p>
+        ) : (
+          <div className="flex flex-row flex-wrap justify-center gap-x-14 gap-y-5">
+            {council.map((member: any, i) => (
+              <div
+                key={i}
+                ref={(el) => {
+                  councilRefs.current[i] = el;
+                }}
+                className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
+              >
+                <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
+                  <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
+                  <p className="text-lg text-gray-300 mb-2">{member.role}</p>
+                </div>
+                <MemberAvatar
+                  src={member.image || member.src || ""}
+                  alt={member.name}
+                  containerClassName="w-32 h-32 ml-4"
+                  className="rounded-2xl shadow"
+                />
               </div>
-              <MemberAvatar
-                src={member.image}
-                alt={member.name}
-                containerClassName="w-32 h-32 ml-4"
-                className="rounded-2xl shadow"
-              />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
         <h2
           ref={(el) => {
             deptGroupRefs.current[0] = el;
@@ -110,83 +131,33 @@ export default function New() {
         >
           DEPARTMENT HEADS
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-0 gap-y-12 justify-items-center">
-          {departmentHeads.map((member, i) => (
-            <div
-              key={i}
-              ref={(el) => {
-                deptGroupRefs.current[i + 1] = el;
-              }}
-              className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
-            >
-              <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
-                <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
-                <p className="text-lg text-gray-300 mb-2">{member.role}</p>
-                {/* <div className="flex space-x-3 mt-2">
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <XIcon className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Instagram className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Linkedin className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                </div> */}
-              </div>
-              <MemberAvatar
-                src={member.image}
-                alt={member.name}
-                containerClassName="w-32 h-32 ml-4"
-                className="rounded-2xl shadow"
-              />
-            </div>
-          ))}
-        </div>
-        {/* <h2
-          ref={el => { deptGroupRefs.current[0] = el; }}
-          className="text-center mt-16 mb-12 fade-in"
-          style={{
-            fontFamily: "'Oswald', Arial, sans-serif",
-            fontWeight: 900,
-            fontStretch: "condensed",
-            fontSize: "2.8rem",
-            letterSpacing: "0.04em",
-            color: "#6d1a2c",
-          }}
-        >
-          Founders
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-0 gap-y-12 justify-items-center">
-          {founders.map((member, i) => (
-            <div
-              key={i}
-              ref={el => { deptGroupRefs.current[i + 2] = el; }}
-              className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
-            >
-              <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
-                <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
-                <p className="text-lg text-gray-300 mb-2">{member.role}</p>
-                <div className="flex space-x-3 mt-2">
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <XIcon className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Instagram className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
-                  <div className="bg-black rounded-xl p-3 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] transition">
-                    <Linkedin className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
-                  </div>
+        
+        {deptHeads.length === 0 ? (
+          <p className="text-center text-muted-foreground">No department heads found for this term.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-0 gap-y-12 justify-items-center">
+            {deptHeads.map((member: any, i) => (
+              <div
+                key={i}
+                ref={(el) => {
+                  deptGroupRefs.current[i + 1] = el;
+                }}
+                className="bg-black text-white hover:scale-110 transition-transform cursor-pointer rounded-3xl w-96 h-48 flex items-center px-6 py-4 mb-2 shadow-2xl border border-purple-200"
+              >
+                <div className="flex-1 flex flex-col justify-center items-start h-full py-1">
+                  <h3 className="font-bold text-2xl mb-1">{member.name}</h3>
+                  <p className="text-lg text-gray-300 mb-2">{member.role}</p>
                 </div>
+                <MemberAvatar
+                  src={member.image || member.src || ""}
+                  alt={member.name}
+                  containerClassName="w-32 h-32 ml-4"
+                  className="rounded-2xl shadow"
+                />
               </div>
-              <img
-                src={member.image}
-                alt={member.name}
-                className="w-32 h-32 object-cover rounded-2xl ml-4 shadow"
-              />
-            </div>
-          ))}
-        </div> */}
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

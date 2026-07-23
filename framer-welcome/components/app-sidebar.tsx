@@ -20,6 +20,8 @@ import {
   Plane,
   MapPinIcon,
   Vote,
+  MessageSquare,
+  Award,
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -60,6 +62,11 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
+      title: "Registrations",
+      url: "/admin/registrations",
+      icon: ClipboardListIcon,
+    },
+    {
       title: "Gallery",
       url: "/admin/gallery",
       icon: CameraIcon, 
@@ -90,11 +97,21 @@ const data = {
     //   url: "#",
     //   icon: FolderIcon,
     // },
-    // {
-    //   title: "Team",
-    //   url: "#",
-    //   icon: UsersIcon,
-    // },
+    {
+      title: "Team",
+      url: "/admin/team",
+      icon: UsersIcon,
+    },
+    {
+      title: "WhatsApp Groups",
+      url: "/admin/whatsapp",
+      icon: MessageSquare,
+    },
+    {
+      title: "Proud Section",
+      url: "/admin/proud",
+      icon: Award,
+    },
   ],
   navClouds: [
     {

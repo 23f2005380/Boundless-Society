@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import * as yup from "yup";
 import { db, isFirebaseEnabled } from "@/lib/firebase";
 import {
@@ -8,6 +9,9 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  doc,
+  deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 const formFieldSchema = yup.object().shape({
@@ -21,6 +25,7 @@ const formFieldSchema = yup.object().shape({
     )
     .required(),
   sortOrder: yup.number().required().min(0),
+  allowEditIfPrefilled: yup.boolean().optional().default(true),
   options: yup
     .array()
     .of(yup.string().trim())
@@ -43,11 +48,21 @@ const tripSchema = yup.object().shape({
   description: yup.string().trim(),
   coordinators: yup
     .array()
-    .of(yup.string().trim())
+    .of(
+      yup.lazy((val) => {
+        if (typeof val === "object" && val !== null) {
+          return yup.object().shape({
+            name: yup.string().required("Coordinator name is required").trim(),
+            email: yup.string().email("Invalid email").required("Coordinator email is required").trim(),
+          });
+        }
+        return yup.string().trim();
+      })
+    )
     .test(
       "at-least-one",
       "At least one coordinator is required",
-      (value) => value && value.some((c) => c && c.trim() !== "")
+      (value) => value && value.length > 0
     ),
   totalSeats: yup
     .number()
@@ -55,6 +70,8 @@ const tripSchema = yup.object().shape({
     .required("Total seats is required")
     .positive("Total seats must be greater than 0")
     .integer("Total seats must be a whole number"),
+  fee: yup.number().min(0).default(500),
+  consentFormTemplateUrl: yup.string().trim().optional(),
   femaleReservedSeats: yup
     .number()
     .typeError("Female reserved seats must be a number")
@@ -92,6 +109,11 @@ const tripSchema = yup.object().shape({
 
 export async function POST(request) {
   try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!isFirebaseEnabled || !db) {
       return NextResponse.json(
         { error: "Firebase is not configured. Please try again later." },
@@ -106,15 +128,28 @@ export async function POST(request) {
       stripUnknown: true,
     });
 
-    const validCoordinators = (validatedData.coordinators || []).filter(
-      (c) => c && c.trim() !== ""
-    );
+    const validCoordinators = (validatedData.coordinators || []).map((c) => {
+      if (typeof c === "object" && c !== null) {
+        return {
+          name: String(c.name || "").trim(),
+          email: String(c.email || "").trim(),
+        };
+      }
+      return String(c).trim();
+    }).filter((c) => {
+      if (typeof c === "object" && c !== null) {
+        return c.name && c.email;
+      }
+      return c !== "";
+    });
 
     const tripData = {
       name: validatedData.name,
       description: validatedData.description || "",
       coordinators: validCoordinators,
       totalSeats: validatedData.totalSeats,
+      fee: validatedData.fee !== undefined ? Number(validatedData.fee) : 500,
+      consentFormTemplateUrl: validatedData.consentFormTemplateUrl || "",
       femaleReservedSeats: validatedData.femaleReservedSeats,
       releasedSeats: validatedData.releasedSeats,
       releasedSeatsType: validatedData.releasedSeatsType,
@@ -127,6 +162,7 @@ export async function POST(request) {
             name: field.name,
             type: field.type,
             sortOrder: field.sortOrder,
+            allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(
@@ -206,8 +242,17 @@ export async function GET() {
         releasedSeatsType: data.releasedSeatsType,
         femaleJoined: data.femaleJoined,
         totalJoined: data.totalJoined,
+        registrationOpen: data.registrationOpen,
+        paymentOpen: data.paymentOpen,
+        predefinedGirlsThreshold: data.predefinedGirlsThreshold,
+        isCompleted: data.isCompleted,
+        finalRosterSaved: data.finalRosterSaved,
         form: data.form,
+        consentFormTemplateUrl: data.consentFormTemplateUrl || "",
         images: data.images || [],
+        fee: data.fee !== undefined ? Number(data.fee) : 500,
+        razorpayKeyId: data.razorpayKeyId || "",
+        hasRazorpaySecret: !!data.razorpayKeySecret,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
@@ -220,5 +265,105 @@ export async function GET() {
       { error: "Failed to fetch trips. Please try again." },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    await deleteDoc(doc(db, "trips", id));
+    return NextResponse.json({ success: true, message: "Trip deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE Trip Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request) {
+  try {
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isFirebaseEnabled || !db) {
+      return NextResponse.json(
+        { error: "Firebase is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    const body = await request.json();
+    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl } = body;
+
+    if (!tripId) {
+      return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
+    }
+
+    const tripRef = doc(db, "trips", tripId);
+    const updateData = {
+      updatedAt: serverTimestamp(),
+    };
+
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (coordinators !== undefined) {
+      updateData.coordinators = coordinators.map((c) => {
+        if (typeof c === "object" && c !== null) {
+          return {
+            name: String(c.name || "").trim(),
+            email: String(c.email || "").trim(),
+          };
+        }
+        return String(c).trim();
+      });
+    }
+    if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
+    if (fee !== undefined) updateData.fee = Number(fee);
+    if (consentFormTemplateUrl !== undefined) updateData.consentFormTemplateUrl = consentFormTemplateUrl;
+    
+    if (formFields !== undefined) {
+      updateData.form = {
+        fields: formFields.map((field, idx) => {
+          const fieldData = {
+            id: field.id || crypto.randomUUID(),
+            name: field.name,
+            type: field.type,
+            sortOrder: field.sortOrder !== undefined ? field.sortOrder : idx,
+            allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
+          };
+          if (field.type === "radio" || field.type === "select") {
+            fieldData.options = (field.options || []).filter(
+              (opt) => opt && opt.trim() !== ""
+            );
+          }
+          return fieldData;
+        })
+      };
+    }
+
+    await updateDoc(tripRef, updateData);
+    return NextResponse.json({ success: true, message: "Trip details updated successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("PUT Trip Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

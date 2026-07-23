@@ -2,15 +2,18 @@ import React from "react";
 import Section from "./Section";
 import AnimatedByChar from "./AnimatedByChar";
 
-function About() {
+export default function About() {
   return (
-    <>
-      <Section
-        svgFill="#fffbeb"
-        sectionHeading="ABOUT US"
-        headingStyle="text-brown"
-      />
-      <div className="bg-[#fffbeb] px-8 pb-16 text-center">
+    <Section
+      svgFill="#fffbeb"
+      sectionHeading="ABOUT US"
+      headingStyle="text-brown"
+    >
+      <div 
+        className="px-8 pb-16 text-center space-y-4 max-w-3xl mx-auto" 
+        style={{ contain: 'content' }}
+      >
+        {/* ONE single wrapper to create the continuous sequential animation effect */}
         <AnimatedByChar>
           <p>
             We believe in learning that goes beyond textbooks – a journey shaped
@@ -39,8 +42,7 @@ function About() {
           </p>
         </AnimatedByChar>
       </div>
-    </>
+    </Section>
   );
 }
-
-export default About;
+

@@ -1,12 +1,29 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import MemberAvatar from "./MemberAvatar";
 import Section from "@/components/Section";
 import Footer from "./Footer";
-import { founderDetails } from "@/data/founders";
-
 export default function AmazingTeam() {
+  const [founders, setFounders] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchFounders() {
+      try {
+        const res = await fetch("/api/team-members");
+        if (res.ok) {
+          const data = await res.json();
+          const dbFounders = (data.members || []).filter((m: any) => m.type === "founder");
+          setFounders(dbFounders);
+        }
+      } catch (error) {
+        console.error("Error fetching founders:", error);
+      }
+    }
+    fetchFounders();
+  }, []);
+
   return (
     <Section
       svgFill="#FFE878"
@@ -21,7 +38,7 @@ export default function AmazingTeam() {
             style={{ textDecoration: "none" }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              {founderDetails.map((member, i) => (
+              {founders.map((member: any, i) => (
                 <div
                   key={i}
                   className="bg-black text-white hover:scale-105 transition-transform cursor-pointer rounded-lg w-full h-40 flex items-center px-4"
@@ -37,7 +54,7 @@ export default function AmazingTeam() {
                   </div>
 
                   <MemberAvatar
-                    src={member.src}
+                    src={member.image || member.src || ""}
                     alt={member.name}
                     containerClassName="w-28 h-28 ml-4 rounded-lg bg-zinc-800"
                   />
