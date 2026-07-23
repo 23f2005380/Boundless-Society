@@ -25,6 +25,8 @@ interface Trip {
   femaleJoined: number;
   totalJoined: number;
   fee?: number;
+  form?: { fields: any[] };
+  consentFormTemplateUrl?: string;
 }
 
 const getDocumentUrl = (url: string) => {

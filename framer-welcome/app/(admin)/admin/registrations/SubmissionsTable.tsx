@@ -1,9 +1,9 @@
 "use client";
 
-import { Submission } from "./page";
+import { Registration } from "./page";
 
 type Props = {
-  submissions: Submission[];
+  submissions: Registration[];
 };
 
 export default function SubmissionsTable({ submissions }: Props) {

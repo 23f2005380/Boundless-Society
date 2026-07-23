@@ -41,7 +41,7 @@ interface Trip {
   consentFormTemplateUrl?: string;
 }
 
-interface Registration {
+export interface Registration {
   id: string;
   email: string;
   uid: string;
