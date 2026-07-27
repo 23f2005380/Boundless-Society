@@ -39,6 +39,9 @@ interface Trip {
   form?: { fields: any[] };
   fee?: number;
   consentFormTemplateUrl?: string;
+  consentTemplates?: Array<{ id: string; name: string; templateUrl: string }>;
+  whatsappLink?: string;
+  qrCodeUrl?: string;
 }
 
 export interface Registration {
@@ -50,7 +53,10 @@ export interface Registration {
   submittedAt: string;
   formData: Record<string, string>;
   aadhaarVerified?: boolean;
+  studentIdVerified?: boolean;
   consentFormFileUrl?: string;
+  consentFormVerified?: boolean;
+  verifiedConsentForms?: Record<string, boolean>;
 }
 
 interface Concern {
@@ -109,8 +115,10 @@ export default function SubmissionsPage() {
   const [editCoordinators, setEditCoordinators] = useState<any[]>([]);
   const [editSeats, setEditSeats] = useState(30);
   const [editFields, setEditFields] = useState<any[]>([]);
-  const [editFee, setEditFee] = useState(500);
+  const [editFee, setEditFee] = useState(0);
   const [editConsentTemplate, setEditConsentTemplate] = useState("");
+  const [editWhatsappLink, setEditWhatsappLink] = useState("");
+  const [editQrCode, setEditQrCode] = useState("");
 
   // Create Event Form state
   const [createName, setCreateName] = useState("");
@@ -124,8 +132,14 @@ export default function SubmissionsPage() {
     { id: "2", name: "Roll Number", type: "short_text", sortOrder: 1 },
     { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
   ]);
-  const [createFee, setCreateFee] = useState(500);
+  const [createFee, setCreateFee] = useState(0);
   const [createConsentTemplate, setCreateConsentTemplate] = useState("");
+  const [createConsentTemplates, setCreateConsentTemplates] = useState<any[]>([]);
+  const [editConsentTemplates, setEditConsentTemplates] = useState<any[]>([]);
+  const [createTempTemplateName, setCreateTempTemplateName] = useState("");
+  const [editTempTemplateName, setEditTempTemplateName] = useState("");
+  const [createWhatsappLink, setCreateWhatsappLink] = useState("");
+  const [createQrCode, setCreateQrCode] = useState("");
 
   // Fetch trips list
   useEffect(() => {
@@ -184,6 +198,104 @@ export default function SubmissionsPage() {
     }
   }, [selectedTripId, trips]);
 
+  const handleDownloadCSV = () => {
+    if (!registrations.length) return;
+
+    // Collect all unique form field keys across all registrations
+    const allFormFieldKeys = new Set<string>();
+    registrations.forEach((reg) => {
+      if (reg.formData && typeof reg.formData === "object") {
+        Object.keys(reg.formData).forEach((k) => allFormFieldKeys.add(k));
+      }
+    });
+
+    const consentTemplates: any[] = selectedTrip?.consentTemplates || [];
+
+    // Columns for consent form links and verification per template
+    const consentLinkHeaders = consentTemplates.map((t: any) => `Consent Form - ${t.name} (Link)`);
+    const consentVerifiedHeaders = consentTemplates.map((t: any) => `Consent Form - ${t.name} (Verified)`);
+
+    // Dynamic form field columns — exclude file-upload field names handled separately
+    const skipKeys = new Set(["Student ID Card Copy", "Aadhaar Card Copy", "Completed Consent Form"]);
+    const formFieldHeaders = Array.from(allFormFieldKeys).filter((k) => !skipKeys.has(k));
+
+    const headers = [
+      "Registration ID",
+      "Email",
+      "Gender",
+      "Status",
+      "Student ID Verified",
+      "Consent Form Verified",
+      "Student ID Copy Link",
+      ...consentLinkHeaders,
+      ...consentVerifiedHeaders,
+      ...formFieldHeaders,
+    ];
+
+    const escapeCSV = (val: any): string => {
+      if (val == null) return "";
+      const str = String(val);
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"`
+        : str;
+    };
+
+    const rows = registrations.map((reg) => {
+      const fd: Record<string, any> = reg.formData || {};
+
+      // Student ID Link — check common field key names
+      const studentIdLink =
+        fd["Student ID Card Copy"] ||
+        fd["Aadhaar Card Copy"] ||
+        fd["ID Copy"] ||
+        "";
+
+      // Per-template consent form upload links
+      const consentLinks = consentTemplates.map((t: any) => {
+        // Look for formData key matching this template's name or id
+        const matchKey = Object.keys(fd).find((k) => {
+          const lower = k.toLowerCase();
+          return lower.includes("consent") && (
+            lower.includes(t.id?.toLowerCase()) ||
+            lower.includes(t.name?.toLowerCase())
+          );
+        });
+        return matchKey ? fd[matchKey] : (fd["Completed Consent Form"] || "");
+      });
+
+      const consentVerifiedValues = consentTemplates.map((t: any) => {
+        const verifiedMap: Record<string, boolean> = reg.verifiedConsentForms || {};
+        return verifiedMap[t.id] ? "Verified" : "Unverified";
+      });
+
+      const formValues = formFieldHeaders.map((k) => escapeCSV(fd[k]));
+
+      return [
+        escapeCSV(reg.id),
+        escapeCSV(reg.email),
+        escapeCSV(reg.gender),
+        escapeCSV(reg.status),
+        escapeCSV((reg.studentIdVerified || reg.aadhaarVerified) ? "Verified" : "Unverified"),
+        escapeCSV(reg.consentFormVerified ? "Verified" : "Unverified"),
+        escapeCSV(studentIdLink),
+        ...consentLinks.map(escapeCSV),
+        ...consentVerifiedValues,
+        ...formValues,
+      ].join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", `${selectedTrip?.name || "registrations"}_export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+  };
+
   // Lock background scroll when modals are open
   useEffect(() => {
     if (activeProfileReg || activeConcernEmail) {
@@ -221,25 +333,66 @@ export default function SubmissionsPage() {
     }
   };
 
-  const handleVerifyAadhaar = async (regId: string) => {
+  const handleVerifyStudentId = async (regId: string) => {
     try {
       const res = await fetch("/api/admin/registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ registrationId: regId, aadhaarVerified: true }),
+        body: JSON.stringify({ registrationId: regId, studentIdVerified: true }),
       });
 
       if (res.ok) {
-        toast.success("Aadhaar verified successfully!");
+        toast.success("Student ID verified successfully!");
         fetchTripData();
         if (activeProfileReg && activeProfileReg.id === regId) {
           setActiveProfileReg({
             ...activeProfileReg,
-            aadhaarVerified: true,
+            studentIdVerified: true,
           });
         }
       } else {
-        toast.error("Failed to verify Aadhaar.");
+        toast.error("Failed to verify Student ID.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred.");
+    }
+  };
+
+  const handleVerifyConsentForm = async (regId: string, templateId: string = "legacy-consent") => {
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registrationId: regId,
+          verifiedConsentForms: { [templateId]: true },
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Consent Form verified successfully!");
+        fetchTripData();
+        if (activeProfileReg && activeProfileReg.id === regId) {
+          const updatedVerifiedMap = {
+            ...(activeProfileReg.verifiedConsentForms || {}),
+            [templateId]: true,
+          };
+          
+          const templates = selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
+            ? selectedTrip.consentTemplates
+            : (selectedTrip?.consentFormTemplateUrl ? [{ id: "legacy-consent" }] : []);
+          
+          const allOk = templates.every((t) => updatedVerifiedMap[t.id]);
+
+          setActiveProfileReg({
+            ...activeProfileReg,
+            verifiedConsentForms: updatedVerifiedMap,
+            consentFormVerified: allOk,
+          });
+        }
+      } else {
+        toast.error("Failed to verify Consent Form.");
       }
     } catch (e) {
       console.error(e);
@@ -293,6 +446,132 @@ export default function SubmissionsPage() {
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to upload template.", { id: "upload-template" });
+    }
+  };
+
+  const handleAddTemplateRow = (isEdit: boolean) => {
+    const newTemplate = {
+      id: crypto.randomUUID(),
+      name: "",
+      templateUrl: "",
+    };
+    if (isEdit) {
+      setEditConsentTemplates((prev) => [...prev, newTemplate]);
+    } else {
+      setCreateConsentTemplates((prev) => [...prev, newTemplate]);
+    }
+  };
+
+  const handleUpdateTemplateName = (id: string, name: string, isEdit: boolean) => {
+    if (isEdit) {
+      setEditConsentTemplates((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, name } : t))
+      );
+    } else {
+      setCreateConsentTemplates((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, name } : t))
+      );
+    }
+  };
+
+  const handleUploadTemplateFile = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    id: string,
+    isEdit: boolean
+  ) => {
+    const fileObj = e.target.files?.[0];
+    if (!fileObj) return;
+
+    try {
+      const base64File = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileObj);
+      });
+
+      toast.loading("Uploading consent template...", { id: `upload-${id}` });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "consent_templates",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      
+      if (isEdit) {
+        setEditConsentTemplates((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, templateUrl: fileUrl } : t))
+        );
+      } else {
+        setCreateConsentTemplates((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, templateUrl: fileUrl } : t))
+        );
+      }
+      
+      toast.success("Template file uploaded successfully!", { id: `upload-${id}` });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload template file.", { id: `upload-${id}` });
+    }
+  };
+
+  const handleRemoveTemplateRow = (id: string, isEdit: boolean) => {
+    if (isEdit) {
+      setEditConsentTemplates((prev) => prev.filter((t) => t.id !== id));
+    } else {
+      setCreateConsentTemplates((prev) => prev.filter((t) => t.id !== id));
+    }
+  };
+
+
+  const handleQrCodeChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const fileObj = e.target.files?.[0];
+    if (!fileObj) return;
+
+    try {
+      const base64File = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileObj);
+      });
+
+      toast.loading("Uploading QR Code image...", { id: "upload-qr" });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "trip_qrs",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      if (isEdit) {
+        setEditQrCode(fileUrl);
+      } else {
+        setCreateQrCode(fileUrl);
+      }
+      toast.success("QR Code uploaded successfully!", { id: "upload-qr" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload QR Code.", { id: "upload-qr" });
     }
   };
 
@@ -414,6 +693,7 @@ export default function SubmissionsPage() {
     }
   };
 
+
   // Change individual registration status
   const handleStatusChange = async (regId: string, nextStatus: string, issueText?: string, actionRequiredFields?: string[]) => {
     try {
@@ -509,6 +789,9 @@ export default function SubmissionsPage() {
           formFields: editFields,
           fee: Number(editFee),
           consentFormTemplateUrl: editConsentTemplate,
+          consentTemplates: editConsentTemplates,
+          whatsappLink: editWhatsappLink,
+          qrCodeUrl: editQrCode,
         }),
       });
 
@@ -609,6 +892,9 @@ export default function SubmissionsPage() {
           formFields: createFields,
           fee: Number(createFee),
           consentFormTemplateUrl: createConsentTemplate,
+          consentTemplates: createConsentTemplates,
+          whatsappLink: createWhatsappLink,
+          qrCodeUrl: createQrCode,
         }),
       });
 
@@ -700,8 +986,11 @@ export default function SubmissionsPage() {
 
               setEditSeats(selectedTrip.totalSeats || 30);
               setEditFields(selectedTrip.form?.fields || []);
-              setEditFee(selectedTrip.fee !== undefined ? selectedTrip.fee : 500);
+              setEditFee(selectedTrip.fee !== undefined ? selectedTrip.fee : 0);
               setEditConsentTemplate(selectedTrip.consentFormTemplateUrl || "");
+              setEditConsentTemplates(selectedTrip.consentTemplates || []);
+              setEditWhatsappLink(selectedTrip.whatsappLink || "");
+              setEditQrCode(selectedTrip.qrCodeUrl || "");
             }
             setActiveTab("edit-event");
           }}
@@ -727,6 +1016,8 @@ export default function SubmissionsPage() {
               { id: "2", name: "Roll Number", type: "short_text", allowEditIfPrefilled: true, sortOrder: 1 },
               { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], allowEditIfPrefilled: false, sortOrder: 2 },
             ]);
+            setCreateWhatsappLink("");
+            setCreateQrCode("");
             setActiveTab("create-event");
           }}
           className={`pb-2 text-sm font-bold border-b-2 transition flex items-center gap-1.5 ${
@@ -852,13 +1143,25 @@ export default function SubmissionsPage() {
 
           {/* Right Side: Registrations Table */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="font-bold text-base flex items-center gap-1.5 text-muted-foreground">
-                <UsersIcon className="w-4 h-4" /> Registration Entries ({registrations.length})
-              </h2>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <h2 className="font-bold text-base flex items-center gap-1.5 text-muted-foreground">
+                  <UsersIcon className="w-4 h-4" /> Registration Entries ({registrations.length})
+                </h2>
+                {registrations.length > 0 && (
+                  <Button
+                    onClick={handleDownloadCSV}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-7 px-2 bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 flex items-center gap-1 font-semibold"
+                  >
+                    📥 Download CSV
+                  </Button>
+                )}
+              </div>
               <div className="flex gap-4 text-xs font-bold text-muted-foreground">
-                <span>Paid (Seats Count): {selectedTrip?.totalJoined || 0} / {selectedTrip?.totalSeats || 0}</span>
-                <span>Paid Girls: {selectedTrip?.femaleJoined || 0}</span>
+                <span>Seats Count: {selectedTrip?.totalJoined || 0} / {selectedTrip?.totalSeats || 0}</span>
+                <span>Girls Count: {selectedTrip?.femaleJoined || 0}</span>
               </div>
             </div>
 
@@ -877,7 +1180,8 @@ export default function SubmissionsPage() {
                     <TableRow>
                       <TableHead>Email</TableHead>
                       <TableHead>Gender</TableHead>
-                      <TableHead>Aadhaar Status</TableHead>
+                      <TableHead>ID Status</TableHead>
+                      <TableHead>Consent Status</TableHead>
                       <TableHead>Documents</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Coordinators Flag</TableHead>
@@ -900,31 +1204,46 @@ export default function SubmissionsPage() {
                           </TableCell>
                           <TableCell className="capitalize text-xs font-semibold">{reg.gender}</TableCell>
                           
-                          {/* Aadhaar Status */}
+                          {/* ID Status */}
                           <TableCell>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
-                              reg.aadhaarVerified 
+                              (reg.studentIdVerified || reg.aadhaarVerified) 
                                 ? "bg-green-100 text-green-700 border-green-200" 
                                 : "bg-red-100 text-red-700 border-red-200"
                             }`}>
-                              {reg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                              {(reg.studentIdVerified || reg.aadhaarVerified) ? "Verified ✅" : "Unverified ❌"}
                             </span>
+                          </TableCell>
+
+                          {/* Consent Status */}
+                          <TableCell>
+                            {selectedTrip?.consentFormTemplateUrl ? (
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
+                                reg.consentFormVerified 
+                                  ? "bg-green-100 text-green-700 border-green-200" 
+                                  : "bg-red-100 text-red-700 border-red-200"
+                              }`}>
+                                {reg.consentFormVerified ? "Verified ✅" : "Unverified ❌"}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold text-zinc-400">N/A</span>
+                            )}
                           </TableCell>
 
                           {/* Documents Access */}
                           <TableCell>
                             <div className="flex flex-col gap-1 text-[10px]">
-                              {reg.formData?.["Aadhaar Card Copy"] ? (
+                              {reg.formData?.["Student ID Card Copy"] || reg.formData?.["Aadhaar Card Copy"] ? (
                                 <a
-                                  href={getDocumentUrl(reg.formData["Aadhaar Card Copy"])}
+                                  href={getDocumentUrl(reg.formData["Student ID Card Copy"] || reg.formData["Aadhaar Card Copy"])}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
                                 >
-                                  🪪 Aadhaar Copy ↗
+                                  🪪 {reg.formData?.["Student ID Card Copy"] ? "ID Copy" : "Aadhaar Copy"} ↗
                                 </a>
                               ) : (
-                                <span className="text-muted-foreground italic text-[9px]">No Aadhaar Copy</span>
+                                <span className="text-muted-foreground italic text-[9px]">No ID Copy</span>
                               )}
                               {reg.formData?.["Completed Consent Form"] ? (
                                 <a
@@ -944,10 +1263,11 @@ export default function SubmissionsPage() {
                           <TableCell>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
                               reg.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
+                              reg.status === "mail_sent" ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
                               reg.status === "approved_to_pay" ? "bg-indigo-100 text-indigo-700 border-indigo-200" :
                               reg.status === "rejected" ? "bg-red-100 text-red-700 border-red-200" :
                               "bg-yellow-100 text-yellow-700 border-yellow-200"
-                            }`}>{reg.status}</span>
+                            }`}>{reg.status === "mail_sent" ? "mail sent" : reg.status === "approved_to_pay" ? "approved" : reg.status}</span>
                           </TableCell>
                           <TableCell>
                             {studentFlags.length > 0 ? (
@@ -970,11 +1290,29 @@ export default function SubmissionsPage() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      title="Approve Payment"
-                                      className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                      title={
+                                        !(reg.studentIdVerified || reg.aadhaarVerified)
+                                          ? "Student ID must be verified first"
+                                          : (!reg.consentFormVerified && (
+                                              (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
+                                              selectedTrip?.consentFormTemplateUrl
+                                            ))
+                                          ? "All consent forms must be verified first"
+                                          : "Approve"
+                                      }
+                                      disabled={
+                                        !(reg.studentIdVerified || reg.aadhaarVerified) ||
+                                        !!(
+                                          !reg.consentFormVerified && (
+                                            (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
+                                            selectedTrip?.consentFormTemplateUrl
+                                          )
+                                        )
+                                      }
+                                      className="text-xs px-2.5 py-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:border-zinc-200 disabled:cursor-not-allowed"
                                       onClick={() => handleStatusChange(reg.id, "approved_to_pay")}
                                     >
-                                      <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve Payment
+                                      <CheckCircle2Icon className="w-3.5 h-3.5 mr-1" /> Approve
                                     </Button>
                                   )}
 
@@ -1053,34 +1391,114 @@ export default function SubmissionsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group Joining Link</label>
               <Input
-                type="number"
-                required
-                min={0}
-                value={editFee}
-                onChange={(e) => setEditFee(Number(e.target.value))}
+                type="url"
+                value={editWhatsappLink}
+                onChange={(e) => setEditWhatsappLink(e.target.value)}
+                placeholder="https://chat.whatsapp.com/..."
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Consent Form Template (PDF/Doc)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Event QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => handleConsentTemplateChange(e, true)}
+                  accept="image/*"
+                  onChange={(e) => handleQrCodeChange(e, true)}
                   className="cursor-pointer"
                 />
-                {editConsentTemplate && (
+                {editQrCode && (
                   <a
-                    href={getDocumentUrl(editConsentTemplate)}
+                    href={getDocumentUrl(editQrCode)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-indigo-900 underline shrink-0"
                   >
-                    View File ↗
+                    View QR ↗
                   </a>
                 )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-dashed space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-muted-foreground uppercase block">Consent Form Templates</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddTemplateRow(true)}
+                  className="h-8 text-xs"
+                >
+                  <PlusIcon className="w-3.5 h-3.5 mr-1" /> Add Consent Form
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {editConsentTemplates.map((t) => (
+                  <div key={t.id} className="bg-zinc-50/50 p-3 rounded-lg border flex items-start gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Template Description / Name</span>
+                        <Input
+                          placeholder="e.g. Parental Consent Form"
+                          value={t.name}
+                          onChange={(e) => handleUpdateTemplateName(t.id, e.target.value, true)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Choose Template File</span>
+                        {t.templateUrl ? (
+                          <div className="flex items-center gap-3">
+                            <a
+                              href={getDocumentUrl(t.templateUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-indigo-900 hover:text-indigo-800 underline flex items-center gap-1"
+                            >
+                              📝 View Uploaded Template ↗
+                            </a>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 h-6 px-2 hover:bg-red-50 text-[10px] font-bold"
+                              onClick={() => {
+                                setEditConsentTemplates((prev) =>
+                                  prev.map((item) => item.id === t.id ? { ...item, templateUrl: "" } : item)
+                                );
+                              }}
+                            >
+                              Change File
+                            </Button>
+                          </div>
+                        ) : (
+                          <Input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => handleUploadTemplateFile(e, t.id, true)}
+                            className="h-8 text-xs cursor-pointer"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-750 self-start mt-4"
+                      onClick={() => handleRemoveTemplateRow(t.id, true)}
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1279,34 +1697,114 @@ export default function SubmissionsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Registration Fee (INR)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group Joining Link</label>
               <Input
-                type="number"
-                required
-                min={0}
-                value={createFee}
-                onChange={(e) => setCreateFee(Number(e.target.value))}
+                type="url"
+                value={createWhatsappLink}
+                onChange={(e) => setCreateWhatsappLink(e.target.value)}
+                placeholder="https://chat.whatsapp.com/..."
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Consent Form Template (PDF/Doc)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Event QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => handleConsentTemplateChange(e, false)}
+                  accept="image/*"
+                  onChange={(e) => handleQrCodeChange(e, false)}
                   className="cursor-pointer"
                 />
-                {createConsentTemplate && (
+                {createQrCode && (
                   <a
-                    href={getDocumentUrl(createConsentTemplate)}
+                    href={getDocumentUrl(createQrCode)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-indigo-900 underline shrink-0"
                   >
-                    View File ↗
+                    View QR ↗
                   </a>
                 )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-dashed space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-muted-foreground uppercase block">Consent Form Templates</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddTemplateRow(false)}
+                  className="h-8 text-xs"
+                >
+                  <PlusIcon className="w-3.5 h-3.5 mr-1" /> Add Consent Form
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {createConsentTemplates.map((t) => (
+                  <div key={t.id} className="bg-zinc-50/50 p-3 rounded-lg border flex items-start gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Template Description / Name</span>
+                        <Input
+                          placeholder="e.g. Parental Consent Form"
+                          value={t.name}
+                          onChange={(e) => handleUpdateTemplateName(t.id, e.target.value, false)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Choose Template File</span>
+                        {t.templateUrl ? (
+                          <div className="flex items-center gap-3">
+                            <a
+                              href={getDocumentUrl(t.templateUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-indigo-900 hover:text-indigo-800 underline flex items-center gap-1"
+                            >
+                              📝 View Uploaded Template ↗
+                            </a>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 h-6 px-2 hover:bg-red-50 text-[10px] font-bold"
+                              onClick={() => {
+                                setCreateConsentTemplates((prev) =>
+                                  prev.map((item) => item.id === t.id ? { ...item, templateUrl: "" } : item)
+                                );
+                              }}
+                            >
+                              Change File
+                            </Button>
+                          </div>
+                        ) : (
+                          <Input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => handleUploadTemplateFile(e, t.id, false)}
+                            className="h-8 text-xs cursor-pointer"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-750 self-start mt-4"
+                      onClick={() => handleRemoveTemplateRow(t.id, false)}
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1544,77 +2042,129 @@ export default function SubmissionsPage() {
                 <span className="font-semibold text-gray-850 capitalize">{activeProfileReg.gender}</span>
               </div>
 
-              {/* Aadhaar Verification Details */}
-              <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-2.5">
-                <span className="font-bold text-xs text-amber-950 uppercase block">Aadhaar Gating Status</span>
-                <div className="text-xs space-y-2">
-                  <p className="flex justify-between items-center">
-                    <span>Aadhaar Number:</span>
-                    <strong className="text-sm font-semibold">{activeProfileReg.formData["Aadhaar Number"] || "N/A"}</strong>
-                  </p>
-                  <p className="flex justify-between items-center">
-                    <span>Verification Status:</span>
-                    <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
-                      activeProfileReg.aadhaarVerified 
-                        ? "bg-green-100 text-green-700 border-green-200" 
-                        : "bg-red-100 text-red-700 border-red-200"
-                    }`}>
-                      {activeProfileReg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
-                    </span>
-                  </p>
+              {/* Student ID Verification Details */}
+              {(() => {
+                const idCopy = activeProfileReg.formData["Student ID Card Copy"] || activeProfileReg.formData["Aadhaar Card Copy"];
+                const isVerified = activeProfileReg.studentIdVerified || activeProfileReg.aadhaarVerified || false;
 
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {activeProfileReg.formData["Aadhaar Card Copy"] && (
-                      <a
-                        href={getDocumentUrl(activeProfileReg.formData["Aadhaar Card Copy"])}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
-                      >
-                        🪪 View Aadhaar Copy ↗
-                      </a>
-                    )}
-                    
-                    {!activeProfileReg.aadhaarVerified && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleVerifyAadhaar(activeProfileReg.id)}
-                        className="bg-indigo-900 text-white hover:bg-indigo-800 font-bold px-3 py-1.5 rounded text-[11px]"
-                      >
-                        Verify Aadhaar Card
-                      </Button>
-                    )}
+                return (
+                  <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-2.5">
+                    <span className="font-bold text-xs text-amber-950 uppercase block">Student ID Gating Status</span>
+                    <div className="text-xs space-y-2">
+                      <p className="flex justify-between items-center">
+                        <span>Verification Status:</span>
+                        <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                          isVerified 
+                            ? "bg-green-100 text-green-700 border-green-200" 
+                            : "bg-red-100 text-red-700 border-red-200"
+                        }`}>
+                          {isVerified ? "Verified ✅" : "Unverified ❌"}
+                        </span>
+                      </p>
+
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {idCopy && (
+                          <a
+                            href={getDocumentUrl(idCopy)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
+                          >
+                            🪪 View Student ID Copy ↗
+                          </a>
+                        )}
+                        
+                        {!isVerified && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleVerifyStudentId(activeProfileReg.id)}
+                            className="bg-indigo-900 text-white hover:bg-indigo-800 font-bold px-3 py-1.5 rounded text-[11px]"
+                          >
+                            Verify Student ID
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Consent Form Verification Details */}
-              <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-2">
-                <span className="font-bold text-xs text-indigo-950 uppercase block">Consent Acknowledgment</span>
-                <div className="text-xs">
-                  {activeProfileReg.formData["Completed Consent Form"] ? (
-                    <div className="space-y-2">
-                      <p className="text-green-700 font-semibold">✓ Completed signed consent form uploaded.</p>
-                      <a
-                        href={getDocumentUrl(activeProfileReg.formData["Completed Consent Form"])}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
-                      >
-                        📝 View Signed Consent Copy ↗
-                      </a>
-                    </div>
-                  ) : (
-                    <p className="text-red-700 font-semibold">✗ Signed consent form has not been uploaded yet.</p>
-                  )}
-                </div>
-              </div>
+              {(() => {
+                const templates = selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
+                  ? selectedTrip.consentTemplates
+                  : (selectedTrip?.consentFormTemplateUrl ? [{ id: "legacy-consent", name: "Completed Consent Form", templateUrl: selectedTrip.consentFormTemplateUrl }] : []);
 
+                if (templates.length === 0) return null;
+
+                return (
+                  <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-4">
+                    <span className="font-bold text-xs text-indigo-950 uppercase block font-oswald tracking-wide">Consent Acknowledgments ({templates.length})</span>
+                    <div className="space-y-4">
+                      {templates.map((t) => {
+                        const fileKey = t.id === "legacy-consent" ? "Completed Consent Form" : `Completed Consent - ${t.name}`;
+                        const uploadedUrl = activeProfileReg.formData[fileKey];
+                        const isVerified = t.id === "legacy-consent" 
+                          ? activeProfileReg.consentFormVerified 
+                          : (activeProfileReg.verifiedConsentForms?.[t.id] || false);
+
+                        return (
+                          <div key={t.id} className="border-b pb-3 last:border-0 last:pb-0 text-xs space-y-2">
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <span className="font-bold text-gray-800">{t.name}</span>
+                                <span className="text-[10px] text-muted-foreground block mt-0.5">
+                                  Template: <a href={getDocumentUrl(t.templateUrl)} target="_blank" rel="noopener noreferrer" className="text-indigo-900 underline font-semibold">Download ↗</a>
+                                </span>
+                              </div>
+                              <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
+                                isVerified 
+                                  ? "bg-green-100 text-green-700 border-green-200" 
+                                  : "bg-red-100 text-red-700 border-red-200"
+                              }`}>
+                                {isVerified ? "Verified ✅" : "Unverified ❌"}
+                              </span>
+                            </div>
+                            
+                            <div>
+                              {uploadedUrl ? (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                  <a
+                                    href={getDocumentUrl(uploadedUrl)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-3 py-1.5 rounded text-[11px] shadow inline-flex items-center gap-1.5"
+                                  >
+                                    📝 View Signed Copy ↗
+                                  </a>
+                                  
+                                  {!isVerified && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleVerifyConsentForm(activeProfileReg.id, t.id)}
+                                      className="bg-green-700 text-white hover:bg-green-800 font-bold px-3 py-1.5 rounded text-[11px]"
+                                    >
+                                      Verify Form
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-red-700 font-semibold italic text-[11px]">✗ Signed copy has not been uploaded yet.</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+ 
               <div className="space-y-2">
                 <span className="font-bold text-xs text-gray-500 uppercase block">Registration Form Answers</span>
                 <div className="grid grid-cols-1 gap-2.5 bg-gray-50 p-3 rounded border">
                   {Object.entries(activeProfileReg.formData)
-                    .filter(([k]) => k !== "Aadhaar Number" && k !== "Aadhaar Card Copy" && k !== "Completed Consent Form")
+                    .filter(([k]) => k !== "Student ID Number" && k !== "Student ID Card Copy" && k !== "Aadhaar Number" && k !== "Aadhaar Card Copy" && k !== "Completed Consent Form" && !k.startsWith("Completed Consent -"))
                     .map(([key, val]) => (
                       <div key={key} className="border-b pb-1.5 last:border-0 last:pb-0">
                         <span className="text-xs font-bold text-gray-600 block">{key}</span>
@@ -1665,7 +2215,9 @@ export default function SubmissionsPage() {
               {[
                 ...(selectedTrip?.form?.fields?.map(f => f.name) || []),
                 "Aadhaar Card Copy",
-                ...(selectedTrip?.consentFormTemplateUrl ? ["Completed Consent Form"] : []),
+                ...(selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
+                  ? selectedTrip.consentTemplates.map(t => `Completed Consent - ${t.name}`)
+                  : (selectedTrip?.consentFormTemplateUrl ? ["Completed Consent Form"] : [])),
                 "Custom Reply"
               ].map(fieldName => (
                 <label key={fieldName} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 cursor-pointer">

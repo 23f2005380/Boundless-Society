@@ -147,12 +147,10 @@ export async function POST(request) {
     }
 
     if (pastFormData) {
-      // Force reuse of past Aadhaar if it exists (Aadhaar cannot be changed after first registration)
-      if (pastFormData["Aadhaar Number"]) {
-        formData["Aadhaar Number"] = pastFormData["Aadhaar Number"];
-      }
-      if (pastFormData["Aadhaar Card Copy"]) {
-        formData["Aadhaar Card Copy"] = pastFormData["Aadhaar Card Copy"];
+      // Force reuse of past Student ID copy if it exists
+      const pastIdCopy = pastFormData["Student ID Card Copy"];
+      if (pastIdCopy) {
+        formData["Student ID Card Copy"] = pastIdCopy;
       }
 
       // Enforce read-only logic on fields configured by the admin
@@ -177,15 +175,15 @@ export async function POST(request) {
       else gender = "other";
     }
 
-    // Check if user has a verified Aadhaar in past registrations
+    // Check if user has a verified Student ID in past registrations
     const pastRegsQuery = query(
       collection(db, "user-registrations"),
       where("email", "==", email),
-      where("aadhaarVerified", "==", true),
+      where("studentIdVerified", "==", true),
       limit(1)
     );
     const pastRegsSnap = await getDocs(pastRegsQuery);
-    const isAadhaarVerified = !pastRegsSnap.empty;
+    const isIdVerified = !pastRegsSnap.empty;
 
     const docRef = await addDoc(collection(db, "user-registrations"), {
       uid,
@@ -195,7 +193,7 @@ export async function POST(request) {
       status: "registered", // initial stage
       gender,
       submittedAt: serverTimestamp(),
-      aadhaarVerified: isAadhaarVerified,
+      studentIdVerified: isIdVerified,
     });
 
     return Response.json(

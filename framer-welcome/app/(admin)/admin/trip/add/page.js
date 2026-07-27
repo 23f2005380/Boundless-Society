@@ -109,6 +109,8 @@ const tripSchema = yup.object().shape({
           return true;
         })
     ),
+  whatsappLink: yup.string().trim().optional(),
+  qrCodeUrl: yup.string().trim().optional(),
 });
 
 function generateId() {
@@ -326,12 +328,80 @@ function SortableImage({ image, onRemove }) {
   );
 }
 
+const getDocumentUrl = (url) => {
+  if (!url) return "#";
+  if (url.includes("res.cloudinary.com")) {
+    return `/api/downloadProxy/custom_file?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+};
+
 export default function AddTripPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState({});
   const [isDraggingOver, setIsDraggingOver] = React.useState(false);
   const fileInputRef = React.useRef(null);
+  
+  const [consentTemplates, setConsentTemplates] = React.useState([]);
+
+  const handleAddTemplateRow = () => {
+    const newTemplate = {
+      id: crypto.randomUUID(),
+      name: "",
+      templateUrl: "",
+    };
+    setConsentTemplates((prev) => [...prev, newTemplate]);
+  };
+
+  const handleUpdateTemplateName = (id, name) => {
+    setConsentTemplates((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, name } : t))
+    );
+  };
+
+  const handleUploadTemplateFile = async (e, id) => {
+    const fileObj = e.target.files?.[0];
+    if (!fileObj) return;
+
+    try {
+      const base64File = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileObj);
+      });
+
+      toast.loading("Uploading consent template...", { id: `upload-${id}` });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "consent_templates",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      setConsentTemplates((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, templateUrl: fileUrl } : t))
+      );
+      toast.success("Template file uploaded successfully!", { id: `upload-${id}` });
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload template file.", { id: `upload-${id}` });
+    }
+  };
+
+  const handleRemoveTemplateRow = (id) => {
+    setConsentTemplates((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -343,6 +413,8 @@ export default function AddTripPage() {
     releasedSeatsType: "all",
     femaleJoined: 0,
     totalJoined: 0,
+    whatsappLink: "",
+    qrCodeUrl: "",
   });
 
   const [formFields, setFormFields] = React.useState([
@@ -369,6 +441,43 @@ export default function AddTripPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleQrCodeChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const base64File = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      toast.loading("Uploading QR Code image...", { id: "upload-qr" });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "trip_qrs",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      setFormData(prev => ({ ...prev, qrCodeUrl: fileUrl }));
+      toast.success("QR Code uploaded successfully!", { id: "upload-qr" });
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload QR Code.", { id: "upload-qr" });
     }
   };
 
@@ -561,6 +670,7 @@ export default function AddTripPage() {
         },
         body: JSON.stringify({
           ...dataToValidate,
+          consentTemplates,
           images: uploadedImages,
         }),
       });
@@ -642,6 +752,41 @@ export default function AddTripPage() {
                 )}
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="whatsappLink">WhatsApp Group Joining Link</Label>
+                  <Input
+                    id="whatsappLink"
+                    placeholder="https://chat.whatsapp.com/..."
+                    value={formData.whatsappLink}
+                    onChange={(e) => updateField("whatsappLink", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="qrCode">Event QR Code (Image)</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="qrCode"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQrCodeChange}
+                      className="cursor-pointer"
+                    />
+                    {formData.qrCodeUrl && (
+                      <a
+                        href={getDocumentUrl(formData.qrCodeUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-indigo-900 underline shrink-0"
+                      >
+                        View QR ↗
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <textarea
@@ -651,6 +796,87 @@ export default function AddTripPage() {
                   onChange={(e) => updateField("description", e.target.value)}
                   className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
+              </div>
+
+              <div className="pt-4 border-t border-dashed space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-bold block">Consent Form Templates</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddTemplateRow}
+                      className="h-8 text-xs animate-in"
+                    >
+                      <PlusIcon className="w-3.5 h-3.5 mr-1" /> Add Consent Form
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {consentTemplates.map((t) => (
+                      <div key={t.id} className="bg-zinc-50/50 p-3 rounded-lg border flex items-start gap-4">
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Template Description / Name</span>
+                            <Input
+                              placeholder="e.g. Parental Consent Form"
+                              value={t.name}
+                              onChange={(e) => handleUpdateTemplateName(t.id, e.target.value)}
+                              className="h-8 text-xs bg-background"
+                            />
+                          </div>
+                          
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Choose Template File</span>
+                            {t.templateUrl ? (
+                              <div className="flex items-center gap-3">
+                                <a
+                                  href={getDocumentUrl(t.templateUrl)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-bold text-indigo-900 hover:text-indigo-800 underline flex items-center gap-1"
+                                >
+                                  📝 View Uploaded Template ↗
+                                </a>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-650 hover:text-red-750 h-6 px-2 hover:bg-red-50 text-[10px] font-bold"
+                                  onClick={() => {
+                                    setConsentTemplates((prev) =>
+                                      prev.map((item) => item.id === t.id ? { ...item, templateUrl: "" } : item)
+                                    );
+                                  }}
+                                >
+                                  Change File
+                                </Button>
+                              </div>
+                            ) : (
+                              <Input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                onChange={(e) => handleUploadTemplateFile(e, t.id)}
+                                className="h-8 text-xs cursor-pointer bg-background"
+                              />
+                            )}
+                          </div>
+                        </div>
+                        
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-750 self-start mt-4"
+                          onClick={() => handleRemoveTemplateRow(t.id)}
+                        >
+                          <Trash2Icon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

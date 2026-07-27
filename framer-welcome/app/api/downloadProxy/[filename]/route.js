@@ -12,13 +12,29 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Missing URL parameter" }, { status: 400 });
     }
 
-    // Security: Only allow proxying Cloudinary URLs to prevent open proxy abuse
-    const isCloudinary = url.startsWith("https://res.cloudinary.com/") || url.startsWith("http://res.cloudinary.com/");
-    if (!isCloudinary) {
-      return NextResponse.json({ error: "Forbidden: Only Cloudinary assets are allowed" }, { status: 403 });
+    // Security: Only allow proxying Cloudinary and Google Drive URLs to prevent open proxy abuse
+    const isAllowedSource = 
+      url.startsWith("https://res.cloudinary.com/") || 
+      url.startsWith("http://res.cloudinary.com/") ||
+      url.startsWith("https://drive.google.com/") ||
+      url.startsWith("https://docs.google.com/") ||
+      url.startsWith("https://script.google.com/") ||
+      url.startsWith("https://script.googleusercontent.com/");
+
+    if (!isAllowedSource) {
+      return NextResponse.json({ error: "Forbidden: Only Cloudinary and Google Drive assets are allowed" }, { status: 403 });
     }
 
-    const response = await fetch(url);
+    // Convert standard Google Drive view link to direct download link
+    let fetchUrl = url;
+    if (url.includes("drive.google.com/file/d/")) {
+      const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        fetchUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+      }
+    }
+
+    const response = await fetch(fetchUrl);
     if (!response.ok) {
       return NextResponse.json({ error: "Failed to fetch file from source" }, { status: response.status });
     }

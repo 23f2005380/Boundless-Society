@@ -15,6 +15,8 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 
+import { sendApprovalEmail } from "@/lib/brevo";
+
 // Helper function to archive the attendee and coordinator rosters
 async function archiveEventRoster(tripId) {
   try {
@@ -139,7 +141,9 @@ export async function GET(req) {
         submittedAt: data.submittedAt?.toDate?.()?.toISOString() || null,
         paymentVerifiedAt: data.paymentVerifiedAt?.toDate?.()?.toISOString() || null,
         formData: data.formData || {},
-        aadhaarVerified: data.aadhaarVerified || false,
+        studentIdVerified: data.studentIdVerified || false,
+        consentFormVerified: data.consentFormVerified || false,
+        verifiedConsentForms: data.verifiedConsentForms || {},
         issueText: data.issueText || "",
         actionRequiredFields: data.actionRequiredFields || [],
       };
@@ -164,7 +168,7 @@ export async function POST(req) {
   try {
     const clone = req.clone();
     const body = await clone.json();
-    const { registrationId, status, aadhaarVerified, issueText, actionRequiredFields } = body;
+    const { registrationId, status, aadhaarVerified, studentIdVerified, consentFormVerified, verifiedConsentForms, issueText, actionRequiredFields } = body;
 
     if (!registrationId) {
       return NextResponse.json(
@@ -188,10 +192,143 @@ export async function POST(req) {
     const updatePayload = {
       updatedAt: serverTimestamp(),
     };
+
+    if (verifiedConsentForms !== undefined) {
+      const existingMap = regSnap.data().verifiedConsentForms || {};
+      const newMap = { ...existingMap, ...verifiedConsentForms };
+      updatePayload.verifiedConsentForms = newMap;
+
+      // Auto check if all are verified
+      const tripDocRef = doc(db, "trips", tripId);
+      const tripSnap = await getDoc(tripDocRef);
+      if (tripSnap.exists()) {
+        const tripData = tripSnap.data();
+        const templates = tripData.consentTemplates && tripData.consentTemplates.length > 0
+          ? tripData.consentTemplates
+          : (tripData.consentFormTemplateUrl ? [{ id: "legacy-consent" }] : []);
+        
+        let allOk = true;
+        for (const t of templates) {
+          if (!newMap[t.id]) {
+            allOk = false;
+            break;
+          }
+        }
+        if (templates.length > 0 && allOk) {
+          updatePayload.consentFormVerified = true;
+        } else if (templates.length > 0) {
+          updatePayload.consentFormVerified = false;
+        }
+      }
+    }
+
+    if (consentFormVerified !== undefined) {
+      updatePayload.consentFormVerified = consentFormVerified;
+    }
+
+    if (status === "approved_to_pay") {
+      const isVerifiedNow = studentIdVerified !== undefined ? studentIdVerified : (aadhaarVerified !== undefined ? aadhaarVerified : undefined);
+      const isVerified = isVerifiedNow !== undefined ? isVerifiedNow : (regSnap.data().studentIdVerified || regSnap.data().aadhaarVerified || false);
+      if (!isVerified) {
+        return NextResponse.json(
+          { error: "Student ID must be verified before approving registration." },
+          { status: 400 }
+        );
+      }
+
+      // Check if consent form is required and verified
+      const tripDocRef = doc(db, "trips", tripId);
+      const tripSnap = await getDoc(tripDocRef);
+      if (tripSnap.exists()) {
+        const tripData = tripSnap.data();
+        const hasConsent = tripData.consentFormTemplateUrl || (tripData.consentTemplates && tripData.consentTemplates.length > 0);
+        if (hasConsent) {
+          const isConsentVerifiedNow = updatePayload.consentFormVerified !== undefined ? updatePayload.consentFormVerified : consentFormVerified;
+          const isConsentVerified = isConsentVerifiedNow !== undefined ? isConsentVerifiedNow : (regSnap.data().consentFormVerified || false);
+          if (!isConsentVerified) {
+            return NextResponse.json(
+              { error: "Consent Form must be verified before approving registration." },
+              { status: 400 }
+            );
+          }
+        }
+      }
+    }
     if (status !== undefined) updatePayload.status = status;
-    if (aadhaarVerified !== undefined) updatePayload.aadhaarVerified = aadhaarVerified;
+    if (studentIdVerified !== undefined) {
+      updatePayload.studentIdVerified = studentIdVerified;
+    } else if (aadhaarVerified !== undefined) {
+      updatePayload.studentIdVerified = aadhaarVerified;
+    }
+    if (consentFormVerified !== undefined) {
+      updatePayload.consentFormVerified = consentFormVerified;
+    }
     if (issueText !== undefined) updatePayload.issueText = issueText;
     if (actionRequiredFields !== undefined) updatePayload.actionRequiredFields = actionRequiredFields;
+
+    const oldStatus = regSnap.data().status || "registered";
+    const gender = (regSnap.data().gender || "unknown").toLowerCase();
+
+    if (status !== undefined && status !== oldStatus) {
+      const isConfirmedState = (s) => s === "approved_to_pay" || s === "paid" || s === "mail_sent";
+      const wasConfirmed = isConfirmedState(oldStatus);
+      const isConfirmed = isConfirmedState(status);
+
+      if (isConfirmed !== wasConfirmed) {
+        const tripDocRef = doc(db, "trips", tripId);
+        const tripSnap = await getDoc(tripDocRef);
+        if (tripSnap.exists()) {
+          const tripData = tripSnap.data();
+          let totalJoined = Number(tripData.totalJoined || 0);
+          let femaleJoined = Number(tripData.femaleJoined || 0);
+          const totalSeats = Number(tripData.totalSeats || 30);
+
+          if (isConfirmed) {
+            totalJoined += 1;
+            if (gender === "female") femaleJoined += 1;
+          } else {
+            totalJoined = Math.max(0, totalJoined - 1);
+            if (gender === "female") femaleJoined = Math.max(0, femaleJoined - 1);
+          }
+
+          const tripUpdate = {
+            totalJoined,
+            femaleJoined,
+          };
+          if (totalJoined >= totalSeats) {
+            tripUpdate.registrationOpen = false;
+            tripUpdate.paymentOpen = false;
+          }
+          await updateDoc(tripDocRef, tripUpdate);
+        }
+      }
+
+      // Trigger Brevo Email if moving into confirmed/approved state
+      if (status === "approved_to_pay") {
+        const tripDocRef = doc(db, "trips", tripId);
+        const tripSnap = await getDoc(tripDocRef);
+        if (tripSnap.exists()) {
+          const tripData = tripSnap.data();
+          const userEmail = regSnap.data().email;
+          const nameKey = Object.keys(regSnap.data().formData || {}).find(
+            (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
+          );
+          const userName = nameKey ? regSnap.data().formData[nameKey] : "Attendee";
+          const tripName = tripData.name || "Event";
+          const whatsappLink = tripData.whatsappLink || "";
+          const qrCodeUrl = tripData.qrCodeUrl || "";
+
+          try {
+            const emailResult = await sendApprovalEmail(userEmail, userName, tripName, whatsappLink, qrCodeUrl);
+            if (emailResult) {
+              updatePayload.status = "mail_sent";
+            }
+          } catch (emailErr) {
+            console.error("Failed to send Brevo email:", emailErr);
+          }
+        }
+      }
+    }
 
     await updateDoc(regRef, updatePayload);
 

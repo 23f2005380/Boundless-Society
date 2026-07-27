@@ -10,24 +10,20 @@ cloudinary.config({
 // 2. Single Image Upload
 export async function uploadImage(imageData, options = {}) {
   const { folder = "uploads" } = options;
-  const isTemplate = folder === "consent_templates";
-  const isTripReg = folder === "trip_registrations";
+
+  // Detect if the file is a document (PDF, Word, etc.) vs a plain image
+  const isDocument =
+    imageData.startsWith("data:application/pdf") ||
+    imageData.startsWith("data:application/msword") ||
+    imageData.startsWith("data:application/vnd.openxmlformats") ||
+    imageData.startsWith("data:application/octet-stream");
 
   const result = await cloudinary.uploader.upload(imageData, {
     folder,
-    resource_type: (isTemplate || isTripReg) ? "raw" : "image",
-    timeout: 120000, // 2 minutes timeout for large files
+    // Use "raw" for documents so Cloudinary stores them as-is without any conversion
+    resource_type: isDocument ? "raw" : "image",
+    timeout: 120000,
   });
-
-  // If the uploaded file is a PDF (and not a template or registration doc), replace the .pdf extension with .jpg
-  if (!isTemplate && !isTripReg) {
-    if (result.secure_url && result.secure_url.toLowerCase().endsWith(".pdf")) {
-      result.secure_url = result.secure_url.replace(/\.pdf$/i, ".jpg");
-    }
-    if (result.url && result.url.toLowerCase().endsWith(".pdf")) {
-      result.url = result.url.replace(/\.pdf$/i, ".jpg");
-    }
-  }
 
   return result;
 }

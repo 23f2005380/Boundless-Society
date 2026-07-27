@@ -41,11 +41,12 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
     // Consent Form State
     const [showConsent, setShowConsent] = useState(false);
     const [consentFormTemplateUrl, setConsentFormTemplateUrl] = useState("");
-    const consentFileRef = useRef(null);
-    const [consentFile, setConsentFile] = useState(null);
+    const [consentTemplates, setConsentTemplates] = useState([]);
+    const [consentFiles, setConsentFiles] = useState({}); // mapping: templateId -> File object
+    const [tripName, setTripName] = useState("Event");
 
-    // Aadhaar State (for first time users only)
-    const isFirstTime = !autofillData || Object.keys(autofillData).length === 0 || !autofillData["Aadhaar Number"];
+    // Student ID / Aadhaar State (for first time users only)
+    const isFirstTime = !autofillData || Object.keys(autofillData).length === 0 || (!autofillData["Student ID Number"] && !autofillData["Aadhaar Number"]);
     const [aadhaarNum, setAadhaarNum] = useState("");
     const [aadhaarFile, setAadhaarFile] = useState(null);
 
@@ -64,7 +65,12 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
+                    setTripName(data?.name || "Event");
                     setConsentFormTemplateUrl(data?.consentFormTemplateUrl || "");
+                    const templates = data?.consentTemplates && data.consentTemplates.length > 0
+                        ? data.consentTemplates
+                        : (data?.consentFormTemplateUrl ? [{ id: "legacy-consent", name: "Completed Consent Form", templateUrl: data.consentFormTemplateUrl }] : []);
+                    setConsentTemplates(templates);
                     const formFields = data?.form?.fields || [];
                     const sorted = [...formFields].sort((a, b) => a.sortOrder - b.sortOrder);
                     setFields(sorted);
@@ -234,33 +240,34 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             const fileEntries = [];
 
             if (isFirstTime) {
-                if (!aadhaarNum || aadhaarNum.length !== 12 || isNaN(Number(aadhaarNum))) {
-                    alert("Please enter a valid 12-digit Aadhaar number.");
-                    setSubmitting(false);
-                    return;
-                }
                 if (!aadhaarFile) {
-                    alert("Please upload your Aadhaar copy.");
+                    alert("Please upload your Student ID Card copy.");
                     setSubmitting(false);
                     return;
                 }
-                formDataObj["Aadhaar Number"] = aadhaarNum;
-                fileEntries.push(["Aadhaar Card Copy", aadhaarFile]);
+                fileEntries.push(["Student ID Card Copy", aadhaarFile]);
             } else {
-                if (autofillData["Aadhaar Number"]) {
-                    formDataObj["Aadhaar Number"] = autofillData["Aadhaar Number"];
+                const pastIdNum = autofillData["Student ID Number"] || autofillData["Aadhaar Number"];
+                if (pastIdNum) {
+                    formDataObj["Student ID Number"] = pastIdNum;
                 }
-                if (autofillData["Aadhaar Card Copy"]) {
-                    formDataObj["Aadhaar Card Copy"] = autofillData["Aadhaar Card Copy"];
+                const pastIdCopy = autofillData["Student ID Card Copy"] || autofillData["Aadhaar Card Copy"];
+                if (pastIdCopy) {
+                    formDataObj["Student ID Card Copy"] = pastIdCopy;
                 }
             }
 
-            if (consentFormTemplateUrl && consentFile) {
-              fileEntries.push(["Completed Consent Form", consentFile]);
-            } else if (consentFormTemplateUrl && !consentFile) {
-              alert("Please upload the signed consent form.");
-              setSubmitting(false);
-              return;
+            if (consentTemplates.length > 0) {
+                for (const t of consentTemplates) {
+                    const fileObj = consentFiles[t.id];
+                    if (!fileObj) {
+                        alert(`Please upload the signed copy of: ${t.name}`);
+                        setSubmitting(false);
+                        return;
+                    }
+                    const fileKey = t.id === "legacy-consent" ? "Completed Consent Form" : `Completed Consent - ${t.name}`;
+                    fileEntries.push([fileKey, fileObj]);
+                }
             }
 
             for (const field of fields) {
@@ -273,23 +280,10 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             }
 
             for (const [fieldName, fileObj] of fileEntries) {
-                let base64Image;
-                if (fileObj.type === "application/pdf" || fileObj.name?.toLowerCase().endsWith(".pdf")) {
-                  try {
-                    base64Image = await convertPdfToJpg(fileObj);
-                  } catch (pdfErr) {
-                    console.error("PDF to JPG conversion failed, falling back to base64 pdf:", pdfErr);
-                    base64Image = await convertToBase64(fileObj);
-                  }
-                } else {
-                  base64Image = await convertToBase64(fileObj);
-                }
+                // Always send raw base64 — Drive stores files in original format (PDF, image, doc)
+                const base64Image = await convertToBase64(fileObj);
 
-                if (
-                    !base64Image ||
-                    typeof base64Image !== "string" ||
-                    (!base64Image.startsWith("data:image") && !base64Image.startsWith("data:application/pdf"))
-                ) {
+                if (!base64Image || typeof base64Image !== "string" || !base64Image.startsWith("data:")) {
                     throw new Error(`Invalid file format for ${fieldName}. Please upload an image or a PDF.`);
                 }
                 const uploadRes = await fetch("/api/uploadImage", {
@@ -301,6 +295,9 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                     body: JSON.stringify({
                         images: [base64Image],
                         folder: "trip_registrations",
+                        email: user?.email || autofillData?.email || "anonymous",
+                        tripName: tripName || "Event",
+                        subFolderType: fieldName.includes("ID") ? "Student IDs" : (fieldName.includes("Consent") ? "Consent Forms" : "Form Files"),
                     }),
                 });
                 const data = await uploadRes.json();
@@ -400,25 +397,13 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                     <ShieldAlertIcon className="w-4 h-4" /> First-Time Registration
                   </h4>
                   <p className="text-xs text-[#3E1126]/80 font-medium leading-relaxed">
-                    Aadhaar verification is mandatory for first-time event registrations. This will be securely saved for auto-filling future event forms.
+                    Student ID verification is mandatory for first-time event registrations. This will be securely saved for auto-filling future event forms.
                   </p>
                   
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Aadhaar Card Number</label>
-                    <input
-                      type="text"
-                      required
-                      pattern="[0-9]{12}"
-                      maxLength={12}
-                      value={aadhaarNum}
-                      onChange={(e) => setAadhaarNum(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter 12-digit number"
-                      className="w-full px-4 py-3 bg-white border-2 border-zinc-200 focus:border-[#3E1126]/20 rounded-xl text-sm text-[#3E1126] font-medium focus:outline-none transition-all placeholder:text-zinc-400"
-                    />
-                  </div>
+
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Aadhaar Card Copy (Front & Back)</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Student ID Card Copy (Front & Back)</label>
                     <div className="relative">
                       <input
                         type="file"
@@ -623,47 +608,54 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                 <ArrowLeft className="w-3 h-3 mr-1" /> Back
               </button>
 
-              {consentFormTemplateUrl ? (
-                <div className="bg-zinc-50 border-2 border-[#3E1126]/10 rounded-xl p-5 space-y-4">
-                  <h4 className="font-oswald font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-[#3E1126]">
-                    <FileText className="w-4 h-4" /> Safety Consent Form
-                  </h4>
-                  <p className="text-xs text-[#3E1126]/80 font-medium leading-relaxed">
-                    Please download the consent form template, sign it, and upload the scanned copy below.
-                  </p>
-                  
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const parts = consentFormTemplateUrl.split("/");
-                      const lastPart = parts[parts.length - 1];
-                      const filename = lastPart || "safety_consent_form_template.pdf";
-                      const proxyUrl = `/api/downloadProxy/${encodeURIComponent(filename)}?url=${encodeURIComponent(consentFormTemplateUrl)}`;
-                      window.open(proxyUrl, "_blank");
-                    }}
-                    className="w-full flex justify-center items-center gap-2 text-xs font-bold text-white bg-zinc-800 px-4 py-2.5 rounded-lg hover:bg-black transition-colors"
-                  >
-                    Download Template
-                  </button>
+              {consentTemplates.length > 0 ? (
+                <div className="space-y-4">
+                  {consentTemplates.map((t) => (
+                    <div key={t.id} className="bg-zinc-50 border-2 border-[#3E1126]/10 rounded-xl p-5 space-y-4">
+                      <h4 className="font-oswald font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-[#3E1126]">
+                        <FileText className="w-4 h-4" /> {t.name}
+                      </h4>
+                      <p className="text-xs text-[#3E1126]/80 font-medium leading-relaxed">
+                        Please download the template, sign it, and upload the signed copy below.
+                      </p>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const parts = t.templateUrl.split("/");
+                          const lastPart = parts[parts.length - 1];
+                          const filename = lastPart || `${t.name}_template.pdf`;
+                          const proxyUrl = `/api/downloadProxy/${encodeURIComponent(filename)}?url=${encodeURIComponent(t.templateUrl)}`;
+                          window.open(proxyUrl, "_blank");
+                        }}
+                        className="w-full flex justify-center items-center gap-2 text-xs font-bold text-white bg-zinc-800 px-4 py-2.5 rounded-lg hover:bg-black transition-colors"
+                      >
+                        Download {t.name} Template
+                      </button>
 
-                  <div className="space-y-1.5 pt-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Upload Signed Copy</label>
-                    <input
-                      type="file"
-                      accept=".pdf,image/*"
-                      required
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file && file.size > 1024 * 1024) {
-                          alert("File size must be less than 1MB");
-                          e.target.value = "";
-                          return;
-                        }
-                        setConsentFile(file || null);
-                      }}
-                      className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
-                    />
-                  </div>
+                      <div className="space-y-1.5 pt-2">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Upload Signed Copy</label>
+                        <input
+                          type="file"
+                          accept=".pdf,image/*"
+                          required
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file && file.size > 1024 * 1024) {
+                              alert("File size must be less than 1MB");
+                              e.target.value = "";
+                              return;
+                            }
+                            setConsentFiles((prev) => ({
+                              ...prev,
+                              [t.id]: file || null,
+                            }));
+                          }}
+                          className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-6">

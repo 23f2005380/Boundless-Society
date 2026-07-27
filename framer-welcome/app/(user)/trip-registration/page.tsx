@@ -27,6 +27,8 @@ interface Trip {
   fee?: number;
   form?: { fields: any[] };
   consentFormTemplateUrl?: string;
+  whatsappLink?: string;
+  qrCodeUrl?: string;
 }
 
 const getDocumentUrl = (url: string) => {
@@ -191,7 +193,7 @@ export default function SecureForm() {
       // Initialize payment with Razorpay backend API
       const initRes = await fetch("/api/payment/init", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
@@ -219,7 +221,7 @@ export default function SecureForm() {
             // Verify payment signature
             const verifyRes = await fetch("/api/payment/verify", {
               method: "POST",
-              headers: { 
+              headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
               },
@@ -270,15 +272,15 @@ export default function SecureForm() {
 
   const handleReupload = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check if any corrections were made
     const hasCorrections = Object.keys(correctionValues).length > 0;
-    
+
     if (!hasCorrections) {
       alert("Please provide the requested corrections before submitting.");
       return;
     }
-    
+
     if (!user || !selectedTripId) return;
 
     setReuploading(true);
@@ -318,7 +320,7 @@ export default function SecureForm() {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const numPages = pdf.numPages;
-        
+
         const pagesData = [];
         let totalHeight = 0;
         let maxWidth = 0;
@@ -346,9 +348,9 @@ export default function SecureForm() {
           renderCanvas.width = viewport.width;
           renderCanvas.height = viewport.height;
           const renderContext = renderCanvas.getContext("2d");
-          
+
           await page.render({ canvasContext: renderContext, viewport }).promise;
-          
+
           context.drawImage(renderCanvas, 0, currentY);
           currentY += viewport.height;
         }
@@ -372,13 +374,16 @@ export default function SecureForm() {
 
           const fileRes = await fetch("/api/uploadImage", {
             method: "POST",
-            headers: { 
+            headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}` 
+              "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
               images: [base64Image],
               folder: "trip_registrations",
+              email: user?.email || "anonymous",
+              tripName: selectedTrip?.name || "Event",
+              subFolderType: key.includes("ID") ? "Student IDs" : (key.includes("Consent") ? "Consent Forms" : "Form Files"),
             })
           });
           if (!fileRes.ok) throw new Error(`${key} upload failed`);
@@ -395,7 +400,7 @@ export default function SecureForm() {
       });
 
       if (!patchRes.ok) throw new Error("Failed to update registration");
-      
+
       alert("Corrections submitted successfully!");
       setCorrectionValues({});
       fetchStatus();
@@ -408,33 +413,39 @@ export default function SecureForm() {
   };
 
   const renderAadhaarStatus = () => {
-    if (!registration || !registration.formData?.["Aadhaar Number"]) return null;
+    const idNumber = registration?.formData?.["Student ID Number"] || registration?.formData?.["Aadhaar Number"];
+    const idCopy = registration?.formData?.["Student ID Card Copy"] || registration?.formData?.["Aadhaar Card Copy"];
+    const isVerified = registration?.studentIdVerified || registration?.aadhaarVerified || false;
+    const labelType = registration?.formData?.["Student ID Card Copy"] ? "Student ID" : "Aadhaar";
+
+    if (!registration || !idCopy) return null;
     return (
       <div className="mt-6 bg-zinc-50 border-2 border-[#3E1126]/10 rounded-xl p-4 text-left w-full space-y-2.5">
         <div className="flex items-center gap-2 text-[#3E1126] font-oswald font-bold text-xs uppercase tracking-wider">
-          <span>🪪</span> Aadhaar Verification Status
+          <span>🪪</span> {labelType} Verification Status
         </div>
-        <div className="flex justify-between items-center text-xs text-[#3E1126]/80 font-medium">
-          <span>Aadhaar Number:</span>
-          <strong className="font-semibold text-sm text-[#3E1126]">
-            XXXX-XXXX-{registration.formData["Aadhaar Number"].slice(-4)}
-          </strong>
-        </div>
+        {idNumber && (
+          <div className="flex justify-between items-center text-xs text-[#3E1126]/80 font-medium">
+            <span>{labelType} Number:</span>
+            <strong className="font-semibold text-sm text-[#3E1126]">
+              {idNumber.length > 4 ? `XXXX-XXXX-${idNumber.slice(-4)}` : idNumber}
+            </strong>
+          </div>
+        )}
         <div className="flex justify-between items-center text-xs text-[#3E1126]/80 font-medium">
           <span>Status:</span>
-          <span className={`font-black uppercase text-[10px] px-2 py-0.5 rounded border ${
-            registration.aadhaarVerified 
-              ? "bg-green-100 text-green-700 border-green-200" 
+          <span className={`font-black uppercase text-[10px] px-2 py-0.5 rounded border ${isVerified
+              ? "bg-green-100 text-green-700 border-green-200"
               : "bg-yellow-100 text-yellow-700 border-yellow-200"
-          }`}>
-            {registration.aadhaarVerified ? "Verified ✅" : "Pending Review ⏳"}
+            }`}>
+            {isVerified ? "Verified ✅" : "Pending Review ⏳"}
           </span>
         </div>
-        {registration.formData["Aadhaar Card Copy"] && (
+        {idCopy && (
           <div className="pt-2 border-t border-[#3E1126]/10 flex justify-between items-center">
             <span className="text-[10px] text-zinc-400 font-bold uppercase">Uploaded Copy:</span>
             <a
-              href={getDocumentUrl(registration.formData["Aadhaar Card Copy"])}
+              href={getDocumentUrl(idCopy)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-bold text-[#3E1126] underline hover:text-[#3E1126]/85 flex items-center gap-1"
@@ -458,7 +469,8 @@ export default function SecureForm() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 font-sans antialiased bg-dots" style={{ backgroundColor: '#FAF6ED' }}>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
         .font-oswald { font-family: 'Oswald', sans-serif; }
         .bg-dots {
@@ -524,7 +536,7 @@ export default function SecureForm() {
                 </div>
                 <h2 className="text-2xl font-oswald font-bold text-[#3E1126] uppercase mb-4">Under Review</h2>
                 <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-4">
-                  Your profile details have been submitted and are currently being reviewed by trip coordinators. 
+                  Your profile details have been submitted and are currently being reviewed by trip coordinators.
                 </p>
                 <p className="text-xs text-[#3E1126] font-bold p-3 bg-zinc-50 rounded-xl border-2 border-[#3E1126]/10">
                   Please check back later. Once approved, your Payment Link will activate here!
@@ -548,7 +560,7 @@ export default function SecureForm() {
                 <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-4">
                   The organizers have requested additional action regarding your registration.
                 </p>
-                
+
                 {registration.issueText && (
                   <div className="text-left text-sm text-amber-800 font-medium p-4 bg-amber-50 rounded-xl border-2 border-amber-200/50 mb-6">
                     <span className="font-bold text-amber-900 block mb-1">Issue Reported:</span>
@@ -558,16 +570,16 @@ export default function SecureForm() {
 
                 <form onSubmit={handleReupload} className="space-y-4 text-left bg-zinc-50 border-2 border-[#3E1126]/10 rounded-xl p-5">
                   <h4 className="font-oswald font-bold text-sm uppercase tracking-wider text-[#3E1126] mb-3">Corrections Required</h4>
-                  
+
                   {registration.actionRequiredFields?.map((fieldName: string) => {
-                    const isFileField = fieldName === "Aadhaar Card Copy" || fieldName === "Completed Consent Form" || 
+                    const isFileField = fieldName === "Student ID Card Copy" || fieldName === "Aadhaar Card Copy" || fieldName === "Completed Consent Form" ||
                       selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type === "file";
                     const fieldType = selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type || "short_text";
-                    
+
                     return (
                       <div key={fieldName} className="space-y-1.5">
                         <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{fieldName}</label>
-                        
+
                         {isFileField ? (
                           <input
                             type="file"
@@ -637,45 +649,48 @@ export default function SecureForm() {
               </div>
             )}
 
-            {registration.status === "approved_to_pay" && (
+            {(registration.status === "approved_to_pay" || registration.status === "mail_sent") && (
               <div className="w-full bg-white rounded-[2rem] shadow-xl overflow-hidden border border-black/5 p-8 text-center" data-lenis-prevent>
-                <div className="w-16 h-16 bg-[#E4D5FF] rounded-full flex items-center justify-center shadow-inner mb-6 mx-auto">
-                  <span className="text-3xl">💳</span>
+                <div className="w-16 h-16 bg-[#E8F8F5] rounded-full flex items-center justify-center shadow-inner mb-6 mx-auto">
+                  <span className="text-3xl">🎉</span>
                 </div>
-                <h2 className="text-2xl font-oswald font-bold text-[#3E1126] uppercase mb-4">Approved for Payment</h2>
-                
-                {selectedTrip?.paymentOpen === false ? (
-                  <p className="text-red-700 font-bold text-sm bg-red-50 p-4 rounded-xl border border-red-200">
-                    Payment for this trip is currently closed by the administrator.
-                  </p>
-                ) : seatsFull ? (
-                  <p className="text-red-700 font-bold text-sm bg-red-50 p-4 rounded-xl border border-red-200">
-                    All seats are fully booked. Payment is now closed.
-                  </p>
-                ) : isBoyBlocked ? (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 text-sm">
-                    <p className="font-bold mb-2">Girls priority payment is currently active.</p>
-                    Payment for male students will unlock once at least <strong>{girlsThreshold}</strong> female students have completed their payments (current paid girls: {femalePaidCount}).
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <p className="text-[#3E1126]/80 text-sm font-medium">
-                      Your profile has been verified! You can pay the registration fee to secure your seat.
-                    </p>
-                    <div className="bg-zinc-50 rounded-xl border-2 border-[#3E1126]/10 p-6 text-center">
-                      <p className="text-xs font-oswald font-bold uppercase tracking-wider text-zinc-500 mb-1">Amount to Pay</p>
-                      <p className="text-4xl font-black text-[#3E1126]">₹ {selectedTrip?.fee !== undefined ? Number(selectedTrip.fee).toFixed(2) : "500.00"}</p>
-                    </div>
+                <h2 className="text-2xl font-oswald font-bold text-[#3E1126] uppercase mb-4">Registration Approved!</h2>
+                <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-6">
+                  Your profile has been verified and your seat is officially secured. Welcome to the trip!
+                </p>
 
-                    <button
-                      onClick={handlePayment}
-                      disabled={paying}
-                      className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                <div className="space-y-4">
+                  {selectedTrip?.whatsappLink && (
+                    <a
+                      href={selectedTrip.whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex justify-center items-center gap-2 text-sm font-bold text-white bg-[#25D366] hover:bg-[#20BA56] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-transform inline-flex"
                     >
-                      {paying ? "Processing..." : "Pay securely via Razorpay"}
-                    </button>
-                  </div>
-                )}
+                      💬 Join Official WhatsApp Group
+                    </a>
+                  )}
+
+                  {selectedTrip?.qrCodeUrl && (
+                    <div className="bg-zinc-50 border-2 border-dashed border-[#3E1126]/20 rounded-2xl p-4 flex flex-col items-center">
+                      <p className="text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide">Event QR Code</p>
+                      <div className="relative w-48 h-48 bg-white border rounded-xl overflow-hidden shadow-inner p-2">
+                        <img
+                          src={getDocumentUrl(selectedTrip.qrCodeUrl)}
+                          alt="Event QR Code"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <p className="text-[10px] text-zinc-400 mt-2 font-medium">Scan QR code for additional trip details & verify check-in.</p>
+                    </div>
+                  )}
+
+                  {!selectedTrip?.whatsappLink && !selectedTrip?.qrCodeUrl && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left text-amber-800 text-xs font-medium">
+                      ⚠️ No WhatsApp group or QR code has been set by the organizer for this event yet. Please check back later or contact your trip coordinators.
+                    </div>
+                  )}
+                </div>
 
                 {renderAadhaarStatus()}
                 <button

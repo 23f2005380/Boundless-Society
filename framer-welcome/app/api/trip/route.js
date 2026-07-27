@@ -105,6 +105,19 @@ const tripSchema = yup.object().shape({
       })
     )
     .default([]),
+  whatsappLink: yup.string().trim().optional().default(""),
+  qrCodeUrl: yup.string().trim().optional().default(""),
+  consentTemplates: yup
+    .array()
+    .of(
+      yup.object().shape({
+        id: yup.string().required(),
+        name: yup.string().required(),
+        templateUrl: yup.string().required(),
+      })
+    )
+    .optional()
+    .default([]),
 });
 
 export async function POST(request) {
@@ -150,6 +163,7 @@ export async function POST(request) {
       totalSeats: validatedData.totalSeats,
       fee: validatedData.fee !== undefined ? Number(validatedData.fee) : 500,
       consentFormTemplateUrl: validatedData.consentFormTemplateUrl || "",
+      consentTemplates: validatedData.consentTemplates || [],
       femaleReservedSeats: validatedData.femaleReservedSeats,
       releasedSeats: validatedData.releasedSeats,
       releasedSeatsType: validatedData.releasedSeatsType,
@@ -177,6 +191,8 @@ export async function POST(request) {
         publicId: img.publicId,
         sortOrder: index,
       })),
+      whatsappLink: validatedData.whatsappLink || "",
+      qrCodeUrl: validatedData.qrCodeUrl || "",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -249,8 +265,11 @@ export async function GET() {
         finalRosterSaved: data.finalRosterSaved,
         form: data.form,
         consentFormTemplateUrl: data.consentFormTemplateUrl || "",
+        consentTemplates: data.consentTemplates || [],
         images: data.images || [],
         fee: data.fee !== undefined ? Number(data.fee) : 500,
+        whatsappLink: data.whatsappLink || "",
+        qrCodeUrl: data.qrCodeUrl || "",
         razorpayKeyId: data.razorpayKeyId || "",
         hasRazorpaySecret: !!data.razorpayKeySecret,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
@@ -312,7 +331,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl } = body;
+    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl, consentTemplates, whatsappLink, qrCodeUrl } = body;
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
@@ -339,6 +358,9 @@ export async function PUT(request) {
     if (totalSeats !== undefined) updateData.totalSeats = Number(totalSeats);
     if (fee !== undefined) updateData.fee = Number(fee);
     if (consentFormTemplateUrl !== undefined) updateData.consentFormTemplateUrl = consentFormTemplateUrl;
+    if (consentTemplates !== undefined) updateData.consentTemplates = consentTemplates;
+    if (whatsappLink !== undefined) updateData.whatsappLink = whatsappLink;
+    if (qrCodeUrl !== undefined) updateData.qrCodeUrl = qrCodeUrl;
     
     if (formFields !== undefined) {
       updateData.form = {

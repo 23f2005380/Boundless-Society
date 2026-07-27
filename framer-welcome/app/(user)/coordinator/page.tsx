@@ -17,6 +17,8 @@ interface Trip {
   name: string;
   coordinators: string[];
   isCompleted?: boolean;
+  consentFormTemplateUrl?: string;
+  consentTemplates?: Array<{ id: string; name: string; templateUrl: string }>;
 }
 
 interface Registration {
@@ -28,7 +30,10 @@ interface Registration {
   submittedAt: string;
   formData: Record<string, string>;
   aadhaarVerified?: boolean;
+  studentIdVerified?: boolean;
   consentFormFileUrl?: string;
+  consentFormVerified?: boolean;
+  verifiedConsentForms?: Record<string, boolean>;
 }
 
 interface Concern {
@@ -185,6 +190,52 @@ export default function CoordinatorDashboard() {
         if (selectedReg && selectedReg.id === regId) {
           setSelectedReg({ ...selectedReg, status: nextStatus });
         }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleVerifyConsentForm = async (regId: string, templateId: string = "legacy-consent") => {
+    const isAssigned = trips.some((t) => t.id === selectedTripId);
+    if (!isAssigned) {
+      alert("Unauthorized: You do not coordinate this event.");
+      return;
+    }
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch("/api/admin/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registrationId: regId,
+          verifiedConsentForms: { [templateId]: true },
+          token,
+        }),
+      });
+      if (res.ok) {
+        alert("Consent Form verified successfully!");
+        fetchTripData();
+        if (selectedReg && selectedReg.id === regId) {
+          const updatedVerifiedMap = {
+            ...(selectedReg.verifiedConsentForms || {}),
+            [templateId]: true,
+          };
+          
+          const templates = selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
+            ? selectedTrip.consentTemplates
+            : (selectedTrip?.consentFormTemplateUrl ? [{ id: "legacy-consent" }] : []);
+          
+          const allOk = templates.every((t) => updatedVerifiedMap[t.id]);
+
+          setSelectedReg({
+            ...selectedReg,
+            verifiedConsentForms: updatedVerifiedMap,
+            consentFormVerified: allOk,
+          });
+        }
+      } else {
+        alert("Failed to verify Consent Form.");
       }
     } catch (e) {
       console.error(e);
@@ -356,9 +407,9 @@ export default function CoordinatorDashboard() {
                           <span className="text-xs text-gray-500 font-semibold uppercase">{reg.gender}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
                             reg.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
-                            reg.status === "approved_to_pay" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                            (reg.status === "approved_to_pay" || reg.status === "mail_sent") ? "bg-blue-100 text-blue-700 border-blue-200" :
                             "bg-yellow-100 text-yellow-700 border-yellow-200"
-                          }`}>{reg.status}</span>
+                          }`}>{reg.status === "mail_sent" ? "approved & mailed" : reg.status}</span>
                         </div>
                       </button>
                     );
@@ -384,20 +435,37 @@ export default function CoordinatorDashboard() {
                       <>
                         {selectedReg.status === "registered" && (
                           <button
-                            disabled={!selectedReg.aadhaarVerified}
-                            title={!selectedReg.aadhaarVerified ? "Aadhaar must be verified first" : "Approve Payment"}
+                            disabled={
+                              !(selectedReg.studentIdVerified || selectedReg.aadhaarVerified) ||
+                              !!(
+                                !selectedReg.consentFormVerified && (
+                                  (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
+                                  selectedTrip?.consentFormTemplateUrl
+                                )
+                              )
+                            }
+                            title={
+                              !(selectedReg.studentIdVerified || selectedReg.aadhaarVerified)
+                                ? "Student ID must be verified first"
+                                : (!selectedReg.consentFormVerified && (
+                                    (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
+                                    selectedTrip?.consentFormTemplateUrl
+                                  ))
+                                ? "All consent forms must be verified first"
+                                : "Approve"
+                            }
                             onClick={() => handleStatusChange(selectedReg.id, "approved_to_pay")}
                             className="bg-green-600 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1.5 transition-all"
                           >
-                            <UserCheckIcon className="w-3.5 h-3.5" /> Approve Payment Link
+                            <UserCheckIcon className="w-3.5 h-3.5" /> Approve
                           </button>
                         )}
-                        {selectedReg.status === "approved_to_pay" && (
+                        {(selectedReg.status === "approved_to_pay" || selectedReg.status === "mail_sent") && (
                           <button
                             onClick={() => handleStatusChange(selectedReg.id, "registered")}
                             className="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-amber-700"
                           >
-                            Deactivate Payment Link
+                            Deactivate Approval
                           </button>
                         )}
                       </>
@@ -413,45 +481,99 @@ export default function CoordinatorDashboard() {
                     🪪 Identity & Consent Review
                   </h3>
                   <div className="text-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-500 font-bold uppercase text-[10px]">Aadhaar Gating Status</p>
+                  <div className="text-xs grid grid-cols-1 gap-4">
+                    <div className="border-b pb-3 border-amber-200">
+                      <p className="text-gray-500 font-bold uppercase text-[10px]">
+                        Student ID Gating Status
+                      </p>
                       <div className="mt-1 flex items-center gap-2">
                         <span className={`font-black px-2 py-0.5 rounded border uppercase text-[10px] ${
-                          selectedReg.aadhaarVerified 
+                          (selectedReg.studentIdVerified || selectedReg.aadhaarVerified)
                             ? "bg-green-100 text-green-700 border-green-200" 
                             : "bg-red-100 text-red-700 border-red-200"
                         }`}>
-                          {selectedReg.aadhaarVerified ? "Verified ✅" : "Unverified ❌"}
+                          {(selectedReg.studentIdVerified || selectedReg.aadhaarVerified) ? "Verified ✅" : "Unverified ❌"}
                         </span>
-                        {selectedReg.formData?.["Aadhaar Card Copy"] && (
+                        {(selectedReg.formData?.["Student ID Card Copy"] || selectedReg.formData?.["Aadhaar Card Copy"]) && (
                           <a
-                            href={getDocumentUrl(selectedReg.formData["Aadhaar Card Copy"])}
+                            href={getDocumentUrl(selectedReg.formData["Student ID Card Copy"] || selectedReg.formData["Aadhaar Card Copy"])}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-amber-900 hover:bg-amber-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow"
                           >
-                            Access Aadhaar Copy ↗
+                            Access Student ID Copy ↗
                           </a>
                         )}
                       </div>
                     </div>
-                    <div>
-                      <p className="text-gray-500 font-bold uppercase text-[10px]">Signed Consent Form</p>
-                      <div className="mt-1">
-                        {selectedReg.formData?.["Completed Consent Form"] ? (
-                          <a
-                            href={getDocumentUrl(selectedReg.formData["Completed Consent Form"])}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-2 py-1 rounded text-[10px] shadow inline-flex items-center gap-1"
-                          >
-                            Access Consent Form ↗
-                          </a>
-                        ) : (
-                          <span className="text-red-700 font-semibold text-[11px]">Not uploaded</span>
-                        )}
-                      </div>
-                    </div>
+
+                    {/* Multiple Consent Forms */}
+                    {(() => {
+                      const templates = selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
+                        ? selectedTrip.consentTemplates
+                        : (selectedTrip?.consentFormTemplateUrl ? [{ id: "legacy-consent", name: "Completed Consent Form", templateUrl: selectedTrip.consentFormTemplateUrl }] : []);
+
+                      if (templates.length === 0) return null;
+
+                      return (
+                        <div className="space-y-3">
+                          <p className="text-gray-500 font-bold uppercase text-[10px]">Consent Forms ({templates.length})</p>
+                          <div className="space-y-2">
+                            {templates.map((t) => {
+                              const fileKey = t.id === "legacy-consent" ? "Completed Consent Form" : `Completed Consent - ${t.name}`;
+                              const uploadedUrl = selectedReg.formData[fileKey];
+                              const isVerified = t.id === "legacy-consent"
+                                ? selectedReg.consentFormVerified
+                                : (selectedReg.verifiedConsentForms?.[t.id] || false);
+
+                              return (
+                                <div key={t.id} className="bg-white/50 p-2.5 rounded border border-amber-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                  <div>
+                                    <p className="font-semibold text-gray-800">{t.name}</p>
+                                    <p className="text-[9px] text-gray-400">
+                                      Template: <a href={getDocumentUrl(t.templateUrl)} target="_blank" rel="noopener noreferrer" className="text-indigo-900 underline font-semibold">Download ↗</a>
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <span className={`font-black px-2 py-0.5 rounded border uppercase text-[9px] ${
+                                      isVerified
+                                        ? "bg-green-100 text-green-700 border-green-200"
+                                        : "bg-red-100 text-red-700 border-red-200"
+                                    }`}>
+                                      {isVerified ? "Verified ✅" : "Unverified ❌"}
+                                    </span>
+                                    {uploadedUrl ? (
+                                      <>
+                                        <a
+                                          href={getDocumentUrl(uploadedUrl)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-2 py-1 rounded text-[9px] shadow"
+                                        >
+                                          View Copy ↗
+                                        </a>
+                                        {!isVerified && (
+                                          <button
+                                            onClick={() => handleVerifyConsentForm(selectedReg.id, t.id)}
+                                            className="bg-green-700 hover:bg-green-600 text-white font-bold px-2 py-1 rounded text-[9px] shadow"
+                                          >
+                                            Verify
+                                          </button>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-red-700 font-semibold text-[10px]">Not uploaded</span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                   </div>
                 </div>
 
@@ -462,7 +584,7 @@ export default function CoordinatorDashboard() {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.entries(selectedReg.formData || {})
-                      .filter(([key]) => key !== "Aadhaar Number" && key !== "Aadhaar Card Copy" && key !== "Completed Consent Form")
+                      .filter(([key]) => key !== "Student ID Number" && key !== "Student ID Card Copy" && key !== "Aadhaar Number" && key !== "Aadhaar Card Copy" && key !== "Completed Consent Form" && !key.startsWith("Completed Consent -"))
                       .map(([key, val]) => (
                       <div key={key} className="border-b border-gray-100 pb-2">
                         <p className="text-xs text-gray-400 font-black uppercase">{key}</p>
