@@ -15,7 +15,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 
-import { sendApprovalEmail } from "@/lib/brevo";
+import { sendApprovalEmail, sendCorrectionRequestEmail } from "@/lib/brevo";
 
 // Helper function to archive the attendee and coordinator rosters
 async function archiveEventRoster(tripId) {
@@ -146,6 +146,10 @@ export async function GET(req) {
         verifiedConsentForms: data.verifiedConsentForms || {},
         issueText: data.issueText || "",
         actionRequiredFields: data.actionRequiredFields || [],
+        conversationHistory: (data.conversationHistory || []).map(entry => ({
+          ...entry,
+          timestamp: entry.timestamp?.toDate?.()?.toISOString?.() || entry.timestamp || null,
+        })),
       };
     });
 
@@ -260,14 +264,24 @@ export async function POST(req) {
     if (status !== undefined) updatePayload.status = status;
     if (studentIdVerified !== undefined) {
       updatePayload.studentIdVerified = studentIdVerified;
-    } else if (aadhaarVerified !== undefined) {
-      updatePayload.studentIdVerified = aadhaarVerified;
     }
     if (consentFormVerified !== undefined) {
       updatePayload.consentFormVerified = consentFormVerified;
     }
     if (issueText !== undefined) updatePayload.issueText = issueText;
     if (actionRequiredFields !== undefined) updatePayload.actionRequiredFields = actionRequiredFields;
+
+    // Append to conversationHistory when admin sends an action_required request
+    if (status === "action_required") {
+      const existingHistory = regSnap.data().conversationHistory || [];
+      existingHistory.push({
+        type: "admin_request",
+        message: issueText || "",
+        fields: actionRequiredFields || [],
+        timestamp: new Date().toISOString(),
+      });
+      updatePayload.conversationHistory = existingHistory;
+    }
 
     const oldStatus = regSnap.data().status || "registered";
     const gender = (regSnap.data().gender || "unknown").toLowerCase();
@@ -330,6 +344,32 @@ export async function POST(req) {
             console.error("Failed to send Brevo email:", emailErr);
           }
         }
+      }
+    }
+
+    // Send correction request email when status moves to action_required
+    if (status === "action_required") {
+      try {
+        const tripDocRef2 = doc(db, "trips", tripId);
+        const tripSnap2 = await getDoc(tripDocRef2);
+        if (tripSnap2.exists()) {
+          const tripData2 = tripSnap2.data();
+          const userEmail2 = regSnap.data().email;
+          const nameKey2 = Object.keys(regSnap.data().formData || {}).find(
+            (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
+          );
+          const userName2 = nameKey2 ? regSnap.data().formData[nameKey2] : "Attendee";
+          await sendCorrectionRequestEmail(
+            userEmail2,
+            userName2,
+            tripData2.name || "Event",
+            issueText || "",
+            actionRequiredFields || [],
+            tripId
+          );
+        }
+      } catch (emailErr) {
+        console.error("Failed to send correction request email:", emailErr);
       }
     }
 

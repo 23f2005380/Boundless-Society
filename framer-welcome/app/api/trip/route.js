@@ -20,12 +20,14 @@ const formFieldSchema = yup.object().shape({
   type: yup
     .string()
     .oneOf(
-      ["short_text", "long_text", "radio", "select", "date", "file", "email"],
+      ["short_text", "long_text", "radio", "select", "date", "file", "email", "description_text"],
       "Invalid field type"
     )
     .required(),
   sortOrder: yup.number().required().min(0),
   allowEditIfPrefilled: yup.boolean().optional().default(true),
+  dependsOnFieldId: yup.string().optional().nullable(),
+  dependsOnValue: yup.string().optional().nullable(),
   options: yup
     .array()
     .of(yup.string().trim())
@@ -177,6 +179,8 @@ export async function POST(request) {
             type: field.type,
             sortOrder: field.sortOrder,
             allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
+            dependsOnFieldId: field.dependsOnFieldId || null,
+            dependsOnValue: field.dependsOnValue || null,
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(
@@ -384,6 +388,8 @@ export async function PUT(request) {
             type: field.type,
             sortOrder: field.sortOrder !== undefined ? field.sortOrder : idx,
             allowEditIfPrefilled: field.allowEditIfPrefilled !== false,
+            dependsOnFieldId: field.dependsOnFieldId || null,
+            dependsOnValue: field.dependsOnValue || null,
           };
           if (field.type === "radio" || field.type === "select") {
             fieldData.options = (field.options || []).filter(

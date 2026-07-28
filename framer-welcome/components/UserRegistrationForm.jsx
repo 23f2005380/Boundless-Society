@@ -23,6 +23,27 @@ const ScallopDivider = ({ topColor }) => (
   </div>
 );
 
+const CollapsibleDescription = ({ text }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldTruncate = text.length > 250;
+  const displayText = shouldTruncate && !isExpanded ? `${text.slice(0, 250)}...` : text;
+
+  return (
+    <div className="p-4 bg-[#3E1126]/5 border-2 border-dashed border-[#3E1126]/10 rounded-2xl text-xs sm:text-sm text-[#3E1126]/85 font-medium leading-relaxed whitespace-pre-line relative transition-all duration-300">
+      <p>{displayText}</p>
+      {shouldTruncate && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 text-xs font-bold text-[#3E1126] underline hover:text-[#3E1126]/80 flex items-center gap-1 focus:outline-none"
+        >
+          {isExpanded ? "Show Less ▲" : "Read More ▼"}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function UserRegistrationForm({ user, setUser, tripId, autofillData, onSuccess }) {
     const dbRef = useRef(null);
     const [dbReady, setDbReady] = useState(false);
@@ -44,6 +65,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
     const [consentTemplates, setConsentTemplates] = useState([]);
     const [consentFiles, setConsentFiles] = useState({}); // mapping: templateId -> File object
     const [tripName, setTripName] = useState("Event");
+    const [tripDescription, setTripDescription] = useState("");
 
     // Student ID / Aadhaar State (for first time users only)
     const isFirstTime = !autofillData || Object.keys(autofillData).length === 0 || (!autofillData["Student ID Card Copy"] && !autofillData["Aadhaar Card Copy"]);
@@ -61,6 +83,15 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
         return !!(autofillData && autofillData[fieldName] !== undefined && field.allowEditIfPrefilled === false);
     };
 
+    const isFieldVisible = (f) => {
+        if (!f.dependsOnFieldId) return true;
+        const parentField = fields.find(p => p.id === f.dependsOnFieldId);
+        if (!parentField) return true;
+        if (!isFieldVisible(parentField)) return false;
+        const parentValue = formValues[parentField.name];
+        return parentValue === f.dependsOnValue;
+    };
+
     useEffect(() => {
         if (!dbRef.current || !tripId) return;
         const fetchForm = async () => {
@@ -71,6 +102,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     setTripName(data?.name || "Event");
+                    setTripDescription(data?.description || "");
                     setConsentFormTemplateUrl(data?.consentFormTemplateUrl || "");
                     const templates = data?.consentTemplates && data.consentTemplates.length > 0
                         ? data.consentTemplates
@@ -102,6 +134,167 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
     const handleChange = (fieldName, value) => {
         setFormValues((prev) => ({ ...prev, [fieldName]: value }));
+    };
+
+    const renderField = (field) => {
+        const isVisible = isFieldVisible(field);
+        if (!isVisible) return null;
+
+        const currentVal = formValues[field.name] || "";
+        
+        return (
+            <div key={field.id} className="space-y-1.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {field.type !== "description_text" && (
+                    <label className="text-xs font-oswald font-bold uppercase tracking-wider text-[#3E1126]">
+                        {field.name}
+                    </label>
+                )}
+
+                {field.type === "description_text" && (
+                    <CollapsibleDescription text={field.name} />
+                )}
+                
+                {field.type === "short_text" && (
+                    <input
+                        type="text"
+                        required
+                        value={currentVal}
+                        disabled={isFieldDisabled(field.name)}
+                        onChange={(e) => handleChange(field.name, e.target.value)}
+                        className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all ${
+                            isFieldDisabled(field.name)
+                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
+                                : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
+                        }`}
+                    />
+                )}
+
+                {field.type === "long_text" && (
+                    <textarea
+                        rows={2}
+                        required
+                        value={currentVal}
+                        disabled={isFieldDisabled(field.name)}
+                        onChange={(e) => handleChange(field.name, e.target.value)}
+                        className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all resize-none ${
+                            isFieldDisabled(field.name)
+                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
+                                : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
+                        }`}
+                    />
+                )}
+
+                {field.type === "date" && (
+                    <input
+                        type="date"
+                        required
+                        value={currentVal}
+                        disabled={isFieldDisabled(field.name)}
+                        onChange={(e) => handleChange(field.name, e.target.value)}
+                        className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all ${
+                            isFieldDisabled(field.name)
+                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
+                                : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
+                        }`}
+                    />
+                )}
+
+                {field.type === "select" && (
+                    <div className="relative">
+                        <select
+                            required
+                            value={currentVal}
+                            disabled={isFieldDisabled(field.name)}
+                            onChange={(e) => handleChange(field.name, e.target.value)}
+                            className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all appearance-none ${
+                                isFieldDisabled(field.name)
+                                    ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
+                                    : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
+                            }`}
+                        >
+                            <option value="" disabled>Select an option</option>
+                            {field.options?.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                )}
+
+                {field.type === "radio" && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {field.options?.map((option) => {
+                            const isDisabled = isFieldDisabled(field.name);
+                            return (
+                                <label key={option} className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                                    currentVal === option
+                                        ? isDisabled
+                                            ? 'border-zinc-300 bg-zinc-100 text-zinc-400 cursor-not-allowed'
+                                            : 'border-[#3E1126] bg-[#3E1126]/5 text-[#3E1126]'
+                                        : isDisabled
+                                        ? 'border-zinc-100 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-50'
+                                        : 'border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-[#3E1126]/20'
+                                }`}>
+                                    <input
+                                        type="radio"
+                                        className="hidden"
+                                        name={field.name}
+                                        value={option}
+                                        required
+                                        disabled={isDisabled}
+                                        checked={currentVal === option}
+                                        onChange={(e) => handleChange(field.name, e.target.value)}
+                                    />
+                                    <span className="text-sm font-bold">{option}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {field.type === "file" && (
+                    <div className="space-y-1.5">
+                        <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            required={!currentVal}
+                            disabled={isFieldDisabled(field.name) || uploadingDynamic[field.name]}
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 10 * 1024 * 1024) {
+                                    alert("File size must be less than 10MB");
+                                    e.target.value = "";
+                                    return;
+                                }
+                                setUploadingDynamic(prev => ({ ...prev, [field.name]: true }));
+                                const url = await uploadFileToDrive(file, "Form Files", field.name);
+                                if (url) {
+                                    handleChange(field.name, url);
+                                } else {
+                                    e.target.value = "";
+                                    handleChange(field.name, "");
+                                }
+                                setUploadingDynamic(prev => ({ ...prev, [field.name]: false }));
+                            }}
+                            className={`w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors border-2 border-transparent rounded-xl p-1 ${
+                                isFieldDisabled(field.name)
+                                    ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                    : "bg-zinc-50"
+                            }`}
+                        />
+                        {uploadingDynamic[field.name] && (
+                            <p className="text-xs text-amber-600 font-bold animate-pulse">Uploading file... Please wait.</p>
+                        )}
+                        {currentVal && typeof currentVal === "string" && currentVal.startsWith("http") && (
+                            <p className="text-xs text-green-600 font-bold">Uploaded successfully! ✅</p>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     const uploadFileToDrive = async (file, subFolderType, fieldName) => {
@@ -260,12 +453,38 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
     const handleNext = (e) => {
       if (e) e.preventDefault();
-      setStep(prev => prev + 1);
+      
+      const hasConditional = fields.filter((field) => !!field.dependsOnFieldId).some(isFieldVisible);
+      
+      if (step === 2) {
+        if (hasConditional) {
+          setStep(3);
+        } else {
+          setStep(4);
+        }
+      } else if (step === 3) {
+        setStep(4);
+      } else {
+        setStep((prev) => prev + 1);
+      }
     };
 
     const handleBack = (e) => {
       if (e) e.preventDefault();
-      setStep(prev => prev - 1);
+      
+      const hasConditional = fields.filter((field) => !!field.dependsOnFieldId).some(isFieldVisible);
+      
+      if (step === 4) {
+        if (hasConditional) {
+          setStep(3);
+        } else {
+          setStep(2);
+        }
+      } else if (step === 3) {
+        setStep(2);
+      } else {
+        setStep((prev) => prev - 1);
+      }
     };
 
     const handleSubmit = async (e) => {
@@ -283,7 +502,18 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
         try {
             const token = await user.getIdToken();
-            const formDataObj = { ...formValues };
+            
+            // Clean dynamic fields: only submit visible input fields
+            const sortedFields = [...fields].sort((a, b) => a.sortOrder - b.sortOrder);
+            const formDataObj = {};
+            sortedFields.forEach((field) => {
+                if (field.type === "description_text") return; // skip description texts
+                if (isFieldVisible(field)) {
+                    if (formValues[field.name] !== undefined) {
+                        formDataObj[field.name] = formValues[field.name];
+                    }
+                }
+            });
 
             if (isFirstTime) {
                 if (!aadhaarFile || typeof aadhaarFile !== "string") {
@@ -349,6 +579,20 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
       );
     }
 
+    const hasConditional = fields.filter((field) => !!field.dependsOnFieldId).some(isFieldVisible);
+    const totalSteps = hasConditional ? 4 : 3;
+    let currentStep = step;
+    let stepLabel = "Personal Details";
+
+    if (step === 2) {
+      stepLabel = "Travel Info";
+    } else if (step === 3) {
+      stepLabel = "Specific Details";
+    } else if (step === 4) {
+      currentStep = hasConditional ? 4 : 3;
+      stepLabel = "Final Steps";
+    }
+
     return (
       <div className="w-full bg-white rounded-[2rem] shadow-xl overflow-hidden relative flex flex-col border border-black/5">
         
@@ -357,9 +601,12 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
           
           {/* Progress Indicators */}
           <div className="absolute top-4 left-0 right-0 flex justify-center gap-2">
-            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= 1 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
-            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= 2 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
-            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= 3 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
+            <div className={`h-1.5 rounded-full transition-all duration-300 ${currentStep >= 1 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
+            <div className={`h-1.5 rounded-full transition-all duration-300 ${currentStep >= 2 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
+            {hasConditional && (
+              <div className={`h-1.5 rounded-full transition-all duration-300 ${currentStep >= 3 ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
+            )}
+            <div className={`h-1.5 rounded-full transition-all duration-300 ${currentStep >= totalSteps ? 'w-8 bg-[#3E1126]' : 'w-2 bg-[#3E1126]/20'}`}></div>
           </div>
 
           <div className="w-12 h-12 bg-[#3E1126] rounded-full flex items-center justify-center shadow-md mb-3 text-white">
@@ -369,7 +616,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             Join The Journey
           </h2>
           <p className="text-xs sm:text-sm font-medium text-[#3E1126]/70 mt-1">
-            Step {step} of 3 • {step === 1 ? 'Personal Details' : step === 2 ? 'Travel Info' : 'Final Steps'}
+            Step {currentStep} of {totalSteps} • {stepLabel}
           </p>
         </div>
 
@@ -382,6 +629,10 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
           {step === 1 && (
             <form onSubmit={handleNext} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
+              {tripDescription && (
+                <CollapsibleDescription text={tripDescription} />
+              )}
+
               <div className="space-y-1.5">
                 <label className="text-xs font-oswald font-bold uppercase tracking-wider text-[#3E1126]">
                   IITM Email Address
@@ -462,7 +713,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             </form>
           )}
 
-          {/* STEP 2: Dynamic Trip Fields */}
+          {/* STEP 2: General Travel Details */}
           {step === 2 && (
             <form onSubmit={handleNext} className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-500">
               <button 
@@ -474,157 +725,7 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
               </button>
 
               <div className="space-y-5">
-                {fields.map((field) => {
-                  const currentVal = formValues[field.name] || "";
-                  
-                  return (
-                    <div key={field.id} className="space-y-1.5">
-                      <label className="text-xs font-oswald font-bold uppercase tracking-wider text-[#3E1126]">
-                        {field.name}
-                      </label>
-                      
-                      {field.type === "short_text" && (
-                        <input
-                          type="text"
-                          required
-                          value={currentVal}
-                          disabled={isFieldDisabled(field.name)}
-                          onChange={(e) => handleChange(field.name, e.target.value)}
-                          className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all ${
-                            isFieldDisabled(field.name)
-                              ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
-                              : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
-                          }`}
-                        />
-                      )}
-
-                      {field.type === "long_text" && (
-                        <textarea
-                          rows={2}
-                          required
-                          value={currentVal}
-                          disabled={isFieldDisabled(field.name)}
-                          onChange={(e) => handleChange(field.name, e.target.value)}
-                          className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all resize-none ${
-                            isFieldDisabled(field.name)
-                              ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
-                              : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
-                          }`}
-                        />
-                      )}
-
-                      {field.type === "date" && (
-                        <input
-                          type="date"
-                          required
-                          value={currentVal}
-                          disabled={isFieldDisabled(field.name)}
-                          onChange={(e) => handleChange(field.name, e.target.value)}
-                          className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all ${
-                            isFieldDisabled(field.name)
-                              ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
-                              : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
-                          }`}
-                        />
-                      )}
-
-                      {field.type === "select" && (
-                        <div className="relative">
-                          <select
-                            required
-                            value={currentVal}
-                            disabled={isFieldDisabled(field.name)}
-                            onChange={(e) => handleChange(field.name, e.target.value)}
-                            className={`w-full px-4 py-3 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none transition-all appearance-none ${
-                              isFieldDisabled(field.name)
-                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-transparent"
-                                : "bg-zinc-50 text-[#3E1126] focus:border-[#3E1126]/10 focus:bg-white"
-                            }`}
-                          >
-                            <option value="" disabled>Select an option</option>
-                            {field.options?.map((option) => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                          </div>
-                        </div>
-                      )}
-
-                      {field.type === "radio" && (
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                          {field.options?.map((option) => {
-                            const isDisabled = isFieldDisabled(field.name);
-                            return (
-                              <label key={option} className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                                currentVal === option
-                                  ? isDisabled
-                                    ? 'border-zinc-300 bg-zinc-100 text-zinc-400 cursor-not-allowed'
-                                    : 'border-[#3E1126] bg-[#3E1126]/5 text-[#3E1126]'
-                                  : isDisabled
-                                  ? 'border-zinc-100 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-50'
-                                  : 'border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-[#3E1126]/20'
-                              }`}>
-                                <input
-                                  type="radio"
-                                  className="hidden"
-                                  name={field.name}
-                                  value={option}
-                                  required
-                                  disabled={isDisabled}
-                                  checked={currentVal === option}
-                                  onChange={(e) => handleChange(field.name, e.target.value)}
-                                />
-                                <span className="text-sm font-bold">{option}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {field.type === "file" && (
-                        <div className="space-y-1.5">
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            required={!currentVal}
-                            disabled={isFieldDisabled(field.name) || uploadingDynamic[field.name]}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              if (file.size > 10 * 1024 * 1024) {
-                                alert("File size must be less than 10MB");
-                                e.target.value = "";
-                                return;
-                              }
-                              setUploadingDynamic(prev => ({ ...prev, [field.name]: true }));
-                              const url = await uploadFileToDrive(file, "Form Files", field.name);
-                              if (url) {
-                                handleChange(field.name, url);
-                              } else {
-                                e.target.value = "";
-                                handleChange(field.name, "");
-                              }
-                              setUploadingDynamic(prev => ({ ...prev, [field.name]: false }));
-                            }}
-                            className={`w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors border-2 border-transparent rounded-xl p-1 ${
-                              isFieldDisabled(field.name)
-                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                                : "bg-zinc-50"
-                            }`}
-                          />
-                          {uploadingDynamic[field.name] && (
-                            <p className="text-xs text-amber-600 font-bold animate-pulse">Uploading file... Please wait.</p>
-                          )}
-                          {currentVal && typeof currentVal === "string" && currentVal.startsWith("http") && (
-                            <p className="text-xs text-green-600 font-bold">Uploaded successfully! ✅</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {fields.filter((field) => !field.dependsOnFieldId).map(renderField)}
               </div>
 
               <div className="pt-4">
@@ -640,8 +741,36 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
             </form>
           )}
 
-          {/* STEP 3: Consent Form & Submission */}
+          {/* STEP 3: Specific Travel Details (Conditional Fields) */}
           {step === 3 && (
+            <form onSubmit={handleNext} className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-500">
+              <button 
+                type="button"
+                onClick={handleBack}
+                className="mb-2 -mt-2 inline-flex items-center text-xs font-bold font-oswald uppercase tracking-wider text-zinc-400 hover:text-[#3E1126] transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3 mr-1" /> Back
+              </button>
+
+              <div className="space-y-5">
+                {fields.filter((field) => !!field.dependsOnFieldId).map(renderField)}
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={Object.values(uploadingDynamic).some(Boolean)}
+                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-55 disabled:cursor-not-allowed"
+                >
+                  {Object.values(uploadingDynamic).some(Boolean) ? "Uploading Files..." : "Continue"}
+                  {!Object.values(uploadingDynamic).some(Boolean) && <ArrowRight className="h-4 w-4" />}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 4: Consent Form & Submission */}
+          {step === 4 && (
             <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
               <button 
                 type="button"

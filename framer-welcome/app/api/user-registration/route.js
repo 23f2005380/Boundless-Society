@@ -4,6 +4,7 @@ import { checkRateLimit, getClientIp, isStaffRequest } from "@/lib/rateLimit";
 import {
   serverTimestamp,
   addDoc,
+  setDoc,
   collection,
   getDocs,
   query,
@@ -60,20 +61,25 @@ export async function GET(request) {
       }
     }
 
-    // 2. Fetch past registration data to auto-fill
+    // 2. Fetch past registration data to auto-fill (try master profile first, fallback to past registrations)
     let autofillData = null;
-    const pastQuery = query(
-      collection(db, "user-registrations"),
-      where("email", "==", email)
-    );
-    const pastSnap = await getDocs(pastQuery);
-    if (!pastSnap.empty) {
-      const sortedDocs = [...pastSnap.docs].sort((a, b) => {
-        const timeA = a.data().submittedAt?.toDate?.()?.getTime() || 0;
-        const timeB = b.data().submittedAt?.toDate?.()?.getTime() || 0;
-        return timeB - timeA;
-      });
-      autofillData = sortedDocs[0].data().formData || null;
+    const profileSnap = await getDoc(doc(db, "user_profiles", email));
+    if (profileSnap.exists()) {
+      autofillData = profileSnap.data().formData || null;
+    } else {
+      const pastQuery = query(
+        collection(db, "user-registrations"),
+        where("email", "==", email)
+      );
+      const pastSnap = await getDocs(pastQuery);
+      if (!pastSnap.empty) {
+        const sortedDocs = [...pastSnap.docs].sort((a, b) => {
+          const timeA = a.data().submittedAt?.toDate?.()?.getTime() || 0;
+          const timeB = b.data().submittedAt?.toDate?.()?.getTime() || 0;
+          return timeB - timeA;
+        });
+        autofillData = sortedDocs[0].data().formData || null;
+      }
     }
 
     return Response.json({ registration, autofillData }, { status: 200 });
@@ -208,7 +214,10 @@ export async function POST(request) {
     const pastRegsSnap = await getDocs(pastRegsQuery);
     const isIdVerified = !pastRegsSnap.empty;
 
-    const docRef = await addDoc(collection(db, "user-registrations"), {
+    const regDocId = `${tripId}_${email}`;
+    const regDocRef = doc(db, "user-registrations", regDocId);
+
+    await setDoc(regDocRef, {
       uid,
       email,
       tripId,
@@ -219,8 +228,17 @@ export async function POST(request) {
       studentIdVerified: isIdVerified,
     });
 
+    // Update master user profile
+    const profileRef = doc(db, "user_profiles", email);
+    await setDoc(profileRef, {
+      email,
+      uid,
+      formData: formData || {},
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
     return Response.json(
-      { success: true, message: "Trip Registration successful!", id: docRef.id },
+      { success: true, message: "Trip Registration successful!", id: regDocId },
       { status: 200 }
     );
   } catch (error) {
@@ -300,6 +318,7 @@ export async function PATCH(request) {
       "Student ID Card Copy",
       "Completed Consent Form",
       "User Reply",
+      "Custom Reply",
     ]);
 
     const safeUpdates = Object.fromEntries(
@@ -314,13 +333,37 @@ export async function PATCH(request) {
 
     const newFormData = { ...existingData.formData, ...safeUpdates };
 
+    // Build conversation history entry for the student's reply
+    const studentReplyText = safeUpdates["Custom Reply"] || safeUpdates["User Reply"] || null;
+    const fileFields = Object.entries(safeUpdates)
+      .filter(([, v]) => typeof v === "string" && v.startsWith("http"))
+      .map(([k]) => k);
+
+    const existingHistory = existingData.conversationHistory || [];
+    existingHistory.push({
+      type: "student_reply",
+      message: studentReplyText || "",
+      updatedFields: Object.keys(safeUpdates).filter(k => k !== "Custom Reply" && k !== "User Reply"),
+      fileFields,
+      timestamp: new Date().toISOString(),
+    });
+
     await updateDoc(doc(db, "user-registrations", regDoc.id), {
       formData: newFormData,
       status: "registered", // send back to under review
       issueText: "", // clear any issues
       actionRequiredFields: [], // clear flagged fields
+      conversationHistory: existingHistory,
       updatedAt: serverTimestamp(),
     });
+
+    // Update master user profile
+    const profileRef = doc(db, "user_profiles", email);
+    await setDoc(profileRef, {
+      email,
+      formData: newFormData,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
 
     return Response.json({ success: true, message: "Registration updated successfully." }, { status: 200 });
   } catch (error) {

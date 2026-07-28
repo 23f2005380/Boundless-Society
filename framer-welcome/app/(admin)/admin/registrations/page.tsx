@@ -52,11 +52,20 @@ export interface Registration {
   gender: string;
   submittedAt: string;
   formData: Record<string, string>;
-
+  issueText?: string;
+  actionRequiredFields?: string[];
   studentIdVerified?: boolean;
   consentFormFileUrl?: string;
   consentFormVerified?: boolean;
   verifiedConsentForms?: Record<string, boolean>;
+  conversationHistory?: Array<{
+    type: "admin_request" | "student_reply";
+    message: string;
+    fields?: string[];         // admin_request: which fields to fix
+    updatedFields?: string[];  // student_reply: non-reply fields updated
+    fileFields?: string[];     // student_reply: file fields re-uploaded
+    timestamp: string | null;
+  }>;
 }
 
 interface Concern {
@@ -74,6 +83,7 @@ const FIELD_TYPES = [
   { value: "date", label: "Date" },
   { value: "file", label: "File Upload" },
   { value: "email", label: "Email" },
+  { value: "description_text", label: "Description / Section Header" },
 ];
 
 const getDocumentUrl = (url: string) => {
@@ -219,7 +229,9 @@ export default function SubmissionsPage() {
 
     // Dynamic form field columns — exclude file-upload field names handled separately
     const skipKeys = new Set(["Student ID Card Copy", "Completed Consent Form"]);
-    const formFieldHeaders = Array.from(allFormFieldKeys).filter((k) => !skipKeys.has(k));
+    const formFieldHeaders = Array.from(allFormFieldKeys).filter(
+      (k) => !skipKeys.has(k) && !k.startsWith("Completed Consent -")
+    );
 
     const headers = [
       "Registration ID",
@@ -732,9 +744,15 @@ export default function SubmissionsPage() {
     ]);
   };
 
-  const updateEditField = (id: string, key: string, value: any) => {
-    setEditFields(
-      editFields.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+  const updateEditField = (id: string, keyOrObj: string | Record<string, any>, value?: any) => {
+    setEditFields((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        if (typeof keyOrObj === "object" && keyOrObj !== null) {
+          return { ...f, ...keyOrObj };
+        }
+        return { ...f, [keyOrObj]: value };
+      })
     );
   };
 
@@ -834,9 +852,15 @@ export default function SubmissionsPage() {
     ]);
   };
 
-  const updateCreateField = (id: string, key: string, value: any) => {
-    setCreateFields(
-      createFields.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+  const updateCreateField = (id: string, keyOrObj: string | Record<string, any>, value?: any) => {
+    setCreateFields((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        if (typeof keyOrObj === "object" && keyOrObj !== null) {
+          return { ...f, ...keyOrObj };
+        }
+        return { ...f, [keyOrObj]: value };
+      })
     );
   };
 
@@ -1307,6 +1331,17 @@ export default function SubmissionsPage() {
                               reg.status === "rejected" ? "bg-red-100 text-red-700 border-red-200" :
                               "bg-yellow-100 text-yellow-700 border-yellow-200"
                             }`}>{reg.status === "mail_sent" ? "mail sent" : reg.status === "approved_to_pay" ? "approved" : reg.status}</span>
+                            {/* Show student's Custom Reply or User Reply if they submitted one */}
+                            {(reg.formData?.["Custom Reply"] || reg.formData?.["User Reply"]) && (
+                              <button
+                                onClick={() => setActiveProfileReg(reg)}
+                                className="mt-1.5 w-full text-left text-[10px] text-indigo-800 bg-indigo-50 border border-indigo-200 rounded px-2 py-1 leading-snug hover:bg-indigo-100 transition-colors"
+                                title="Click to view full reply"
+                              >
+                                <span className="font-black block text-indigo-500 uppercase tracking-wide mb-0.5">💬 Student Reply ↗</span>
+                                <span className="line-clamp-2">{reg.formData["Custom Reply"] || reg.formData["User Reply"]}</span>
+                              </button>
+                            )}
                           </TableCell>
                           <TableCell>
                             {studentFlags.length > 0 ? (
@@ -1606,95 +1641,181 @@ export default function SubmissionsPage() {
                 <PlusIcon className="w-4 h-4 mr-1" /> Add Question Field
               </Button>
             </div>
-
             <div className="space-y-3">
-              {editFields.map((field, idx) => (
-                <div key={field.id} className="flex flex-col sm:flex-row gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
-                  
-                  {/* Field Name */}
-                  <div className="flex-1 w-full">
-                    <Input
-                      placeholder="Question Name (e.g. Roll Number)"
-                      required
-                      value={field.name}
-                      onChange={(e) => updateEditField(field.id, "name", e.target.value)}
-                    />
-                  </div>
+              {editFields.map((field, idx) => {
+                const parentCandidates = editFields.filter(
+                  (f) => f.id !== field.id && f.sortOrder < field.sortOrder && (f.type === "radio" || f.type === "select") && f.name
+                );
 
-                  {/* Field Type selector */}
-                  <div className="w-full sm:w-44">
-                    <select
-                      value={field.type}
-                      onChange={(e) => updateEditField(field.id, "type", e.target.value)}
-                      className="w-full p-2 text-sm border rounded bg-background"
-                    >
-                      {FIELD_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                return (
+                  <div key={field.id} className="bg-background p-3 rounded-lg border shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                      
+                      {/* Field Name */}
+                      <div className="flex-1 w-full">
+                        {field.type === "description_text" ? (
+                          <textarea
+                            placeholder="Enter description or section header text here..."
+                            required
+                            value={field.name}
+                            onChange={(e) => updateEditField(field.id, "name", e.target.value)}
+                            className="w-full p-2 text-sm border rounded bg-background min-h-[70px] resize-none focus:outline-none"
+                          />
+                        ) : (
+                          <Input
+                            placeholder="Question Name (e.g. Roll Number)"
+                            required
+                            value={field.name}
+                            onChange={(e) => updateEditField(field.id, "name", e.target.value)}
+                          />
+                        )}
+                      </div>
 
-                  {/* Options Input (Only for radio/select types) */}
-                  {(field.type === "radio" || field.type === "select") && (
-                    <div className="w-full sm:w-60">
-                      <Input
-                        placeholder="Options (comma-separated)"
-                        required
-                        value={Array.isArray(field.options) ? field.options.join(", ") : ""}
-                        onChange={(e) => updateEditField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
-                      />
+                      {/* Field Type selector */}
+                      <div className="w-full sm:w-44">
+                        <select
+                          value={field.type}
+                          onChange={(e) => updateEditField(field.id, "type", e.target.value)}
+                          className="w-full p-2 text-sm border rounded bg-background"
+                        >
+                          {FIELD_TYPES.map((t) => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Options Input (Only for radio/select types) */}
+                      {(field.type === "radio" || field.type === "select") && (
+                        <div className="w-full sm:w-60">
+                          <Input
+                            placeholder="Options (comma-separated)"
+                            required
+                            value={Array.isArray(field.options) ? field.options.join(", ") : ""}
+                            onChange={(e) => updateEditField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
+                          />
+                        </div>
+                      )}
+
+                      {/* Allow Edit Checkbox */}
+                      <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
+                        <input
+                          type="checkbox"
+                          id={`edit-allow-prefilled-${field.id}`}
+                          checked={field.allowEditIfPrefilled !== false}
+                          onChange={(e) => updateEditField(field.id, "allowEditIfPrefilled", e.target.checked)}
+                          className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
+                        />
+                        <label htmlFor={`edit-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
+                          Allow Edit
+                        </label>
+                      </div>
+
+                      {/* Move & Delete buttons */}
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          disabled={idx === 0}
+                          onClick={() => moveEditField(idx, "up")}
+                          className="w-8 h-8"
+                        >
+                          <ArrowUpIcon className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          disabled={idx === editFields.length - 1}
+                          onClick={() => moveEditField(idx, "down")}
+                          className="w-8 h-8"
+                        >
+                          <ArrowDownIcon className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeEditField(field.id)}
+                          className="w-8 h-8 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2Icon className="w-4 h-4" />
+                        </Button>
+                      </div>
+
                     </div>
-                  )}
 
-                  {/* Allow Edit Checkbox */}
-                  <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
-                    <input
-                      type="checkbox"
-                      id={`edit-allow-prefilled-${field.id}`}
-                      checked={field.allowEditIfPrefilled !== false}
-                      onChange={(e) => updateEditField(field.id, "allowEditIfPrefilled", e.target.checked)}
-                      className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
-                    />
-                    <label htmlFor={`edit-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
-                      Allow Edit
-                    </label>
+                    {/* Conditional visibility configuration UI */}
+                    {parentCandidates.length > 0 && (
+                      <div className="ml-0 mt-2 space-y-2 border-t pt-2 pl-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-cond-${field.id}`}
+                            checked={!!field.dependsOnFieldId}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const first = parentCandidates[0];
+                                updateEditField(field.id, {
+                                  dependsOnFieldId: first.id,
+                                  dependsOnValue: first.options?.[0] || "",
+                                });
+                              } else {
+                                updateEditField(field.id, {
+                                  dependsOnFieldId: null,
+                                  dependsOnValue: null,
+                                });
+                              }
+                            }}
+                            className="size-4 rounded border-gray-300 accent-primary cursor-pointer"
+                          />
+                          <label htmlFor={`edit-cond-${field.id}`} className="text-xs font-semibold cursor-pointer text-muted-foreground select-none">
+                            Make this field conditional (show only if another field matches an option)
+                          </label>
+                        </div>
+
+                        {field.dependsOnFieldId && (
+                          <div className="flex flex-wrap items-center gap-2 pl-6 mt-1 text-xs text-muted-foreground">
+                            <span>Show only when</span>
+                            <select
+                              value={field.dependsOnFieldId}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const matched = parentCandidates.find(c => c.id === val);
+                                updateEditField(field.id, "dependsOnFieldId", val);
+                                updateEditField(field.id, "dependsOnValue", matched?.options?.[0] || "");
+                              }}
+                              className="p-1 border rounded bg-background text-xs"
+                            >
+                              {parentCandidates.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name || `Field (${c.type})`}
+                                </option>
+                              ))}
+                            </select>
+
+                            <span>equals</span>
+
+                            <select
+                              value={field.dependsOnValue || ""}
+                              onChange={(e) => {
+                                updateEditField(field.id, "dependsOnValue", e.target.value);
+                              }}
+                              className="p-1 border rounded bg-background text-xs"
+                            >
+                              {(parentCandidates.find(c => c.id === field.dependsOnFieldId)?.options || []).map((opt: any) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Move & Delete buttons */}
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      disabled={idx === 0}
-                      onClick={() => moveEditField(idx, "up")}
-                      className="w-8 h-8"
-                    >
-                      <ArrowUpIcon className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      disabled={idx === editFields.length - 1}
-                      onClick={() => moveEditField(idx, "down")}
-                      className="w-8 h-8"
-                    >
-                      <ArrowDownIcon className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeEditField(field.id)}
-                      className="w-8 h-8 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2Icon className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -1914,93 +2035,180 @@ export default function SubmissionsPage() {
             </div>
 
             <div className="space-y-3">
-              {createFields.map((field, idx) => (
-                <div key={field.id} className="flex flex-col sm:flex-row gap-3 items-center bg-background p-3 rounded-lg border shadow-sm">
-                  
-                  {/* Field Name */}
-                  <div className="flex-1 w-full">
-                    <Input
-                      placeholder="Question Name (e.g. Roll Number)"
-                      required
-                      value={field.name}
-                      onChange={(e) => updateCreateField(field.id, "name", e.target.value)}
-                    />
-                  </div>
+              {createFields.map((field, idx) => {
+                const parentCandidates = createFields.filter(
+                  (f) => f.id !== field.id && f.sortOrder < field.sortOrder && (f.type === "radio" || f.type === "select") && f.name
+                );
 
-                  {/* Field Type selector */}
-                  <div className="w-full sm:w-44">
-                    <select
-                      value={field.type}
-                      onChange={(e) => updateCreateField(field.id, "type", e.target.value)}
-                      className="w-full p-2 text-sm border rounded bg-background"
-                    >
-                      {FIELD_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                return (
+                  <div key={field.id} className="bg-background p-3 rounded-lg border shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                      
+                      {/* Field Name */}
+                      <div className="flex-1 w-full">
+                        {field.type === "description_text" ? (
+                          <textarea
+                            placeholder="Enter description or section header text here..."
+                            required
+                            value={field.name}
+                            onChange={(e) => updateCreateField(field.id, "name", e.target.value)}
+                            className="w-full p-2 text-sm border rounded bg-background min-h-[70px] resize-none focus:outline-none"
+                          />
+                        ) : (
+                          <Input
+                            placeholder="Question Name (e.g. Roll Number)"
+                            required
+                            value={field.name}
+                            onChange={(e) => updateCreateField(field.id, "name", e.target.value)}
+                          />
+                        )}
+                      </div>
 
-                  {/* Options Input (Only for radio/select types) */}
-                  {(field.type === "radio" || field.type === "select") && (
-                    <div className="w-full sm:w-60">
-                      <Input
-                        placeholder="Options (comma-separated)"
-                        required
-                        value={Array.isArray(field.options) ? field.options.join(", ") : ""}
-                        onChange={(e) => updateCreateField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
-                      />
+                      {/* Field Type selector */}
+                      <div className="w-full sm:w-44">
+                        <select
+                          value={field.type}
+                          onChange={(e) => updateCreateField(field.id, "type", e.target.value)}
+                          className="w-full p-2 text-sm border rounded bg-background"
+                        >
+                          {FIELD_TYPES.map((t) => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Options Input (Only for radio/select types) */}
+                      {(field.type === "radio" || field.type === "select") && (
+                        <div className="w-full sm:w-60">
+                          <Input
+                            placeholder="Options (comma-separated)"
+                            required
+                            value={Array.isArray(field.options) ? field.options.join(", ") : ""}
+                            onChange={(e) => updateCreateField(field.id, "options", e.target.value.split(",").map((o: string) => o.trim()))}
+                          />
+                        </div>
+                      )}
+
+                      {/* Allow Edit Checkbox */}
+                      <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
+                        <input
+                          type="checkbox"
+                          id={`create-allow-prefilled-${field.id}`}
+                          checked={field.allowEditIfPrefilled !== false}
+                          onChange={(e) => updateCreateField(field.id, "allowEditIfPrefilled", e.target.checked)}
+                          className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
+                        />
+                        <label htmlFor={`create-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
+                          Allow Edit
+                        </label>
+                      </div>
+
+                      {/* Move & Delete buttons */}
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          disabled={idx === 0}
+                          onClick={() => moveCreateField(idx, "up")}
+                          className="w-8 h-8"
+                        >
+                          <ArrowUpIcon className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          disabled={idx === createFields.length - 1}
+                          onClick={() => moveCreateField(idx, "down")}
+                          className="w-8 h-8"
+                        >
+                          <ArrowDownIcon className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeCreateField(field.id)}
+                          className="w-8 h-8 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2Icon className="w-4 h-4" />
+                        </Button>
+                      </div>
+
                     </div>
-                  )}
 
-                  {/* Allow Edit Checkbox */}
-                  <div className="flex items-center gap-1.5 shrink-0 bg-muted/40 px-2 py-1 rounded border">
-                    <input
-                      type="checkbox"
-                      id={`create-allow-prefilled-${field.id}`}
-                      checked={field.allowEditIfPrefilled !== false}
-                      onChange={(e) => updateCreateField(field.id, "allowEditIfPrefilled", e.target.checked)}
-                      className="w-4 h-4 cursor-pointer accent-indigo-900 rounded"
-                    />
-                    <label htmlFor={`create-allow-prefilled-${field.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer select-none">
-                      Allow Edit
-                    </label>
+                    {/* Conditional visibility configuration UI */}
+                    {parentCandidates.length > 0 && (
+                      <div className="ml-0 mt-2 space-y-2 border-t pt-2 pl-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`create-cond-${field.id}`}
+                            checked={!!field.dependsOnFieldId}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const first = parentCandidates[0];
+                                updateCreateField(field.id, {
+                                  dependsOnFieldId: first.id,
+                                  dependsOnValue: first.options?.[0] || "",
+                                });
+                              } else {
+                                updateCreateField(field.id, {
+                                  dependsOnFieldId: null,
+                                  dependsOnValue: null,
+                                });
+                              }
+                            }}
+                            className="size-4 rounded border-gray-300 accent-primary cursor-pointer"
+                          />
+                          <label htmlFor={`create-cond-${field.id}`} className="text-xs font-semibold cursor-pointer text-muted-foreground select-none">
+                            Make this field conditional (show only if another field matches an option)
+                          </label>
+                        </div>
+
+                        {field.dependsOnFieldId && (
+                          <div className="flex flex-wrap items-center gap-2 pl-6 mt-1 text-xs text-muted-foreground">
+                            <span>Show only when</span>
+                            <select
+                              value={field.dependsOnFieldId}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const matched = parentCandidates.find(c => c.id === val);
+                                updateCreateField(field.id, "dependsOnFieldId", val);
+                                updateCreateField(field.id, "dependsOnValue", matched?.options?.[0] || "");
+                              }}
+                              className="p-1 border rounded bg-background text-xs"
+                            >
+                              {parentCandidates.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name || `Field (${c.type})`}
+                                </option>
+                              ))}
+                            </select>
+
+                            <span>equals</span>
+
+                            <select
+                              value={field.dependsOnValue || ""}
+                              onChange={(e) => {
+                                updateCreateField(field.id, "dependsOnValue", e.target.value);
+                              }}
+                              className="p-1 border rounded bg-background text-xs"
+                            >
+                              {(parentCandidates.find(c => c.id === field.dependsOnFieldId)?.options || []).map((opt: any) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Move & Delete buttons */}
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      disabled={idx === 0}
-                      onClick={() => moveCreateField(idx, "up")}
-                      className="w-8 h-8"
-                    >
-                      <ArrowUpIcon className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      disabled={idx === createFields.length - 1}
-                      onClick={() => moveCreateField(idx, "down")}
-                      className="w-8 h-8"
-                    >
-                      <ArrowDownIcon className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeCreateField(field.id)}
-                      className="w-8 h-8 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2Icon className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -2199,11 +2407,73 @@ export default function SubmissionsPage() {
                 );
               })()}
  
+              {/* Conversation Thread */}
+              {activeProfileReg.conversationHistory && activeProfileReg.conversationHistory.length > 0 && (
+                <div className="space-y-2">
+                  <span className="font-bold text-xs text-gray-500 uppercase block">Q&amp;A Thread ({activeProfileReg.conversationHistory.length} exchanges)</span>
+                  <div className="space-y-3">
+                    {activeProfileReg.conversationHistory.map((entry, idx) => (
+                      <div
+                        key={idx}
+                        className={`rounded-xl p-3 text-xs border-2 ${
+                          entry.type === "admin_request"
+                            ? "bg-amber-50 border-amber-200 ml-0 mr-8"
+                            : "bg-indigo-50 border-indigo-200 ml-8 mr-0"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5 gap-2">
+                          <span className={`font-black text-[10px] uppercase tracking-wide ${
+                            entry.type === "admin_request" ? "text-amber-700" : "text-indigo-700"
+                          }`}>
+                            {entry.type === "admin_request" ? "🧑‍💼 Coordinator" : "🎓 Student"}
+                          </span>
+                          {entry.timestamp && (
+                            <span className="text-[9px] text-gray-400 shrink-0">
+                              {new Date(entry.timestamp).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                            </span>
+                          )}
+                        </div>
+                        {entry.message && (
+                          <p className="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap mb-1.5">{entry.message}</p>
+                        )}
+                        {entry.type === "admin_request" && entry.fields && entry.fields.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {entry.fields.map(f => (
+                              <span key={f} className="bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded text-[9px] font-bold">{f}</span>
+                            ))}
+                          </div>
+                        )}
+                        {entry.type === "student_reply" && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {(entry.updatedFields || []).map(f => (
+                              <span key={f} className="bg-indigo-200 text-indigo-900 px-1.5 py-0.5 rounded text-[9px] font-bold">✏️ {f}</span>
+                            ))}
+                            {(entry.fileFields || []).map(f => (
+                              <span key={f} className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-[9px] font-bold">📎 {f}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Student Reply Callout — shown prominently if present */}
+              {(activeProfileReg.formData?.["Custom Reply"] || activeProfileReg.formData?.["User Reply"]) && (
+                <div className="bg-indigo-50 border-2 border-indigo-300 rounded-xl p-4 space-y-1.5">
+                  <span className="font-black text-xs text-indigo-700 uppercase tracking-wide block">💬 Student Reply</span>
+                  <p className="text-sm text-indigo-900 font-medium leading-relaxed whitespace-pre-wrap">
+                    {activeProfileReg.formData["Custom Reply"] || activeProfileReg.formData["User Reply"]}
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <span className="font-bold text-xs text-gray-500 uppercase block">Registration Form Answers</span>
                 <div className="grid grid-cols-1 gap-2.5 bg-gray-50 p-3 rounded border">
                   {Object.entries(activeProfileReg.formData)
-                    .filter(([k]) => k !== "Student ID Number" && k !== "Student ID Card Copy" && k !== "Completed Consent Form" && !k.startsWith("Completed Consent -"))
+                    .filter(([k]) => k !== "Student ID Number" && k !== "Student ID Card Copy" && k !== "Completed Consent Form" && !k.startsWith("Completed Consent -") && k !== "Custom Reply" && k !== "User Reply")
                     .map(([key, val]) => (
                       <div key={key} className="border-b pb-1.5 last:border-0 last:pb-0">
                         <span className="text-xs font-bold text-gray-600 block">{key}</span>

@@ -7,10 +7,15 @@ type Props = {
 };
 
 export default function SubmissionsTable({ submissions }: Props) {
-  // Collect all unique formData keys across all submissions
+  // Collect all unique formData keys across all submissions, filtering out document uploads
+  const skipKeys = new Set([
+    "Student ID Card Copy",
+    "Aadhaar Card Copy",
+    "Completed Consent Form",
+  ]);
   const formDataKeys = Array.from(
-    new Set(submissions.flatMap((s) => Object.keys(s.formData)))
-  );
+    new Set(submissions.flatMap((s) => Object.keys(s.formData || {})))
+  ).filter((k) => !skipKeys.has(k) && !k.startsWith("Completed Consent -"));
 
   const columns = ["#", "Email", "UID", "Submitted At", ...formDataKeys];
 
