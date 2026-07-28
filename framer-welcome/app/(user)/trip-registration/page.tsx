@@ -48,23 +48,10 @@ export default function SecureForm() {
   const [registration, setRegistration] = useState<any>(null);
   const [autofillData, setAutofillData] = useState<any>(null);
   const [statusLoading, setStatusLoading] = useState(false);
-  const [paying, setPaying] = useState(false);
 
-  const [reuploadAadhaar, setReuploadAadhaar] = useState<File | null>(null);
   const [reuploadConsent, setReuploadConsent] = useState<File | null>(null);
   const [reuploading, setReuploading] = useState(false);
   const [correctionValues, setCorrectionValues] = useState<Record<string, any>>({});
-
-  // Load Razorpay Script dynamically
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   // Fetch all trips
   useEffect(() => {
@@ -185,90 +172,6 @@ export default function SecureForm() {
     }
   };
 
-  const handlePayment = async () => {
-    if (!user || !selectedTripId || !registration) return;
-    setPaying(true);
-    try {
-      const token = await user.getIdToken();
-      // Initialize payment with Razorpay backend API
-      const initRes = await fetch("/api/payment/init", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          tripId: selectedTripId,
-        }),
-      });
-
-      const initData = await initRes.json();
-      if (!initRes.ok) {
-        alert(initData.error || "Failed to initialize payment");
-        setPaying(false);
-        return;
-      }
-
-      const options = {
-        key: initData.key,
-        amount: initData.amount,
-        currency: initData.currency,
-        name: selectedTrip?.name || "Boundless Society Trip",
-        description: "Seat registration fee",
-        order_id: initData.orderId,
-        handler: async function (response: any) {
-          try {
-            // Verify payment signature
-            const verifyRes = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                orderId: initData.orderId,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-                sessionId: initData.sessionId,
-                tripId: selectedTripId,
-                registrationId: registration.id,
-              }),
-            });
-
-            if (verifyRes.ok) {
-              alert("Payment Verified! Your seat is secured. ✅");
-              fetchStatus();
-            } else {
-              const verifyData = await verifyRes.json();
-              alert(verifyData.error || "Payment verification failed");
-            }
-          } catch (err) {
-            console.error(err);
-            alert("Error verifying payment");
-          } finally {
-            setPaying(false);
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: "#6d432b",
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        alert("Payment failed: " + response.error.description);
-        setPaying(false);
-      });
-      rzp.open();
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert("Something went wrong with the payment gateway.");
-      setPaying(false);
-    }
-  };
 
   const handleReupload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,11 +315,11 @@ export default function SecureForm() {
     }
   };
 
-  const renderAadhaarStatus = () => {
-    const idNumber = registration?.formData?.["Student ID Number"] || registration?.formData?.["Aadhaar Number"];
-    const idCopy = registration?.formData?.["Student ID Card Copy"] || registration?.formData?.["Aadhaar Card Copy"];
-    const isVerified = registration?.studentIdVerified || registration?.aadhaarVerified || false;
-    const labelType = registration?.formData?.["Student ID Card Copy"] ? "Student ID" : "Aadhaar";
+  const renderStudentIdStatus = () => {
+    const idNumber = registration?.formData?.["Student ID Number"];
+    const idCopy = registration?.formData?.["Student ID Card Copy"];
+    const isVerified = registration?.studentIdVerified || false;
+    const labelType = "Student ID";
 
     if (!registration || !idCopy) return null;
     return (
@@ -538,10 +441,7 @@ export default function SecureForm() {
                 <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-4">
                   Your profile details have been submitted and are currently being reviewed by trip coordinators.
                 </p>
-                <p className="text-xs text-[#3E1126] font-bold p-3 bg-zinc-50 rounded-xl border-2 border-[#3E1126]/10">
-                  Please check back later. Once approved, your Payment Link will activate here!
-                </p>
-                {renderAadhaarStatus()}
+                {renderStudentIdStatus()}
                 <button
                   onClick={handleLogout}
                   className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"
@@ -572,7 +472,7 @@ export default function SecureForm() {
                   <h4 className="font-oswald font-bold text-sm uppercase tracking-wider text-[#3E1126] mb-3">Corrections Required</h4>
 
                   {registration.actionRequiredFields?.map((fieldName: string) => {
-                    const isFileField = fieldName === "Student ID Card Copy" || fieldName === "Aadhaar Card Copy" || fieldName === "Completed Consent Form" ||
+                    const isFileField = fieldName === "Student ID Card Copy" || fieldName === "Completed Consent Form" ||
                       selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type === "file";
                     const fieldType = selectedTrip?.form?.fields?.find((f: any) => f.name === fieldName)?.type || "short_text";
 
@@ -673,7 +573,7 @@ export default function SecureForm() {
 
                   {selectedTrip?.qrCodeUrl && (
                     <div className="bg-zinc-50 border-2 border-dashed border-[#3E1126]/20 rounded-2xl p-4 flex flex-col items-center">
-                      <p className="text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide">Event QR Code</p>
+                      <p className="text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide">WhatsApp Group QR Code</p>
                       <div className="relative w-48 h-48 bg-white border rounded-xl overflow-hidden shadow-inner p-2">
                         <img
                           src={getDocumentUrl(selectedTrip.qrCodeUrl)}
@@ -692,7 +592,7 @@ export default function SecureForm() {
                   )}
                 </div>
 
-                {renderAadhaarStatus()}
+                {renderStudentIdStatus()}
                 <button
                   onClick={handleLogout}
                   className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"
@@ -715,7 +615,7 @@ export default function SecureForm() {
                   <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">Transaction ID</p>
                   <p className="text-xs font-mono font-medium text-[#3E1126] break-all">{registration.razorpayPaymentId}</p>
                 </div>
-                {renderAadhaarStatus()}
+                {renderStudentIdStatus()}
                 <button
                   onClick={handleLogout}
                   className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"
@@ -734,7 +634,7 @@ export default function SecureForm() {
                 <p className="text-[#3E1126]/80 text-sm font-medium leading-relaxed mb-6">
                   Your registration request for this trip has been declined by the organizers.
                 </p>
-                {renderAadhaarStatus()}
+                {renderStudentIdStatus()}
                 <button
                   onClick={handleLogout}
                   className="mt-6 text-xs font-bold font-oswald uppercase tracking-widest text-zinc-400 hover:text-[#3E1126] transition-colors"

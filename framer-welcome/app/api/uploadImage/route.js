@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { adminAuth } from "@/lib/firebase-admin";
 import { uploadImage } from "@/lib/cloudinary";
+import { checkRateLimit, getClientIp, isStaffRequest } from "@/lib/rateLimit";
 
 export async function POST(req) {
   try {
@@ -28,6 +29,19 @@ export async function POST(req) {
       );
     }
 
+    // Rate limit: 20 uploads per IP per 10 minutes — skipped for admin/coordinators
+    const isStaff = await isStaffRequest(session, token);
+    if (!isStaff) {
+      const ip = getClientIp(req);
+      const rl = checkRateLimit(`upload:${ip}`, { limit: 20, windowMs: 10 * 60_000 });
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: "Too many uploads. Please wait before uploading more files." },
+          { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+        );
+      }
+    }
+
     // ---- Validation ----
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -48,6 +62,21 @@ export async function POST(req) {
         { error: "Invalid file format. Please provide an image, PDF, or Word document." },
         { status: 400 }
       );
+    }
+
+    // ---- File size check (skipped for admin sessions) ----
+    if (!session) {
+      // base64 length → approximate bytes: (base64Length * 3) / 4
+      const base64Part = image.split(",")[1] || "";
+      const fileSizeBytes = Math.ceil((base64Part.length * 3) / 4);
+      const MAX_SIZE = 10 * 1024 * 1024; // 10 MB for student uploads
+
+      if (fileSizeBytes > MAX_SIZE) {
+        return NextResponse.json(
+          { error: "File is too large. Maximum allowed size is 10 MB." },
+          { status: 413 }
+        );
+      }
     }
 
     // ====================================================================
@@ -163,7 +192,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: error.message || "Upload failed. Please try again." },
+      { error: "Upload failed. Please try again." },
       { status: 500 }
     );
   }

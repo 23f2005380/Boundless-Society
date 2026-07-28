@@ -46,9 +46,14 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
     const [tripName, setTripName] = useState("Event");
 
     // Student ID / Aadhaar State (for first time users only)
-    const isFirstTime = !autofillData || Object.keys(autofillData).length === 0 || (!autofillData["Student ID Number"] && !autofillData["Aadhaar Number"]);
+    const isFirstTime = !autofillData || Object.keys(autofillData).length === 0 || (!autofillData["Student ID Card Copy"] && !autofillData["Aadhaar Card Copy"]);
     const [aadhaarNum, setAadhaarNum] = useState("");
-    const [aadhaarFile, setAadhaarFile] = useState(null);
+    const [aadhaarFile, setAadhaarFile] = useState(null); // stores the uploaded Google Drive URL
+
+    // Background upload tracking states
+    const [uploadingAadhaar, setUploadingAadhaar] = useState(false);
+    const [uploadingConsent, setUploadingConsent] = useState({}); // mapping: templateId -> boolean
+    const [uploadingDynamic, setUploadingDynamic] = useState({}); // mapping: fieldName -> boolean
 
     const isFieldDisabled = (fieldName) => {
         const field = fields.find(f => f.name === fieldName);
@@ -97,6 +102,42 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
     const handleChange = (fieldName, value) => {
         setFormValues((prev) => ({ ...prev, [fieldName]: value }));
+    };
+
+    const uploadFileToDrive = async (file, subFolderType, fieldName) => {
+        try {
+            const token = await user.getIdToken();
+            const base64Image = await convertToBase64(file);
+
+            if (!base64Image || typeof base64Image !== "string" || !base64Image.startsWith("data:")) {
+                throw new Error("Invalid file format. Please upload an image or a PDF.");
+            }
+
+            const uploadRes = await fetch("/api/uploadImage", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    images: [base64Image],
+                    folder: "trip_registrations",
+                    email: user?.email || autofillData?.email || "anonymous",
+                    tripName: tripName || "Event",
+                    subFolderType: subFolderType,
+                }),
+            });
+            const data = await uploadRes.json();
+            if (!uploadRes.ok) {
+                throw new Error(data.error || "File upload failed");
+            }
+            const imageUrl = data.images[0].secure_url || data.images[0];
+            return imageUrl;
+        } catch (error) {
+            console.error("Instant upload failed:", error);
+            alert(`Upload failed for ${fieldName}: ${error.message}`);
+            return null;
+        }
     };
 
     const handleLogout = async () => {
@@ -231,21 +272,26 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
         e.preventDefault();
 
         if (!user || !tripId) return;
+
+        // Prevent submission if anything is still uploading
+        if (uploadingAadhaar || Object.values(uploadingConsent).some(Boolean) || Object.values(uploadingDynamic).some(Boolean)) {
+            alert("Please wait for all file uploads to complete before submitting.");
+            return;
+        }
+
         setSubmitting(true);
 
         try {
             const token = await user.getIdToken();
             const formDataObj = { ...formValues };
 
-            const fileEntries = [];
-
             if (isFirstTime) {
-                if (!aadhaarFile) {
+                if (!aadhaarFile || typeof aadhaarFile !== "string") {
                     alert("Please upload your Student ID Card copy.");
                     setSubmitting(false);
                     return;
                 }
-                fileEntries.push(["Student ID Card Copy", aadhaarFile]);
+                formDataObj["Student ID Card Copy"] = aadhaarFile;
             } else {
                 const pastIdNum = autofillData["Student ID Number"] || autofillData["Aadhaar Number"];
                 if (pastIdNum) {
@@ -259,53 +305,15 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
             if (consentTemplates.length > 0) {
                 for (const t of consentTemplates) {
-                    const fileObj = consentFiles[t.id];
-                    if (!fileObj) {
+                    const fileUrl = consentFiles[t.id];
+                    if (!fileUrl || typeof fileUrl !== "string") {
                         alert(`Please upload the signed copy of: ${t.name}`);
                         setSubmitting(false);
                         return;
                     }
                     const fileKey = t.id === "legacy-consent" ? "Completed Consent Form" : `Completed Consent - ${t.name}`;
-                    fileEntries.push([fileKey, fileObj]);
+                    formDataObj[fileKey] = fileUrl;
                 }
-            }
-
-            for (const field of fields) {
-              if (field.type === "file") {
-                const val = formValues[field.name];
-                if (val instanceof File) {
-                  fileEntries.push([field.name, val]);
-                }
-              }
-            }
-
-            for (const [fieldName, fileObj] of fileEntries) {
-                // Always send raw base64 — Drive stores files in original format (PDF, image, doc)
-                const base64Image = await convertToBase64(fileObj);
-
-                if (!base64Image || typeof base64Image !== "string" || !base64Image.startsWith("data:")) {
-                    throw new Error(`Invalid file format for ${fieldName}. Please upload an image or a PDF.`);
-                }
-                const uploadRes = await fetch("/api/uploadImage", {
-                    method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        images: [base64Image],
-                        folder: "trip_registrations",
-                        email: user?.email || autofillData?.email || "anonymous",
-                        tripName: tripName || "Event",
-                        subFolderType: fieldName.includes("ID") ? "Student IDs" : (fieldName.includes("Consent") ? "Consent Forms" : "Form Files"),
-                    }),
-                });
-                const data = await uploadRes.json();
-                if (!uploadRes.ok) {
-                    throw new Error(data.error || "File upload failed");
-                }
-                const imageUrl = data.images[0].secure_url || data.images[0];
-                formDataObj[fieldName] = imageUrl;
             }
 
             const res = await fetch("/api/user-registration", {
@@ -404,22 +412,38 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Student ID Card Copy (Front & Back)</label>
-                    <div className="relative">
+                    <div className="relative space-y-1.5">
                       <input
                         type="file"
-                        required
+                        required={!aadhaarFile}
                         accept="image/*,.pdf"
-                        onChange={(e) => {
+                        disabled={uploadingAadhaar}
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file && file.size > 1024 * 1024) {
-                            alert("File size must be less than 1MB");
+                          if (!file) return;
+                          if (file.size > 10 * 1024 * 1024) {
+                            alert("File size must be less than 10MB");
                             e.target.value = "";
                             return;
                           }
-                          setAadhaarFile(file || null);
+                          setUploadingAadhaar(true);
+                          const url = await uploadFileToDrive(file, "Student IDs", "Student ID Card Copy");
+                          if (url) {
+                            setAadhaarFile(url);
+                          } else {
+                            e.target.value = "";
+                            setAadhaarFile(null);
+                          }
+                          setUploadingAadhaar(false);
                         }}
                         className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
                       />
+                      {uploadingAadhaar && (
+                        <p className="text-xs text-amber-600 font-bold animate-pulse">Uploading file... Please wait.</p>
+                      )}
+                      {aadhaarFile && typeof aadhaarFile === "string" && aadhaarFile.startsWith("http") && (
+                        <p className="text-xs text-green-600 font-bold">Uploaded successfully! ✅</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -428,10 +452,11 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                  disabled={uploadingAadhaar}
+                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-55 disabled:cursor-not-allowed"
                 >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
+                  {uploadingAadhaar ? "Uploading ID..." : "Continue"}
+                  {!uploadingAadhaar && <ArrowRight className="h-4 w-4" />}
                 </button>
               </div>
             </form>
@@ -559,26 +584,43 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                       )}
 
                       {field.type === "file" && (
-                        <input
-                          type="file"
-                          accept="image/*,.pdf"
-                          required={!currentVal}
-                          disabled={isFieldDisabled(field.name)}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file && file.size > 1024 * 1024) {
-                              alert("File size must be less than 1MB");
-                              e.target.value = "";
-                              return;
-                            }
-                            handleChange(field.name, file || null);
-                          }}
-                          className={`w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors border-2 border-transparent rounded-xl p-1 ${
-                            isFieldDisabled(field.name)
-                              ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                              : "bg-zinc-50"
-                          }`}
-                        />
+                        <div className="space-y-1.5">
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            required={!currentVal}
+                            disabled={isFieldDisabled(field.name) || uploadingDynamic[field.name]}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 10 * 1024 * 1024) {
+                                alert("File size must be less than 10MB");
+                                e.target.value = "";
+                                return;
+                              }
+                              setUploadingDynamic(prev => ({ ...prev, [field.name]: true }));
+                              const url = await uploadFileToDrive(file, "Form Files", field.name);
+                              if (url) {
+                                handleChange(field.name, url);
+                              } else {
+                                e.target.value = "";
+                                handleChange(field.name, "");
+                              }
+                              setUploadingDynamic(prev => ({ ...prev, [field.name]: false }));
+                            }}
+                            className={`w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors border-2 border-transparent rounded-xl p-1 ${
+                              isFieldDisabled(field.name)
+                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                : "bg-zinc-50"
+                            }`}
+                          />
+                          {uploadingDynamic[field.name] && (
+                            <p className="text-xs text-amber-600 font-bold animate-pulse">Uploading file... Please wait.</p>
+                          )}
+                          {currentVal && typeof currentVal === "string" && currentVal.startsWith("http") && (
+                            <p className="text-xs text-green-600 font-bold">Uploaded successfully! ✅</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   );
@@ -588,10 +630,11 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                  disabled={Object.values(uploadingDynamic).some(Boolean)}
+                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-black bg-[#FCE16D] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(252,225,109,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-55 disabled:cursor-not-allowed"
                 >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
+                  {Object.values(uploadingDynamic).some(Boolean) ? "Uploading Files..." : "Continue"}
+                  {!Object.values(uploadingDynamic).some(Boolean) && <ArrowRight className="h-4 w-4" />}
                 </button>
               </div>
             </form>
@@ -638,21 +681,38 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
                         <input
                           type="file"
                           accept=".pdf,image/*"
-                          required
-                          onChange={(e) => {
+                          required={!consentFiles[t.id]}
+                          disabled={uploadingConsent[t.id]}
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
-                            if (file && file.size > 1024 * 1024) {
-                              alert("File size must be less than 1MB");
+                            if (!file) return;
+                            if (file.size > 10 * 1024 * 1024) {
+                              alert("File size must be less than 10MB");
                               e.target.value = "";
                               return;
                             }
-                            setConsentFiles((prev) => ({
-                              ...prev,
-                              [t.id]: file || null,
-                            }));
+                            setUploadingConsent((prev) => ({ ...prev, [t.id]: true }));
+                            const url = await uploadFileToDrive(file, "Consent Forms", t.name);
+                            if (url) {
+                              setConsentFiles((prev) => ({ ...prev, [t.id]: url }));
+                            } else {
+                              e.target.value = "";
+                              setConsentFiles((prev) => {
+                                const copy = { ...prev };
+                                delete copy[t.id];
+                                return copy;
+                              });
+                            }
+                            setUploadingConsent((prev) => ({ ...prev, [t.id]: false }));
                           }}
                           className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#3E1126] file:text-white hover:file:bg-[#3E1126]/80 file:cursor-pointer file:transition-colors bg-white border-2 border-zinc-200 rounded-xl p-1"
                         />
+                        {uploadingConsent[t.id] && (
+                          <p className="text-xs text-amber-600 font-bold animate-pulse mt-1">Uploading copy... Please wait.</p>
+                        )}
+                        {consentFiles[t.id] && typeof consentFiles[t.id] === "string" && consentFiles[t.id].startsWith("http") && (
+                          <p className="text-xs text-green-600 font-bold mt-1">Uploaded successfully! ✅</p>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -679,11 +739,11 @@ export default function UserRegistrationForm({ user, setUser, tripId, autofillDa
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-white bg-[#3E1126] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(62,17,38,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-70 disabled:hover:scale-100"
+                  disabled={submitting || Object.values(uploadingConsent).some(Boolean)}
+                  className="w-full flex justify-center items-center gap-2 text-sm font-bold text-white bg-[#3E1126] px-6 py-3.5 rounded-full shadow-[0_4px_14px_0_rgba(62,17,38,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Submitting..." : "Submit Registration"}
-                  {!submitting && <CheckCircle2 className="h-4 w-4" />}
+                  {submitting ? "Submitting..." : Object.values(uploadingConsent).some(Boolean) ? "Uploading Consent..." : "Submit Registration"}
+                  {!submitting && !Object.values(uploadingConsent).some(Boolean) && <CheckCircle2 className="h-4 w-4" />}
                 </button>
               </div>
             </form>

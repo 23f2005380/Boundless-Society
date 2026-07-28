@@ -232,7 +232,7 @@ export async function POST(request) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     if (!isFirebaseEnabled || !db) {
       return NextResponse.json(
@@ -241,17 +241,32 @@ export async function GET() {
       );
     }
 
+    // Check if the caller is an authenticated admin
+    const session = await getServerSession();
+    const isAdmin = !!session;
+
     const tripsRef = collection(db, "trips");
     const q = query(tripsRef, orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
     const trips = querySnapshot.docs.map((doc) => {
       const data = doc.data();
+
+      // Strip coordinator emails for unauthenticated (public/student) requests
+      const coordinators = (data.coordinators || []).map((c) => {
+        if (!isAdmin) {
+          // Public: only expose name, never email
+          if (typeof c === "object" && c !== null) return { name: c.name || "" };
+          return { name: String(c) }; // legacy string format — treat as name
+        }
+        return c; // Admin: full object with email
+      });
+
       return {
         id: doc.id,
         name: data.name,
         description: data.description,
-        coordinators: data.coordinators,
+        coordinators,
         totalSeats: data.totalSeats,
         femaleReservedSeats: data.femaleReservedSeats,
         releasedSeats: data.releasedSeats,
@@ -270,8 +285,6 @@ export async function GET() {
         fee: data.fee !== undefined ? Number(data.fee) : 500,
         whatsappLink: data.whatsappLink || "",
         qrCodeUrl: data.qrCodeUrl || "",
-        razorpayKeyId: data.razorpayKeyId || "",
-        hasRazorpaySecret: !!data.razorpayKeySecret,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
@@ -312,7 +325,7 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true, message: "Trip deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("DELETE Trip Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete trip. Please try again." }, { status: 500 });
   }
 }
 
@@ -386,6 +399,6 @@ export async function PUT(request) {
     return NextResponse.json({ success: true, message: "Trip details updated successfully" }, { status: 200 });
   } catch (error) {
     console.error("PUT Trip Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update trip. Please try again." }, { status: 500 });
   }
 }

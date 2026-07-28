@@ -52,7 +52,7 @@ export interface Registration {
   gender: string;
   submittedAt: string;
   formData: Record<string, string>;
-  aadhaarVerified?: boolean;
+
   studentIdVerified?: boolean;
   consentFormFileUrl?: string;
   consentFormVerified?: boolean;
@@ -140,6 +140,8 @@ export default function SubmissionsPage() {
   const [editTempTemplateName, setEditTempTemplateName] = useState("");
   const [createWhatsappLink, setCreateWhatsappLink] = useState("");
   const [createQrCode, setCreateQrCode] = useState("");
+  const [tripSearch, setTripSearch] = useState("");
+  const [tripDropdownOpen, setTripDropdownOpen] = useState(false);
 
   // Fetch trips list
   useEffect(() => {
@@ -216,7 +218,7 @@ export default function SubmissionsPage() {
     const consentVerifiedHeaders = consentTemplates.map((t: any) => `Consent Form - ${t.name} (Verified)`);
 
     // Dynamic form field columns — exclude file-upload field names handled separately
-    const skipKeys = new Set(["Student ID Card Copy", "Aadhaar Card Copy", "Completed Consent Form"]);
+    const skipKeys = new Set(["Student ID Card Copy", "Completed Consent Form"]);
     const formFieldHeaders = Array.from(allFormFieldKeys).filter((k) => !skipKeys.has(k));
 
     const headers = [
@@ -246,7 +248,6 @@ export default function SubmissionsPage() {
       // Student ID Link — check common field key names
       const studentIdLink =
         fd["Student ID Card Copy"] ||
-        fd["Aadhaar Card Copy"] ||
         fd["ID Copy"] ||
         "";
 
@@ -275,7 +276,7 @@ export default function SubmissionsPage() {
         escapeCSV(reg.email),
         escapeCSV(reg.gender),
         escapeCSV(reg.status),
-        escapeCSV((reg.studentIdVerified || reg.aadhaarVerified) ? "Verified" : "Unverified"),
+        escapeCSV(reg.studentIdVerified ? "Verified" : "Unverified"),
         escapeCSV(reg.consentFormVerified ? "Verified" : "Unverified"),
         escapeCSV(studentIdLink),
         ...consentLinks.map(escapeCSV),
@@ -932,18 +933,56 @@ export default function SubmissionsPage() {
           <p className="text-xs text-muted-foreground mt-1">Manage attendees, approval gating, and payment thresholds.</p>
         </div>
 
-        {/* Trip Dropdown Selector & Link Copier */}
+        {/* Trip Searchable Dropdown & Link Copier */}
         {trips.length > 0 && activeTab !== "create-event" && (
           <div className="flex items-center gap-2">
-            <select
-              value={selectedTripId}
-              onChange={(e) => setSelectedTripId(e.target.value)}
-              className="w-64 p-2 border border-border rounded bg-background text-sm font-semibold outline-none"
-            >
-              {trips.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
+            <div className="relative w-72">
+              <button
+                type="button"
+                onClick={() => setTripDropdownOpen((o) => !o)}
+                className="w-full flex items-center justify-between p-2 border border-border rounded bg-background text-sm font-semibold outline-none hover:border-primary/50 transition"
+              >
+                <span className="truncate">{trips.find((t) => t.id === selectedTripId)?.name || "Select trip"}</span>
+                <svg className="w-4 h-4 ml-2 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {tripDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden">
+                  <div className="p-2 border-b border-border">
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Search trip..."
+                      value={tripSearch}
+                      onChange={(e) => setTripSearch(e.target.value)}
+                      className="w-full px-2 py-1.5 text-sm border border-border rounded outline-none focus:border-primary bg-background"
+                    />
+                  </div>
+                  <div className="max-h-56 overflow-y-auto">
+                    {trips
+                      .filter((t) => t.name.toLowerCase().includes(tripSearch.toLowerCase()))
+                      .map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          className={`w-full text-left px-3 py-2 text-sm font-semibold hover:bg-muted transition ${
+                            t.id === selectedTripId ? "bg-primary/10 text-primary" : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedTripId(t.id);
+                            setTripSearch("");
+                            setTripDropdownOpen(false);
+                          }}
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    {trips.filter((t) => t.name.toLowerCase().includes(tripSearch.toLowerCase())).length === 0 && (
+                      <p className="px-3 py-3 text-xs text-muted-foreground italic">No trips found</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <Button
               onClick={handleCopyRegistrationLink}
               variant="outline"
@@ -1207,11 +1246,11 @@ export default function SubmissionsPage() {
                           {/* ID Status */}
                           <TableCell>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${
-                              (reg.studentIdVerified || reg.aadhaarVerified) 
+                              reg.studentIdVerified 
                                 ? "bg-green-100 text-green-700 border-green-200" 
                                 : "bg-red-100 text-red-700 border-red-200"
                             }`}>
-                              {(reg.studentIdVerified || reg.aadhaarVerified) ? "Verified ✅" : "Unverified ❌"}
+                              {reg.studentIdVerified ? "Verified ✅" : "Unverified ❌"}
                             </span>
                           </TableCell>
 
@@ -1233,14 +1272,14 @@ export default function SubmissionsPage() {
                           {/* Documents Access */}
                           <TableCell>
                             <div className="flex flex-col gap-1 text-[10px]">
-                              {reg.formData?.["Student ID Card Copy"] || reg.formData?.["Aadhaar Card Copy"] ? (
+                              {reg.formData?.["Student ID Card Copy"] ? (
                                 <a
-                                  href={getDocumentUrl(reg.formData["Student ID Card Copy"] || reg.formData["Aadhaar Card Copy"])}
+                                  href={getDocumentUrl(reg.formData["Student ID Card Copy"])}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="bg-muted px-2 py-1 rounded border hover:bg-muted/80 text-foreground font-semibold flex items-center justify-between gap-1 w-28 text-[9px] text-left"
                                 >
-                                  🪪 {reg.formData?.["Student ID Card Copy"] ? "ID Copy" : "Aadhaar Copy"} ↗
+                                  🪪 ID Copy ↗
                                 </a>
                               ) : (
                                 <span className="text-muted-foreground italic text-[9px]">No ID Copy</span>
@@ -1291,7 +1330,7 @@ export default function SubmissionsPage() {
                                       size="sm"
                                       variant="outline"
                                       title={
-                                        !(reg.studentIdVerified || reg.aadhaarVerified)
+                                        !reg.studentIdVerified
                                           ? "Student ID must be verified first"
                                           : (!reg.consentFormVerified && (
                                               (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
@@ -1301,7 +1340,7 @@ export default function SubmissionsPage() {
                                           : "Approve"
                                       }
                                       disabled={
-                                        !(reg.studentIdVerified || reg.aadhaarVerified) ||
+                                        !reg.studentIdVerified ||
                                         !!(
                                           !reg.consentFormVerified && (
                                             (selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0) ||
@@ -1400,7 +1439,7 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Event QR Code (Image)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -1706,7 +1745,7 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">Event QR Code (Image)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -2044,8 +2083,8 @@ export default function SubmissionsPage() {
 
               {/* Student ID Verification Details */}
               {(() => {
-                const idCopy = activeProfileReg.formData["Student ID Card Copy"] || activeProfileReg.formData["Aadhaar Card Copy"];
-                const isVerified = activeProfileReg.studentIdVerified || activeProfileReg.aadhaarVerified || false;
+                const idCopy = activeProfileReg.formData["Student ID Card Copy"];
+                const isVerified = activeProfileReg.studentIdVerified || false;
 
                 return (
                   <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-2.5">
@@ -2164,7 +2203,7 @@ export default function SubmissionsPage() {
                 <span className="font-bold text-xs text-gray-500 uppercase block">Registration Form Answers</span>
                 <div className="grid grid-cols-1 gap-2.5 bg-gray-50 p-3 rounded border">
                   {Object.entries(activeProfileReg.formData)
-                    .filter(([k]) => k !== "Student ID Number" && k !== "Student ID Card Copy" && k !== "Aadhaar Number" && k !== "Aadhaar Card Copy" && k !== "Completed Consent Form" && !k.startsWith("Completed Consent -"))
+                    .filter(([k]) => k !== "Student ID Number" && k !== "Student ID Card Copy" && k !== "Completed Consent Form" && !k.startsWith("Completed Consent -"))
                     .map(([key, val]) => (
                       <div key={key} className="border-b pb-1.5 last:border-0 last:pb-0">
                         <span className="text-xs font-bold text-gray-600 block">{key}</span>
@@ -2214,7 +2253,7 @@ export default function SubmissionsPage() {
             <div className="mb-4 space-y-2 border-2 border-zinc-100 rounded-xl p-3 max-h-48 overflow-y-auto">
               {[
                 ...(selectedTrip?.form?.fields?.map(f => f.name) || []),
-                "Aadhaar Card Copy",
+                "Student ID Card Copy",
                 ...(selectedTrip?.consentTemplates && selectedTrip.consentTemplates.length > 0
                   ? selectedTrip.consentTemplates.map(t => `Completed Consent - ${t.name}`)
                   : (selectedTrip?.consentFormTemplateUrl ? ["Completed Consent Form"] : [])),

@@ -159,7 +159,7 @@ export async function GET(req) {
     return NextResponse.json({ registrations }, { status: 200 });
   } catch (error) {
     console.error("GET Admin Registrations Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch registrations. Please try again." }, { status: 500 });
   }
 }
 
@@ -168,7 +168,7 @@ export async function POST(req) {
   try {
     const clone = req.clone();
     const body = await clone.json();
-    const { registrationId, status, aadhaarVerified, studentIdVerified, consentFormVerified, verifiedConsentForms, issueText, actionRequiredFields } = body;
+    const { registrationId, status, studentIdVerified, consentFormVerified, verifiedConsentForms, issueText, actionRequiredFields } = body;
 
     if (!registrationId) {
       return NextResponse.json(
@@ -226,9 +226,12 @@ export async function POST(req) {
       updatePayload.consentFormVerified = consentFormVerified;
     }
 
+    if (studentIdVerified !== undefined) {
+      updatePayload.studentIdVerified = studentIdVerified;
+    }
+
     if (status === "approved_to_pay") {
-      const isVerifiedNow = studentIdVerified !== undefined ? studentIdVerified : (aadhaarVerified !== undefined ? aadhaarVerified : undefined);
-      const isVerified = isVerifiedNow !== undefined ? isVerifiedNow : (regSnap.data().studentIdVerified || regSnap.data().aadhaarVerified || false);
+      const isVerified = studentIdVerified !== undefined ? studentIdVerified : (regSnap.data().studentIdVerified || false);
       if (!isVerified) {
         return NextResponse.json(
           { error: "Student ID must be verified before approving registration." },
@@ -335,7 +338,7 @@ export async function POST(req) {
     return NextResponse.json({ success: true, message: "Registration updated successfully" });
   } catch (error) {
     console.error("POST Admin Registration Status Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update registration. Please try again." }, { status: 500 });
   }
 }
 
@@ -389,6 +392,6 @@ export async function PUT(req) {
     return NextResponse.json({ success: true, message: "Trip settings updated successfully" });
   } catch (error) {
     console.error("PUT Trip Settings Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update trip settings. Please try again." }, { status: 500 });
   }
 }

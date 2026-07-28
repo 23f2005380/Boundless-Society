@@ -1,5 +1,6 @@
 import { adminAuth } from "@/lib/firebase-admin";
 import { db } from "@/lib/firebase";
+import { checkRateLimit, getClientIp, isStaffRequest } from "@/lib/rateLimit";
 import {
   serverTimestamp,
   addDoc,
@@ -85,9 +86,31 @@ export async function GET(request) {
 /* POST → Create new registration */
 export async function POST(request) {
   try {
-    const body = await request.json();
+    let token = null;
     const authHeader = request.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    } else {
+      try {
+        const clone = request.clone();
+        const body = await clone.json();
+        token = body.token;
+      } catch (e) {}
+    }
+
+    const isStaff = await isStaffRequest(null, token);
+    if (!isStaff) {
+      // Rate limit: 5 new registrations per IP per 10 minutes
+      const ip = getClientIp(request);
+      const rl = checkRateLimit(`register:${ip}`, { limit: 5, windowMs: 10 * 60_000 });
+      if (!rl.allowed) {
+        return Response.json(
+          { error: "Too many requests. Please wait a few minutes before trying again." },
+          { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+        );
+      }
+    }
+    const body = await request.json();
     const { tripId, formData } = body;
 
     if (!token || !tripId || !formData) {
@@ -209,9 +232,32 @@ export async function POST(request) {
 /* PATCH → Update registration (e.g. re-upload documents) */
 export async function PATCH(request) {
   try {
-    const body = await request.json();
+    // Check if caller is admin or coordinator to skip rate limit
+    let token = null;
     const authHeader = request.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : body.token;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    } else {
+      try {
+        const clone = request.clone();
+        const body = await clone.json();
+        token = body.token;
+      } catch (e) {}
+    }
+
+    const isStaff = await isStaffRequest(null, token);
+    if (!isStaff) {
+      // Rate limit: 10 file re-uploads per IP per 5 minutes
+      const ip = getClientIp(request);
+      const rl = checkRateLimit(`patch-reg:${ip}`, { limit: 10, windowMs: 5 * 60_000 });
+      if (!rl.allowed) {
+        return Response.json(
+          { error: "Too many requests. Please wait before retrying." },
+          { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+        );
+      }
+    }
+    const body = await request.json();
     const { tripId, formDataUpdates } = body;
 
     if (!token || !tripId || !formDataUpdates) {
@@ -245,8 +291,28 @@ export async function PATCH(request) {
 
     const regDoc = currentSnap.docs[0];
     const existingData = regDoc.data();
-    
-    const newFormData = { ...existingData.formData, ...formDataUpdates };
+
+    // Allow-list: only accept keys that belong to this trip's form fields or special document fields
+    const tripSnap = await getDoc(doc(db, "trips", tripId));
+    const tripFields = tripSnap.exists() ? (tripSnap.data()?.form?.fields || []) : [];
+    const allowedKeys = new Set([
+      ...tripFields.map((f) => f.name),
+      "Student ID Card Copy",
+      "Completed Consent Form",
+      "User Reply",
+    ]);
+
+    const safeUpdates = Object.fromEntries(
+      Object.entries(formDataUpdates).filter(([k]) => {
+        return allowedKeys.has(k) || k.startsWith("Completed Consent -");
+      })
+    );
+
+    if (Object.keys(safeUpdates).length === 0) {
+      return Response.json({ error: "No valid fields to update." }, { status: 400 });
+    }
+
+    const newFormData = { ...existingData.formData, ...safeUpdates };
 
     await updateDoc(doc(db, "user-registrations", regDoc.id), {
       formData: newFormData,

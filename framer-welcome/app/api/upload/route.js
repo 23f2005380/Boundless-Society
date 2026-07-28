@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { uploadImages } from "@/lib/cloudinary";
 
 // Force dynamic to prevent caching issues
@@ -6,6 +7,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
+    // Auth gate — admin session required
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.json();
     const images = formData.images; // Expecting array of base64 strings
     const folder = formData.folder || "uploads";
@@ -17,8 +24,6 @@ export async function POST(req) {
       );
     }
 
-    // Upload to Cloudinary
-    // This now returns an array of URL strings because of the fix in lib/cloudinary.js
     const urls = await uploadImages(images, { folder });
 
     return NextResponse.json({ 
@@ -29,8 +34,8 @@ export async function POST(req) {
   } catch (error) {
     console.error("Upload API Error:", error);
     return NextResponse.json(
-      { error: error.message || "Something went wrong" },
+      { error: "Upload failed. Please try again." },
       { status: 500 }
     );
   }
-}
+}

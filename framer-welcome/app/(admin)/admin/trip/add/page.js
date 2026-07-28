@@ -764,7 +764,7 @@ export default function AddTripPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="qrCode">Event QR Code (Image)</Label>
+                  <Label htmlFor="qrCode">WhatsApp Group QR Code (Image)</Label>
                   <div className="flex items-center gap-3">
                     <Input
                       id="qrCode"

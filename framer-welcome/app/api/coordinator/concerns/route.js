@@ -112,14 +112,14 @@ export async function GET(request) {
     return NextResponse.json({ concerns }, { status: 200 });
   } catch (error) {
     console.error("GET Concerns Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch concerns. Please try again." }, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
     const body = await request.clone().json();
-    const { tripId, studentEmail, coordinatorEmail, concernText } = body;
+    const { tripId, studentEmail, concernText } = body;
 
     if (!tripId || !studentEmail || !concernText) {
       return NextResponse.json(
@@ -133,6 +133,17 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
+    // Extract coordinatorEmail from the verified token (never trust client-supplied value)
+    let coordinatorEmail = "coordinator";
+    try {
+      const { searchParams } = new URL(request.url);
+      let token = searchParams.get("token") || body.token;
+      if (token) {
+        const decoded = await adminAuth.verifyIdToken(token);
+        coordinatorEmail = decoded.email || "coordinator";
+      }
+    } catch (_) { /* session-based auth — use fallback */ }
+
     // Check if trip is completed
     const tripSnap = await getDoc(doc(db, "trips", tripId));
     if (tripSnap.exists() && tripSnap.data().isCompleted) {
@@ -145,7 +156,7 @@ export async function POST(request) {
     const docRef = await addDoc(collection(db, "coordinator_concerns"), {
       tripId,
       studentEmail,
-      coordinatorEmail: coordinatorEmail || "coordinator",
+      coordinatorEmail,
       concernText,
       createdAt: serverTimestamp(),
     });
@@ -153,7 +164,7 @@ export async function POST(request) {
     return NextResponse.json({ success: true, id: docRef.id }, { status: 201 });
   } catch (error) {
     console.error("POST Concerns Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "An internal error occurred." }, { status: 500 });
   }
 }
 
@@ -175,6 +186,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true, message: "Concern deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("DELETE Concern Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete concern. Please try again." }, { status: 500 });
   }
 }
