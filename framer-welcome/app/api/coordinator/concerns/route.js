@@ -72,6 +72,35 @@ export async function GET(request) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
+    // Determine coordinator's assignedOption restriction
+    let assignedOption = null;
+    let email = null;
+    const session = await getServerSession();
+    if (!session) {
+      let token = searchParams.get("token");
+      if (token) {
+        try {
+          const decoded = await adminAuth.verifyIdToken(token);
+          email = decoded.email;
+        } catch (e) {}
+      }
+    }
+    if (email && tripId) {
+      const tripSnap = await getDoc(doc(db, "trips", tripId));
+      if (tripSnap.exists()) {
+        const tripData = tripSnap.data();
+        const coordinator = (tripData.coordinators || []).find((c) => {
+          if (typeof c === "object" && c !== null) {
+            return c.email?.toLowerCase() === email.toLowerCase();
+          }
+          return String(c).toLowerCase() === email.toLowerCase();
+        });
+        if (coordinator && typeof coordinator === "object" && coordinator.assignedOption) {
+          assignedOption = coordinator.assignedOption.trim().toLowerCase();
+        }
+      }
+    }
+
     let q;
     const concernsRef = collection(db, "coordinator_concerns");
 
@@ -96,11 +125,26 @@ export async function GET(request) {
     }
 
     const snapshot = await getDocs(q);
-    const concerns = snapshot.docs.map((doc) => ({
+    let concerns = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null,
     }));
+
+    if (assignedOption && tripId) {
+      const regSnap = await getDocs(query(collection(db, "user-registrations"), where("tripId", "==", tripId)));
+      const studentEmailsToKeep = new Set(
+        regSnap.docs
+          .filter((d) => {
+            const fd = d.data().formData || {};
+            return Object.values(fd).some(
+              (val) => typeof val === "string" && val.trim().toLowerCase() === assignedOption
+            );
+          })
+          .map((d) => d.data().email?.toLowerCase())
+      );
+      concerns = concerns.filter((c) => studentEmailsToKeep.has(c.studentEmail?.toLowerCase()));
+    }
 
     // Sort in-memory by createdAt desc
     concerns.sort((a, b) => {
@@ -131,6 +175,57 @@ export async function POST(request) {
     const authorized = await checkAuth(request, tripId);
     if (!authorized) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    // Check assignedOption restriction
+    let email = null;
+    const session = await getServerSession();
+    if (!session) {
+      const { searchParams } = new URL(request.url);
+      let token = searchParams.get("token") || body.token;
+      if (token) {
+        try {
+          const decoded = await adminAuth.verifyIdToken(token);
+          email = decoded.email;
+        } catch (e) {}
+      }
+    }
+
+    if (email) {
+      const tripSnap = await getDoc(doc(db, "trips", tripId));
+      if (tripSnap.exists()) {
+        const tripData = tripSnap.data();
+        const coordinator = (tripData.coordinators || []).find((c) => {
+          if (typeof c === "object" && c !== null) {
+            return c.email?.toLowerCase() === email.toLowerCase();
+          }
+          return String(c).toLowerCase() === email.toLowerCase();
+        });
+        if (coordinator && typeof coordinator === "object" && coordinator.assignedOption) {
+          const assignedOption = coordinator.assignedOption.trim().toLowerCase();
+          // Find the student's registration for this trip
+          const regSnap = await getDocs(
+            query(
+              collection(db, "user-registrations"),
+              where("tripId", "==", tripId),
+              where("email", "==", studentEmail)
+            )
+          );
+          if (!regSnap.empty) {
+            const matches = Object.values(regSnap.docs[0].data().formData || {}).some(
+              (val) => typeof val === "string" && val.trim().toLowerCase() === assignedOption
+            );
+            if (!matches) {
+              return NextResponse.json(
+                { error: "Unauthorized: Registration does not belong to your assigned option/city." },
+                { status: 403 }
+              );
+            }
+          } else {
+            return NextResponse.json({ error: "Student registration not found." }, { status: 404 });
+          }
+        }
+      }
     }
 
     // Extract coordinatorEmail from the verified token (never trust client-supplied value)

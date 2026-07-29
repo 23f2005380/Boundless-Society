@@ -56,6 +56,7 @@ const tripSchema = yup.object().shape({
           return yup.object().shape({
             name: yup.string().required("Coordinator name is required").trim(),
             email: yup.string().email("Invalid email").required("Coordinator email is required").trim(),
+            assignedOption: yup.string().trim().nullable().optional(),
           });
         }
         return yup.string().trim();
@@ -120,6 +121,8 @@ const tripSchema = yup.object().shape({
     )
     .optional()
     .default([]),
+  emailsDisabled: yup.boolean().optional().default(false),
+  cityWhatsappSettings: yup.object().optional().default({}),
 });
 
 export async function POST(request) {
@@ -148,6 +151,7 @@ export async function POST(request) {
         return {
           name: String(c.name || "").trim(),
           email: String(c.email || "").trim(),
+          assignedOption: c.assignedOption ? String(c.assignedOption).trim() : null,
         };
       }
       return String(c).trim();
@@ -197,6 +201,8 @@ export async function POST(request) {
       })),
       whatsappLink: validatedData.whatsappLink || "",
       qrCodeUrl: validatedData.qrCodeUrl || "",
+      emailsDisabled: validatedData.emailsDisabled || false,
+      cityWhatsappSettings: validatedData.cityWhatsappSettings || {},
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -348,7 +354,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl, consentTemplates, whatsappLink, qrCodeUrl } = body;
+    const { tripId, name, description, coordinators, totalSeats, formFields, fee, consentFormTemplateUrl, consentTemplates, whatsappLink, qrCodeUrl, emailsDisabled, cityWhatsappSettings } = body;
 
     if (!tripId) {
       return NextResponse.json({ error: "Trip ID is required" }, { status: 400 });
@@ -367,6 +373,7 @@ export async function PUT(request) {
           return {
             name: String(c.name || "").trim(),
             email: String(c.email || "").trim(),
+            assignedOption: c.assignedOption ? String(c.assignedOption).trim() : null,
           };
         }
         return String(c).trim();
@@ -378,6 +385,8 @@ export async function PUT(request) {
     if (consentTemplates !== undefined) updateData.consentTemplates = consentTemplates;
     if (whatsappLink !== undefined) updateData.whatsappLink = whatsappLink;
     if (qrCodeUrl !== undefined) updateData.qrCodeUrl = qrCodeUrl;
+    if (emailsDisabled !== undefined) updateData.emailsDisabled = emailsDisabled;
+    if (cityWhatsappSettings !== undefined) updateData.cityWhatsappSettings = cityWhatsappSettings;
     
     if (formFields !== undefined) {
       updateData.form = {

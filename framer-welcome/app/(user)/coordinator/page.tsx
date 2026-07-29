@@ -15,7 +15,7 @@ import {
 interface Trip {
   id: string;
   name: string;
-  coordinators: string[];
+  coordinators: any[];
   isCompleted?: boolean;
   consentFormTemplateUrl?: string;
   consentTemplates?: Array<{ id: string; name: string; templateUrl: string }>;
@@ -68,6 +68,16 @@ export default function CoordinatorDashboard() {
   const [submittingConcern, setSubmittingConcern] = useState(false);
 
   const selectedTrip = trips.find((t) => t.id === selectedTripId);
+
+  const currentCoordinatorInfo = selectedTrip?.coordinators?.find((c: any) => {
+    if (typeof c === "object" && c !== null) {
+      return c.email?.toLowerCase() === user?.email?.toLowerCase();
+    }
+    return String(c).toLowerCase() === user?.email?.toLowerCase();
+  });
+  const assignedOption = typeof currentCoordinatorInfo === "object" && currentCoordinatorInfo !== null
+    ? currentCoordinatorInfo.assignedOption
+    : null;
 
   // Authenticate coordinator by checking email against trip coordinators list
   const verifyCoordinator = async (coordinatorEmail: string) => {
@@ -373,6 +383,15 @@ export default function CoordinatorDashboard() {
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
+              {assignedOption && (
+                <div className="mt-2 bg-indigo-50 border-2 border-indigo-200 rounded-lg p-2.5 flex items-center gap-2">
+                  <span className="text-xl">📍</span>
+                  <div>
+                    <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Assigned Scope</p>
+                    <p className="text-xs font-black text-indigo-950">Option / City: <span className="underline">{assignedOption}</span></p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

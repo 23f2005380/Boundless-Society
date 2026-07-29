@@ -42,6 +42,8 @@ interface Trip {
   consentTemplates?: Array<{ id: string; name: string; templateUrl: string }>;
   whatsappLink?: string;
   qrCodeUrl?: string;
+  emailsDisabled?: boolean;
+  cityWhatsappSettings?: Record<string, { whatsappLink: string, qrCodeUrl: string }>;
 }
 
 export interface Registration {
@@ -143,6 +145,22 @@ export default function SubmissionsPage() {
     { id: "3", name: "Gender", type: "radio", options: ["Male", "Female", "Other"], sortOrder: 2 },
   ]);
   const [createFee, setCreateFee] = useState(0);
+
+  const availableAssignedOptions = Array.from(
+    new Set(
+      editFields
+        .filter((f) => f.type === "radio" || f.type === "select")
+        .flatMap((f) => f.options || [])
+    )
+  ).filter((opt) => opt && opt.trim() !== "");
+
+  const createAvailableAssignedOptions = Array.from(
+    new Set(
+      createFields
+        .filter((f) => f.type === "radio" || f.type === "select")
+        .flatMap((f) => f.options || [])
+    )
+  ).filter((opt) => opt && opt.trim() !== "");
   const [createConsentTemplate, setCreateConsentTemplate] = useState("");
   const [createConsentTemplates, setCreateConsentTemplates] = useState<any[]>([]);
   const [editConsentTemplates, setEditConsentTemplates] = useState<any[]>([]);
@@ -150,6 +168,11 @@ export default function SubmissionsPage() {
   const [editTempTemplateName, setEditTempTemplateName] = useState("");
   const [createWhatsappLink, setCreateWhatsappLink] = useState("");
   const [createQrCode, setCreateQrCode] = useState("");
+  const [editEmailsDisabled, setEditEmailsDisabled] = useState(false);
+  const [createEmailsDisabled, setCreateEmailsDisabled] = useState(false);
+  const [editCityWhatsapp, setEditCityWhatsapp] = useState<Record<string, { whatsappLink: string, qrCodeUrl: string }>>({});
+  const [createCityWhatsapp, setCreateCityWhatsapp] = useState<Record<string, { whatsappLink: string, qrCodeUrl: string }>>({});
+
   const [tripSearch, setTripSearch] = useState("");
   const [tripDropdownOpen, setTripDropdownOpen] = useState(false);
 
@@ -588,6 +611,65 @@ export default function SubmissionsPage() {
     }
   };
 
+  const handleCityQrCodeChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    option: string,
+    isEdit: boolean
+  ) => {
+    const fileObj = e.target.files?.[0];
+    if (!fileObj) return;
+
+    try {
+      const base64File = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileObj);
+      });
+
+      toast.loading(`Uploading QR Code for ${option}...`, { id: "upload-city-qr" });
+
+      const uploadRes = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: [base64File],
+          folder: "trip_qrs",
+        }),
+      });
+
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileUrl = data.images[0].secure_url || data.images[0];
+      
+      if (isEdit) {
+        setEditCityWhatsapp((prev) => ({
+          ...prev,
+          [option]: {
+            ...(prev[option] || { whatsappLink: "" }),
+            qrCodeUrl: fileUrl,
+          },
+        }));
+      } else {
+        setCreateCityWhatsapp((prev) => ({
+          ...prev,
+          [option]: {
+            ...(prev[option] || { whatsappLink: "" }),
+            qrCodeUrl: fileUrl,
+          },
+        }));
+      }
+      toast.success(`QR Code for ${option} uploaded successfully!`, { id: "upload-city-qr" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload QR Code.", { id: "upload-city-qr" });
+    }
+  };
+
+
   // Update quick controls
   const handleSaveControls = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -803,6 +885,7 @@ export default function SubmissionsPage() {
           coordinators: editCoordinators.map((c) => ({
             name: c.name.trim(),
             email: c.email.trim(),
+            assignedOption: c.assignedOption ? c.assignedOption.trim() : "",
           })).filter((c) => c.name && c.email),
           totalSeats: Number(editSeats),
           formFields: editFields,
@@ -811,6 +894,8 @@ export default function SubmissionsPage() {
           consentTemplates: editConsentTemplates,
           whatsappLink: editWhatsappLink,
           qrCodeUrl: editQrCode,
+          emailsDisabled: editEmailsDisabled,
+          cityWhatsappSettings: editCityWhatsapp,
         }),
       });
 
@@ -882,7 +967,7 @@ export default function SubmissionsPage() {
   const addCreateCoordinator = () => {
     setCreateCoordinators([
       ...createCoordinators,
-      { id: Math.random().toString(36).substr(2, 9), name: "", email: "" }
+      { id: Math.random().toString(36).substr(2, 9), name: "", email: "", assignedOption: "" }
     ]);
   };
 
@@ -909,6 +994,7 @@ export default function SubmissionsPage() {
           coordinators: createCoordinators.map((c) => ({
             name: c.name.trim(),
             email: c.email.trim(),
+            assignedOption: c.assignedOption ? c.assignedOption.trim() : "",
           })).filter((c) => c.name && c.email),
           totalSeats: Number(createSeats),
           femaleReservedSeats: 0,
@@ -920,6 +1006,8 @@ export default function SubmissionsPage() {
           consentTemplates: createConsentTemplates,
           whatsappLink: createWhatsappLink,
           qrCodeUrl: createQrCode,
+          emailsDisabled: createEmailsDisabled,
+          cityWhatsappSettings: createCityWhatsapp,
         }),
       });
 
@@ -1041,9 +1129,9 @@ export default function SubmissionsPage() {
               // Map coordinators (strings to objects backward compatible)
               const coords = (selectedTrip.coordinators || []).map((c: any, idx: number) => {
                 if (typeof c === "object" && c !== null) {
-                  return { id: c.id || String(idx), name: c.name || "", email: c.email || "" };
+                  return { id: c.id || String(idx), name: c.name || "", email: c.email || "", assignedOption: c.assignedOption || "" };
                 }
-                return { id: String(idx), name: "", email: String(c) };
+                return { id: String(idx), name: "", email: String(c), assignedOption: "" };
               });
               setEditCoordinators(coords);
 
@@ -1054,6 +1142,8 @@ export default function SubmissionsPage() {
               setEditConsentTemplates(selectedTrip.consentTemplates || []);
               setEditWhatsappLink(selectedTrip.whatsappLink || "");
               setEditQrCode(selectedTrip.qrCodeUrl || "");
+              setEditEmailsDisabled(selectedTrip.emailsDisabled || false);
+              setEditCityWhatsapp(selectedTrip.cityWhatsappSettings || {});
             }
             setActiveTab("edit-event");
           }}
@@ -1072,7 +1162,7 @@ export default function SubmissionsPage() {
           onClick={() => {
             setCreateName("");
             setCreateDesc("");
-            setCreateCoordinators([{ id: "c1", name: "", email: "" }]);
+            setCreateCoordinators([{ id: "c1", name: "", email: "", assignedOption: "" }]);
             setCreateSeats(30);
             setCreateFields([
               { id: "1", name: "Full Name", type: "short_text", allowEditIfPrefilled: false, sortOrder: 0 },
@@ -1081,6 +1171,8 @@ export default function SubmissionsPage() {
             ]);
             setCreateWhatsappLink("");
             setCreateQrCode("");
+            setCreateEmailsDisabled(false);
+            setCreateCityWhatsapp({});
             setActiveTab("create-event");
           }}
           className={`pb-2 text-sm font-bold border-b-2 transition flex items-center gap-1.5 ${
@@ -1461,11 +1553,23 @@ export default function SubmissionsPage() {
                 onChange={(e) => setEditSeats(Number(e.target.value))}
               />
             </div>
+            <div className="flex items-center gap-2 pt-2 sm:col-span-2">
+              <input
+                id="editEmailsDisabled"
+                type="checkbox"
+                checked={editEmailsDisabled}
+                onChange={(e) => setEditEmailsDisabled(e.target.checked)}
+                className="rounded border-zinc-300 text-indigo-900 focus:ring-indigo-900 cursor-pointer h-4 w-4"
+              />
+              <label htmlFor="editEmailsDisabled" className="text-sm font-bold text-zinc-700 cursor-pointer select-none">
+                ⛔ Disable Email Notifications (Do not send any automated emails for approvals or re-uploads)
+              </label>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group Joining Link</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Global WhatsApp Group Joining Link</label>
               <Input
                 type="url"
                 value={editWhatsappLink}
@@ -1474,7 +1578,7 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group QR Code (Image)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Global WhatsApp Group QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -1495,6 +1599,59 @@ export default function SubmissionsPage() {
               </div>
             </div>
           </div>
+
+          {/* Option-Specific WhatsApp Settings */}
+          {availableAssignedOptions.length > 0 && (
+            <div className="pt-4 border-t border-dashed space-y-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-[#6d432b] uppercase">Option/City Specific WhatsApp Settings</h4>
+                <p className="text-xs text-muted-foreground">Define different WhatsApp joining links and QR codes for different cities. Registrations matching these choices will receive their specific WhatsApp Link/QR code upon approval (falls back to global settings if empty).</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availableAssignedOptions.map((opt) => (
+                  <div key={opt} className="bg-zinc-50/50 p-4 rounded-xl border border-border space-y-3">
+                    <span className="text-xs font-black text-indigo-950 uppercase block border-b pb-1.5">📍 City / Option: {opt}</span>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">WhatsApp Link</label>
+                      <Input
+                        type="url"
+                        value={editCityWhatsapp[opt]?.whatsappLink || ""}
+                        onChange={(e) => setEditCityWhatsapp(prev => ({
+                          ...prev,
+                          [opt]: {
+                            ...(prev[opt] || { qrCodeUrl: "" }),
+                            whatsappLink: e.target.value,
+                          }
+                        }))}
+                        placeholder={`e.g. WhatsApp Link for ${opt}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase block">WhatsApp QR Code</label>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleCityQrCodeChange(e, opt, true)}
+                          className="cursor-pointer text-xs"
+                        />
+                        {editCityWhatsapp[opt]?.qrCodeUrl && (
+                          <a
+                            href={getDocumentUrl(editCityWhatsapp[opt].qrCodeUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-indigo-900 underline shrink-0"
+                          >
+                            View QR ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pt-4 border-t border-dashed space-y-4">
             <div className="space-y-4">
@@ -1616,6 +1773,20 @@ export default function SubmissionsPage() {
                       value={c.email}
                       onChange={(e) => updateEditCoordinator(c.id, "email", e.target.value)}
                     />
+                  </div>
+                  <div className="w-56">
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={c.assignedOption || ""}
+                      onChange={(e) => updateEditCoordinator(c.id, "assignedOption", e.target.value)}
+                    >
+                      <option value="">All Cities / Options</option>
+                      {availableAssignedOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   {editCoordinators.length > 1 && (
                     <Button
@@ -1853,11 +2024,23 @@ export default function SubmissionsPage() {
                 onChange={(e) => setCreateSeats(Number(e.target.value))}
               />
             </div>
+            <div className="flex items-center gap-2 pt-2 sm:col-span-2">
+              <input
+                id="createEmailsDisabled"
+                type="checkbox"
+                checked={createEmailsDisabled}
+                onChange={(e) => setCreateEmailsDisabled(e.target.checked)}
+                className="rounded border-zinc-300 text-indigo-900 focus:ring-indigo-900 cursor-pointer h-4 w-4"
+              />
+              <label htmlFor="createEmailsDisabled" className="text-sm font-bold text-zinc-700 cursor-pointer select-none">
+                ⛔ Disable Email Notifications (Do not send any automated emails for approvals or re-uploads)
+              </label>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-dashed">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group Joining Link</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Global WhatsApp Group Joining Link</label>
               <Input
                 type="url"
                 value={createWhatsappLink}
@@ -1866,7 +2049,7 @@ export default function SubmissionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground uppercase">WhatsApp Group QR Code (Image)</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase">Global WhatsApp Group QR Code (Image)</label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -1887,6 +2070,59 @@ export default function SubmissionsPage() {
               </div>
             </div>
           </div>
+
+          {/* Option-Specific WhatsApp Settings */}
+          {createAvailableAssignedOptions.length > 0 && (
+            <div className="pt-4 border-t border-dashed space-y-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-[#6d432b] uppercase">Option/City Specific WhatsApp Settings</h4>
+                <p className="text-xs text-muted-foreground">Define different WhatsApp joining links and QR codes for different cities. Registrations matching these choices will receive their specific WhatsApp Link/QR code upon approval (falls back to global settings if empty).</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {createAvailableAssignedOptions.map((opt) => (
+                  <div key={opt} className="bg-zinc-50/50 p-4 rounded-xl border border-border space-y-3">
+                    <span className="text-xs font-black text-indigo-950 uppercase block border-b pb-1.5">📍 City / Option: {opt}</span>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">WhatsApp Link</label>
+                      <Input
+                        type="url"
+                        value={createCityWhatsapp[opt]?.whatsappLink || ""}
+                        onChange={(e) => setCreateCityWhatsapp(prev => ({
+                          ...prev,
+                          [opt]: {
+                            ...(prev[opt] || { qrCodeUrl: "" }),
+                            whatsappLink: e.target.value,
+                          }
+                        }))}
+                        placeholder={`e.g. WhatsApp Link for ${opt}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase block">WhatsApp QR Code</label>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleCityQrCodeChange(e, opt, false)}
+                          className="cursor-pointer text-xs"
+                        />
+                        {createCityWhatsapp[opt]?.qrCodeUrl && (
+                          <a
+                            href={getDocumentUrl(createCityWhatsapp[opt].qrCodeUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-indigo-900 underline shrink-0"
+                          >
+                            View QR ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pt-4 border-t border-dashed space-y-4">
             <div className="space-y-4">
@@ -2008,6 +2244,20 @@ export default function SubmissionsPage() {
                       value={c.email}
                       onChange={(e) => updateCreateCoordinator(c.id, "email", e.target.value)}
                     />
+                  </div>
+                  <div className="w-56">
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={c.assignedOption || ""}
+                      onChange={(e) => updateCreateCoordinator(c.id, "assignedOption", e.target.value)}
+                    >
+                      <option value="">All Cities / Options</option>
+                      {createAvailableAssignedOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   {createCoordinators.length > 1 && (
                     <Button

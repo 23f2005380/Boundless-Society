@@ -125,12 +125,42 @@ export async function GET(req) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
+    // Determine if the request is from a coordinator with a specific option assignment
+    let assignedOption = null;
+    const session = await getServerSession();
+    if (!session) {
+      let token = searchParams.get("token");
+      if (token) {
+        try {
+          const decoded = await adminAuth.verifyIdToken(token);
+          const email = decoded.email;
+          if (email) {
+            const tripSnap = await getDoc(doc(db, "trips", tripId));
+            if (tripSnap.exists()) {
+              const tripData = tripSnap.data();
+              const coordinator = (tripData.coordinators || []).find((c) => {
+                if (typeof c === "object" && c !== null) {
+                  return c.email?.toLowerCase() === email.toLowerCase();
+                }
+                return String(c).toLowerCase() === email.toLowerCase();
+              });
+              if (coordinator && typeof coordinator === "object" && coordinator.assignedOption) {
+                assignedOption = coordinator.assignedOption.trim().toLowerCase();
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error decoding token for assigned option check:", e);
+        }
+      }
+    }
+
     const q = query(
       collection(db, "user-registrations"),
       where("tripId", "==", tripId)
     );
     const snapshot = await getDocs(q);
-    const registrations = snapshot.docs.map((doc) => {
+    let registrations = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -152,6 +182,14 @@ export async function GET(req) {
         })),
       };
     });
+
+    if (assignedOption) {
+      registrations = registrations.filter((reg) => {
+        return Object.values(reg.formData || {}).some(
+          (val) => typeof val === "string" && val.trim().toLowerCase() === assignedOption
+        );
+      });
+    }
 
     // Sort in-memory by submittedAt desc
     registrations.sort((a, b) => {
@@ -191,6 +229,48 @@ export async function POST(req) {
     const authorized = await checkAuth(req, tripId);
     if (!authorized) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    // Check assignedOption restriction
+    const session = await getServerSession();
+    if (!session) {
+      let token = body.token;
+      if (!token) {
+        const { searchParams } = new URL(req.url);
+        token = searchParams.get("token");
+      }
+      if (token) {
+        try {
+          const decoded = await adminAuth.verifyIdToken(token);
+          const email = decoded.email;
+          if (email) {
+            const tripSnap = await getDoc(doc(db, "trips", tripId));
+            if (tripSnap.exists()) {
+              const tripData = tripSnap.data();
+              const coordinator = (tripData.coordinators || []).find((c) => {
+                if (typeof c === "object" && c !== null) {
+                  return c.email?.toLowerCase() === email.toLowerCase();
+                }
+                return String(c).toLowerCase() === email.toLowerCase();
+              });
+              if (coordinator && typeof coordinator === "object" && coordinator.assignedOption) {
+                const assignedOption = coordinator.assignedOption.trim().toLowerCase();
+                const matches = Object.values(regSnap.data().formData || {}).some(
+                  (val) => typeof val === "string" && val.trim().toLowerCase() === assignedOption
+                );
+                if (!matches) {
+                  return NextResponse.json(
+                    { error: "Unauthorized: Registration does not belong to your assigned option/city." },
+                    { status: 403 }
+                  );
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error verifying coordinator assigned option in POST:", e);
+        }
+      }
     }
 
     const updatePayload = {
@@ -326,22 +406,42 @@ export async function POST(req) {
         const tripSnap = await getDoc(tripDocRef);
         if (tripSnap.exists()) {
           const tripData = tripSnap.data();
-          const userEmail = regSnap.data().email;
-          const nameKey = Object.keys(regSnap.data().formData || {}).find(
-            (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
-          );
-          const userName = nameKey ? regSnap.data().formData[nameKey] : "Attendee";
-          const tripName = tripData.name || "Event";
-          const whatsappLink = tripData.whatsappLink || "";
-          const qrCodeUrl = tripData.qrCodeUrl || "";
+          if (tripData.emailsDisabled) {
+            console.log("Emails are disabled for this trip. Skipping approval email.");
+          } else {
+            const userEmail = regSnap.data().email;
+            const nameKey = Object.keys(regSnap.data().formData || {}).find(
+              (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
+            );
+            const userName = nameKey ? regSnap.data().formData[nameKey] : "Attendee";
+            const tripName = tripData.name || "Event";
 
-          try {
-            const emailResult = await sendApprovalEmail(userEmail, userName, tripName, whatsappLink, qrCodeUrl);
-            if (emailResult) {
-              updatePayload.status = "mail_sent";
+            // Resolve city/option specific WhatsApp Link & QR Code
+            let whatsappLink = tripData.whatsappLink || "";
+            let qrCodeUrl = tripData.qrCodeUrl || "";
+
+            const studentAnswers = Object.values(regSnap.data().formData || {});
+            const citySettings = tripData.cityWhatsappSettings || {};
+            for (const ans of studentAnswers) {
+              if (typeof ans === "string" && citySettings[ans]) {
+                if (citySettings[ans].whatsappLink) {
+                  whatsappLink = citySettings[ans].whatsappLink;
+                }
+                if (citySettings[ans].qrCodeUrl) {
+                  qrCodeUrl = citySettings[ans].qrCodeUrl;
+                }
+                break;
+              }
             }
-          } catch (emailErr) {
-            console.error("Failed to send Brevo email:", emailErr);
+
+            try {
+              const emailResult = await sendApprovalEmail(userEmail, userName, tripName, whatsappLink, qrCodeUrl);
+              if (emailResult) {
+                updatePayload.status = "mail_sent";
+              }
+            } catch (emailErr) {
+              console.error("Failed to send Brevo email:", emailErr);
+            }
           }
         }
       }
@@ -354,19 +454,23 @@ export async function POST(req) {
         const tripSnap2 = await getDoc(tripDocRef2);
         if (tripSnap2.exists()) {
           const tripData2 = tripSnap2.data();
-          const userEmail2 = regSnap.data().email;
-          const nameKey2 = Object.keys(regSnap.data().formData || {}).find(
-            (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
-          );
-          const userName2 = nameKey2 ? regSnap.data().formData[nameKey2] : "Attendee";
-          await sendCorrectionRequestEmail(
-            userEmail2,
-            userName2,
-            tripData2.name || "Event",
-            issueText || "",
-            actionRequiredFields || [],
-            tripId
-          );
+          if (tripData2.emailsDisabled) {
+            console.log("Emails are disabled for this trip. Skipping correction request email.");
+          } else {
+            const userEmail2 = regSnap.data().email;
+            const nameKey2 = Object.keys(regSnap.data().formData || {}).find(
+              (k) => k.toLowerCase().includes("name") || k.toLowerCase().includes("fullname")
+            );
+            const userName2 = nameKey2 ? regSnap.data().formData[nameKey2] : "Attendee";
+            await sendCorrectionRequestEmail(
+              userEmail2,
+              userName2,
+              tripData2.name || "Event",
+              issueText || "",
+              actionRequiredFields || [],
+              tripId
+            );
+          }
         }
       } catch (emailErr) {
         console.error("Failed to send correction request email:", emailErr);
