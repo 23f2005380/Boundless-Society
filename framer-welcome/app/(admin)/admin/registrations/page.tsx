@@ -217,7 +217,7 @@ export default function SubmissionsPage() {
         setRegOpen(tripMatch.registrationOpen !== false);
         setPayOpen(tripMatch.paymentOpen !== false);
         setSeats(tripMatch.totalSeats || 30);
-        setGirlsQuota(tripMatch.predefinedGirlsThreshold || 10);
+        setGirlsQuota(typeof tripMatch.predefinedGirlsThreshold === "number" ? tripMatch.predefinedGirlsThreshold : 10);
       }
     } catch (err) {
       console.error(err);
