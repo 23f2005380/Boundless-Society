@@ -295,6 +295,8 @@ export async function GET(request) {
         fee: data.fee !== undefined ? Number(data.fee) : 500,
         whatsappLink: data.whatsappLink || "",
         qrCodeUrl: data.qrCodeUrl || "",
+        emailsDisabled: isAdmin ? (data.emailsDisabled || false) : false,
+        cityWhatsappSettings: isAdmin ? (data.cityWhatsappSettings || {}) : {},
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
