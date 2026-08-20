@@ -8,13 +8,13 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const menuItems = [
-    
+
     { label: "Upcoming Trips", href: "#upcoming-trips" },
     { label: "Our Gallery", href: "#gallery" },
     { label: "Previous Trips", href: "#previous-trips" },
     { label: "About Us", href: "#about" },
     { label: "City Meetups", href: "/city-meetups" },
- 
+
     { label: "Our Team", href: "/team-members" },
     { label: "Whatsapp groups", href: "/whatsapp-groups" },
     { label: "Verify Certificates", href: "/verify-certificates" }
@@ -38,12 +38,12 @@ export default function Header() {
     <header className="flex bg-transparent justify-between items-center p-4 md:p-6 relative z-10">
       <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
         <Image
-        src="/Logo Bound.png"
-        alt="Logo"
-        width={56}   // Tailwind w-14 → 56px
-        height={56}  // Tailwind h-14 → 56px
-        className="object-contain rounded-full"
-      />
+          src="/Logo Bound.png"
+          alt="Logo"
+          width={56}   // Tailwind w-14 → 56px
+          height={56}  // Tailwind h-14 → 56px
+          className="object-contain rounded-full"
+        />
       </div>
       <div className="relative">
         <button
