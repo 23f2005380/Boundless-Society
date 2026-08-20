@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useState } from "react"
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -36,15 +37,17 @@ export default function Header() {
 
   return (
     <header className="flex bg-transparent justify-between items-center p-4 md:p-6 relative z-10">
-      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <Image
-          src="/Logo Bound.png"
-          alt="Logo"
-          width={56}   // Tailwind w-14 → 56px
-          height={56}  // Tailwind h-14 → 56px
-          className="object-contain rounded-full"
-        />
-      </div>
+      <Link href="/">
+        <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center cursor-pointer">
+          <Image
+            src="/Logo Bound.png"
+            alt="Logo"
+            width={56}   // Tailwind w-14 → 56px
+            height={56}  // Tailwind h-14 → 56px
+            className="object-contain rounded-full"
+          />
+        </div>
+      </Link>
       <div className="relative">
         <button
           className="bg-[#3B001B] text-white border-none hover:bg-[#3B001B] px-6 py-2 rounded-2xl text-lg font-bold flex items-center transition"

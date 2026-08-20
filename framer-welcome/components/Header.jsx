@@ -145,15 +145,17 @@ export default function Header() {
         }`}
     >
       {/* Logo */}
-      <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center">
-        <Image
-          src="/Logo Bound.png"
-          alt="Logo"
-          width={56}   // Tailwind w-14 = 3.5rem = 56px
-          height={56}  // Tailwind h-14 = 56px
-          className="object-contain rounded-full"
-        />
-      </div>
+      <Link href="/">
+        <div className="w-15 h-15 bg-[#3B001B] rounded-full flex items-center justify-center cursor-pointer">
+          <Image
+            src="/Logo Bound.png"
+            alt="Logo"
+            width={56}   // Tailwind w-14 = 3.5rem = 56px
+            height={56}  // Tailwind h-14 = 56px
+            className="object-contain rounded-full"
+          />
+        </div>
+      </Link>
 
       {/* Menu Button */}
       <div className="relative z-[1000]">
