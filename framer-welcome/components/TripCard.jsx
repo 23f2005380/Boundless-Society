@@ -6,16 +6,23 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-export default function TripCard({ trip, onOpen }) {
+export default function TripCard({
+        trip,
+        onOpen = null,
+      }) {
   const [imgError, setImgError] = React.useState(false);
 
   // Validate and normalize image URL
+
   const getValidImageUrl = (url) => {
     if (!url) return "/placeholder.jpg";
+
     // If it's already a full URL, return it
     if (url.startsWith("http://") || url.startsWith("https://")) return url;
+
     // If it starts with /, it's a valid absolute path
     if (url.startsWith("/")) return url;
+
     // Otherwise, it's invalid - use placeholder
     return "/placeholder.jpg";
   };

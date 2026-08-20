@@ -42,17 +42,17 @@ export default function PreviousTrips() {
           }}
         ></div>
 
-        <div className="relative z-10 w-fit mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-4 pb-15 place-items-center">
-          {loading ? (
-            <div className="col-span-full text-center py-10">Loading...</div>
-          ) : trips.length > 0 ? (
-            trips.map((trip: any) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-10">No trips found.</div>
-          )}
-        </div>
+      <div className="relative z-10 w-full max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-4 pb-15 place-items-center">
+        {loading ? (
+          <div className="col-span-full text-center py-10">Loading...</div>
+        ) : trips.length > 0 ? (
+          trips.map((trip: any) => (
+            <TripCard key={trip.id} trip={trip} />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-10">No trips found.</div>
+        )}
+      </div>
       </div>
     </Section>
   );

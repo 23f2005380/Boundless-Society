@@ -71,6 +71,20 @@ function Prev() {
     fetchTrips();
   }, []);
 
+  const handleTripClick = (trip) => {
+    const hasContent =
+      trip.summary?.trim() ||
+      trip.feedback?.trim() ||
+      (trip.graphData && trip.graphData.length > 0);
+
+    if (hasContent) {
+      setSelectedTrip(trip);
+    } else if (trip.link) {
+      window.open(trip.link, "_blank", "noopener,noreferrer");
+    }
+    // if neither content nor link exists, just do nothing (or console.warn if you want to catch bad data)
+  };
+
   return (
     <>
       <Section
@@ -89,7 +103,7 @@ function Prev() {
               <TripCard 
                 key={trip.id} 
                 trip={trip} 
-                onOpen={(selected) => setSelectedTrip(selected)}
+                onOpen={handleTripClick} 
               />
             ))
           ) : (
@@ -104,6 +118,7 @@ function Prev() {
           </MainButton>
         </div>
       </Section>
+
 
       {/* Dynamic Summary Bottom Sheet */}
       <Sheet open={!!selectedTrip} onOpenChange={(open) => !open && setSelectedTrip(null)}>
