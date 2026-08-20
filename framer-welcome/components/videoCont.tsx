@@ -43,22 +43,33 @@ export default function VideoContainer() {
             overflow: "hidden",
           }}
         >
-          <iframe
-            ref={videoRef}
-            width="100%"
-            height="100%"
-            src="https://www.youtube.com/embed/6_TsbomItD0?autoplay=1&controls=0&loop=10&mute=1&modestbranding=1&showinfo=0&rel=0"
-            title="YouTube video player"
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
+          {/* Oversized iframe wrapper to push YouTube overlays outside the circle clip */}
+          <div
             style={{
-              borderRadius: "50%",
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: "150%",
+              height: "150%",
+              transform: "translate(-50%, -50%)",
+              pointerEvents: "none",
             }}
-          ></iframe>
+          >
+            <iframe
+              ref={videoRef}
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/6_TsbomItD0?autoplay=1&controls=0&loop=1&mute=1&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&enablejsapi=1&playlist=6_TsbomItD0"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+            ></iframe>
+          </div>
         </div>
       );
     } else {
