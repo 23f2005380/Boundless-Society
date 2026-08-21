@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Oswald, Pacifico, Nosifer } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
+import NavigationLoader from "@/components/NavigationLoader";
 
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
 const pacifico = Pacifico({ weight: "400", subsets: ["latin"], variable: "--font-pacifico" });
@@ -26,6 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         style={{ background: "#fffbea" }}
       >
         <LenisProvider>
+          <Suspense fallback={null}>
+            <NavigationLoader />
+          </Suspense>
           {children}
         </LenisProvider>
       </body>
